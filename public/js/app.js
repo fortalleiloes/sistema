@@ -39,25 +39,15 @@ window.formatCurrency = (value) => {
 };
 
 // State Management
-let currentFilter = 'agenteia'; // Inicia no Agente IA
-let currentVideoId = null;
-let unsubscribeComments = null; // Variável para armazenar a função de unsubscribe do listener de comentários
+let currentFilter = 'geral'; // Inicia em Geral
+
 
 // DOM Elements
 const menuItems = document.querySelectorAll('.menu-item');
 const comunidadeSection = document.getElementById('comunidadeSection');
-const videosSection = document.getElementById('videosSection');
-const videoDetailSection = document.getElementById('videoDetailSection');
 const postsContainer = document.getElementById('postsContainer');
-const videosContainer = document.getElementById('videosContainer');
-const backToVideos = document.getElementById('backToVideos');
-const commentForm = document.getElementById('commentForm');
-const commentsContainer = document.getElementById('commentsContainer');
+
 const adminOnlyFooter = document.getElementById('adminOnlyFooter');
-const iaChatForm = document.getElementById('iaChatForm');
-const iaMessageForm = document.getElementById('iaMessageForm');
-const iaMessageInput = document.getElementById('iaMessageInput');
-const iaImageUpload = document.getElementById('iaImageUpload');
 const communityTitle = document.getElementById('communityTitle');
 const mainHeaderTitle = document.getElementById('mainHeaderTitle');
 const profileBtn = document.getElementById('profileBtn');
@@ -150,50 +140,20 @@ if (menuItems.length > 0) {
                 const clearBtn = document.getElementById('clearChatBtn');
 
                 // Lógica para mostrar/esconder formulários e botões
-                if (filter === 'agenteia') {
-                    if (communityTitle) communityTitle.textContent = 'Agente IA - Arremata!';
-                    if (adminOnlyFooter) adminOnlyFooter.classList.add('hidden');
-                    if (iaChatForm) iaChatForm.classList.remove('hidden');
-                    if (clearBtn) clearBtn.classList.remove('hidden');
+                if (filter === 'geral') {
+                    if (communityTitle) communityTitle.textContent = 'Comunidade - Arremata Todo Dia';
                 } else {
-                    if (filter === 'geral') {
-                        if (communityTitle) communityTitle.textContent = 'Comunidade - Arremata Todo Dia';
-                    } else {
-                        const span = item.querySelector('span:not(.w-8)');
-                        if (communityTitle && span) communityTitle.textContent = span.textContent;
-                    }
-                    if (adminOnlyFooter) adminOnlyFooter.classList.remove('hidden');
-                    if (iaChatForm) iaChatForm.classList.add('hidden');
-                    if (clearBtn) clearBtn.classList.add('hidden');
+                    const span = item.querySelector('span:not(.w-8)');
+                    if (communityTitle && span) communityTitle.textContent = span.textContent;
                 }
+                if (adminOnlyFooter) adminOnlyFooter.classList.remove('hidden');
                 loadPosts(filter);
-            } else if (section === 'videos' && videosSection) {
-                showSection('videos');
-                loadVideos();
             }
         });
     });
 }
 
-// Listener para o botão de limpar chat
-const clearChatBtn = document.getElementById('clearChatBtn');
-if (clearChatBtn) {
-    clearChatBtn.addEventListener('click', async () => {
-        if (confirm('Tem certeza que deseja apagar todo o histórico da conversa? Esta ação não pode ser desfeita.')) {
-            try {
-                const resp = await fetch('/chat/history', { method: 'DELETE' });
-                if (resp.ok) {
-                    loadPosts('agenteia'); // Recarrega (limpa) a tela
-                } else {
-                    alert('Erro ao limpar histórico.');
-                }
-            } catch (error) {
-                console.error('Erro ao limpar chat:', error);
-                alert('Erro de conexão.');
-            }
-        }
-    });
-}
+
 
 // Função para ativar um menu item programaticamente
 function activateMenuItem(filter) {
@@ -214,15 +174,9 @@ function handleHashChange() {
 // Show/Hide Sections
 function showSection(section) {
     if (comunidadeSection) comunidadeSection.classList.add('hidden');
-    if (videosSection) videosSection.classList.add('hidden');
-    if (videoDetailSection) videoDetailSection.classList.add('hidden');
 
     if (section === 'comunidade' && comunidadeSection) {
         comunidadeSection.classList.remove('hidden');
-    } else if (section === 'videos' && videosSection) {
-        videosSection.classList.remove('hidden');
-    } else if (section === 'videoDetail' && videoDetailSection) {
-        videoDetailSection.classList.remove('hidden');
     }
 }
 
@@ -243,9 +197,6 @@ const examplePosts = {
     ],
     materiais: [
         { author: appProfile.name, profilePic: appProfile.pic, content: "Dica do dia: Leilões de materiais de construção são uma ótima forma de economizar na sua reforma. Procure por leilões da Receita Federal.", createdAt: new Date() }
-    ],
-    agenteia: [
-        { author: "Agente IA", profilePic: appProfile.pic, content: "Olá! Eu sou o Agente IA do Arremata!. Como posso te ajudar hoje? Sinta-se à vontade para perguntar sobre editais, lances ou qualquer outra dúvida.", createdAt: new Date(), isAdmin: true }
     ]
 };
 
@@ -296,39 +247,6 @@ async function loadPosts(filter) {
 
     // If Firebase isn't configured, show the static example posts
     if (!FIREBASE_ENABLED) {
-        // For the IA feed, merge server-side chat_messages (when available) with local examples
-        if (filter === 'agenteia') {
-            try {
-                const emailParam = (document.getElementById('app-script')?.dataset.username) ? null : (new URLSearchParams(window.location.search).get('email') || null);
-                const qs = emailParam ? ('?email=' + encodeURIComponent(emailParam)) : '';
-                const resp = await fetch('/chat/messages' + qs);
-                if (resp.ok) {
-                    const serverMsgs = await resp.json();
-                    const merged = [];
-                    // start with examples
-                    if (examplePosts[filter]) merged.push(...examplePosts[filter]);
-                    // append server messages in chronological order
-                    for (const m of serverMsgs) {
-                        // user message
-                        merged.push({ author: m.email || 'Você', profilePic: '/images/perfil1.svg', content: m.message, createdAt: new Date(m.created_at), isAdmin: false });
-                        if (m.response) {
-                            merged.push({ author: 'Agente IA', profilePic: appProfile.pic, content: m.response, createdAt: new Date(m.responded_at || m.created_at), isAdmin: true });
-                        }
-                    }
-                    renderPosts(merged);
-                    return;
-                }
-            } catch (e) {
-                console.error('Erro buscando mensagens do servidor para IA feed:', e);
-            }
-            // fallback to static examples if server fetch fails
-            if (examplePosts[filter]) {
-                renderPosts(examplePosts[filter]);
-            } else {
-                postsContainer.innerHTML = `<div class="card rounded-xl p-8 text-center"><p class="text-[var(--text-secondary)]">Nenhum post encontrado nesta categoria.</p></div>`;
-            }
-            return;
-        }
         // Non-IA categories: show static examples
         if (examplePosts[filter]) {
             renderPosts(examplePosts[filter]);
@@ -385,280 +303,10 @@ async function loadPosts(filter) {
     });
 }
 
-// Chat IA Management
-if (iaMessageForm) {
-    const messagesArea = document.getElementById('messagesArea');
-    const typingIndicator = document.getElementById('typingIndicator');
-
-    // Auto-resize textarea
-    iaMessageInput.addEventListener('input', function () {
-        this.style.height = 'auto';
-        this.style.height = Math.min(this.scrollHeight, 128) + 'px'; // max-height: 128px
-    });
-
-    // Mostra indicador de "digitando..." e esconde após resposta
-    function showTypingIndicator() {
-        if (typingIndicator) {
-            typingIndicator.classList.remove('hidden');
-        }
-    }
-
-    function hideTypingIndicator() {
-        if (typingIndicator) {
-            typingIndicator.classList.add('hidden');
-        }
-    }
-
-    iaMessageForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const messageText = iaMessageInput.value.trim();
-        const imageFile = iaImageUpload.files[0];
-
-        if (!messageText && !imageFile) {
-            alert("Por favor, escreva uma mensagem ou selecione uma imagem.");
-            return;
-        }
-
-        // Reset textarea height
-        iaMessageInput.style.height = 'auto';
-
-        let imageUrl = null;
-        try {
-            // If Firebase is enabled, use Firestore + Storage as before
-            if (FIREBASE_ENABLED && db && storage) {
-                // Se houver imagem, faz o upload primeiro
-                if (imageFile) {
-                    const storageRef = ref(storage, `ia-chat-images/${Date.now()}_${imageFile.name}`);
-                    const snapshot = await uploadBytes(storageRef, imageFile);
-                    imageUrl = await getDownloadURL(snapshot.ref);
-                }
-
-                // Salva a mensagem no Firestore
-                await addDoc(collection(db, 'posts'), {
-                    category: 'agenteia',
-                    content: messageText,
-                    imageUrl: imageUrl,
-                    createdAt: serverTimestamp(),
-                    isAdmin: false, // Mensagem do usuário
-                    author: "Você", // O autor da mensagem é sempre "Você" para o usuário logado
-                    profilePic: '/images/perfil1.svg' // Placeholder local
-                });
-
-                // Limpa o formulário
-                iaMessageForm.reset();
-            } else {
-                // If Firebase is disabled, send the message to our server chat endpoint which persists locally
-                const payload = { message: messageText };
-
-                // Mostra indicador de "digitando..."
-                showTypingIndicator();
-
-                try {
-                    const resp = await fetch('/chat/send', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-                    if (!resp.ok) {
-                        console.error('Erro ao enviar para /chat/send', resp.status);
-                        alert('Erro ao enviar a mensagem para o servidor. Veja o console para detalhes.');
-                        hideTypingIndicator();
-                    } else {
-                        iaMessageForm.reset();
-                        // reload posts from server so the authoritative list is shown (avoid optimistic duplication)
-                        await loadPosts('agenteia');
-
-                        // Aguarda um pouco para simular o agente "digitando"
-                        setTimeout(() => {
-                            hideTypingIndicator();
-                        }, 1500);
-                    }
-                } catch (err) {
-                    console.error('Falha ao conectar com /chat/send:', err);
-                    alert('Erro de conexão ao enviar mensagem.');
-                    hideTypingIndicator();
-                }
-            }
-
-        } catch (error) {
-            console.error("Erro ao enviar mensagem:", error);
-            alert("Ocorreu um erro ao enviar sua mensagem. Verifique o console para mais detalhes.");
-            hideTypingIndicator();
-        }
-    });
-}
 
 
-// --- Vídeo Aulas (Dados Estáticos) ---
-// PREENCHA AQUI com os dados das suas aulas
-const staticVideos = [
-    { id: 'aula01', title: 'Aula 1: Introdução aos Leilões', description: 'Aprenda os conceitos básicos e como começar no mundo dos leilões.', youtubeId: 'dQw4w9WgXcQ' },
-    { id: 'aula02', title: 'Aula 2: Tipos de Leilão', description: 'Descubra as diferenças entre leilões judiciais e extrajudiciais.', youtubeId: 'dQw4w9WgXcQ' },
-    { id: 'aula03', title: 'Aula 3: Análise de Edital', description: 'Saiba como ler e interpretar um edital de leilão para não cair em armadilhas.', youtubeId: 'dQw4w9WgXcQ' },
-    { id: 'aula04', title: 'Aula 4: Vistoria do Imóvel', description: 'A importância de visitar o imóvel e o que observar durante a vistoria.', youtubeId: 'dQw4w9WgXcQ' },
-    { id: 'aula05', title: 'Aula 5: Estratégias de Lance', description: 'Técnicas para dar lances de forma inteligente e aumentar suas chances.', youtubeId: 'dQw4w9WgXcQ' },
-    { id: 'aula06', title: 'Aula 6: Documentação Pós-Arremate', description: 'Passo a passo da documentação necessária após arrematar um bem.', youtubeId: 'dQw4w9WgXcQ' },
-    { id: 'aula07', title: 'Aula 7: Financiamento e Pagamento', description: 'Opções de pagamento e como financiar o seu imóvel de leilão.', youtubeId: 'dQw4w9WgXcQ' },
-    { id: 'aula08', title: 'Aula 8: Desocupação do Imóvel', description: 'Procedimentos legais e dicas para a desocupação de imóveis ocupados.', youtubeId: 'dQw4w9WgXcQ' },
-    { id: 'aula09', title: 'Aula 9: Leilões de Veículos', description: 'Particularidades e cuidados ao participar de leilões de carros e motos.', youtubeId: 'dQw4w9WgXcQ' },
-    { id: 'aula10', title: 'Aula 10: Riscos e Como Evitá-los', description: 'Conheça os principais riscos envolvidos e como se proteger.', youtubeId: 'dQw4w9WgXcQ' },
-    { id: 'aula11', title: 'Aula 11: Declarando no Imposto de Renda', description: 'Como declarar corretamente seu bem arrematado no Imposto de Renda.', youtubeId: 'dQw4w9WgXcQ' },
-];
 
-// Load Videos
-function loadVideos() {
-    if (!videosContainer) return; // Exit if container not found
 
-    videosContainer.innerHTML = '';
-
-    if (staticVideos.length === 0) {
-        videosContainer.innerHTML = `
-            <div class="col-span-full card rounded-xl p-8 text-center">
-                <p class="text-[var(--text-secondary)]">Nenhuma aula disponível ainda.</p>
-            </div>
-        `;
-        return;
-    }
-
-    staticVideos.forEach((video) => {
-        const videoElement = document.createElement('div');
-        videoElement.className = 'card rounded-xl p-4 flex flex-col';
-        videoElement.innerHTML = `
-            <div class="aspect-video bg-[var(--bg-interactive)] rounded-lg mb-4 bg-cover bg-center" style="background-image: url('https://img.youtube.com/vi/${video.youtubeId}/hqdefault.jpg');">
-                <div class="w-full h-full flex items-center justify-center bg-black/40 backdrop-blur-sm bg-opacity-20">
-                    <svg class="w-12 h-12 text-white/80" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"></path>
-                    </svg>
-                </div>
-            </div>
-            <div class="flex-grow">
-                <h3 class="text-lg font-semibold text-[var(--text-accent)] mb-2">${video.title}</h3>
-                <p class="text-[var(--text-secondary)] text-sm mb-4 line-clamp-3">${video.description}</p>
-            </div>
-            <button class="w-full mt-auto px-4 py-2 rounded-lg btn-primary text-blue-950 font-semibold">
-                Acessar Aula
-            </button>
-        `;
-
-        videoElement.querySelector('button').addEventListener('click', (e) => {
-            e.stopPropagation();
-            showVideoDetail(video.id, video);
-        });
-
-        videosContainer.appendChild(videoElement);
-    });
-}
-
-// Show Video Detail
-function showVideoDetail(videoId, video) {
-    if (!videoDetailSection) return; // Exit if section not found
-
-    currentVideoId = videoId;
-    // Desconecta o listener de comentários anterior, se houver
-    if (unsubscribeComments) {
-        unsubscribeComments();
-        unsubscribeComments = null;
-    }
-    showSection('videoDetail');
-
-    if (document.getElementById('videoDetailTitle')) document.getElementById('videoDetailTitle').textContent = video.title;
-    if (document.getElementById('videoDetailDescription')) document.getElementById('videoDetailDescription').textContent = video.description;
-    if (document.getElementById('videoPlayer')) {
-        document.getElementById('videoPlayer').innerHTML = `
-            <iframe 
-                src="https://www.youtube.com/embed/${video.youtubeId}" 
-                frameborder="0" 
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                allowfullscreen>
-            </iframe>
-        `;
-    }
-
-    loadComments(videoId);
-    window.scrollTo(0, 0);
-}
-
-// Back to Videos (only if backToVideos button exists)
-if (backToVideos) {
-    backToVideos.addEventListener('click', () => {
-        showSection('videos');
-        currentVideoId = null;
-        // Desconecta o listener de comentários ao sair da tela de detalhes
-        if (unsubscribeComments) {
-            unsubscribeComments();
-            unsubscribeComments = null;
-        }
-        if (document.getElementById('videoPlayer')) document.getElementById('videoPlayer').innerHTML = ''; // Stop video
-    });
-}
-
-// Comment Management (only if commentForm exists)
-if (commentForm) {
-    commentForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-
-        if (!currentVideoId) return;
-
-        const author = document.getElementById('commentAuthor').value;
-        const text = document.getElementById('commentText').value;
-
-        try {
-            await addDoc(collection(db, 'videos', currentVideoId, 'comments'), {
-                author,
-                text,
-                createdAt: serverTimestamp()
-            });
-
-            commentForm.reset();
-            alert('Comentário enviado com sucesso!');
-        } catch (error) {
-            console.error('Erro ao enviar comentário:', error);
-            alert('Erro ao enviar comentário.');
-        }
-    });
-}
-
-// Load Comments (only if commentsContainer exists)
-function loadComments(videoId) {
-    if (!commentsContainer) return; // Exit if container not found
-
-    const q = query(
-        collection(db, 'videos', videoId, 'comments'),
-        orderBy('createdAt', 'desc')
-    );
-
-    unsubscribeComments = onSnapshot(q, (snapshot) => { // Armazena a função de unsubscribe
-        commentsContainer.innerHTML = '';
-
-        if (snapshot.empty) {
-            commentsContainer.innerHTML = `
-                <p class="text-[var(--text-secondary)] text-center py-4">Nenhum comentário ainda. Seja o primeiro!</p>
-            `;
-            return;
-        }
-
-        snapshot.forEach((doc) => {
-            const comment = doc.data();
-            let date = 'Agora';
-            if (comment.createdAt) {
-                if (typeof comment.createdAt.toDate === 'function') {
-                    date = new Date(comment.createdAt.toDate()).toLocaleString('pt-BR', { timeStyle: 'short', dateStyle: 'short' });
-                } else {
-                    const d = new Date(comment.createdAt);
-                    date = !isNaN(d) ? d.toLocaleString('pt-BR', { timeStyle: 'short', dateStyle: 'short' }) : 'Agora';
-                }
-            }
-
-            const commentElement = document.createElement('div');
-            commentElement.className = 'bg-[var(--bg-interactive)]/50 rounded-lg p-4';
-            commentElement.innerHTML = `
-                <div class="flex justify-between items-start mb-2">
-                    <span class="font-semibold text-yellow-400">${comment.author}</span>
-                    <span class="text-sm text-slate-400">${date}</span>
-                </div>
-                <p class="text-slate-300 whitespace-pre-wrap">${comment.text}</p>
-            `;
-
-            commentsContainer.appendChild(commentElement);
-        });
-    });
-}
 
 // --- INICIALIZAÇÃO ---
 
@@ -667,7 +315,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Se estamos na página principal, inicializa a lógica da SPA
     if (comunidadeSection) {
         const initialHash = window.location.hash.substring(1);
-        activateMenuItem(initialHash || 'agenteia');
+        activateMenuItem(initialHash || 'geral');
     }
 
     // Ouve por mudanças no hash (caso o usuário use os botões de voltar/avançar do navegador)
@@ -675,10 +323,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 
-// Ensure comment form is visible on start (only if commentForm exists)
-if (commentForm && commentForm.parentElement) {
-    commentForm.parentElement.classList.remove('hidden');
-}
+
 
 // Service Worker Registration for PWA
 // Avoid blob-based ServiceWorker registration (can fail in some environments). Disable by default.

@@ -318,7 +318,6 @@ app.use((req, res, next) => {
     res.locals.email = req.session?.email || '';
     res.locals.profile_pic_url = req.session?.profile_pic_url || '';
     res.locals.isAdmin = req.session?.isAdmin || false;
-    res.locals.n8nWebhookUrl = process.env.N8N_WEBHOOK_URL || '';
     next();
 });
 
@@ -443,18 +442,7 @@ async function ensureTables() {
         descricao TEXT
     )`);
 
-    // 5. Tabela Chat Messages
-    await db.run(`CREATE TABLE IF NOT EXISTS chat_messages (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id INTEGER,
-        email TEXT,
-        message TEXT,
-        response TEXT,
-        status TEXT DEFAULT 'pending',
-        n8n_message_id TEXT,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        responded_at DATETIME
-    )`);
+
 
     // 6. Tabela Invites
     await db.run(`CREATE TABLE IF NOT EXISTS invites (
@@ -468,6 +456,51 @@ async function ensureTables() {
     )`);
 
     console.log('✅ Tabelas verificadas/criadas com sucesso.');
+
+    // --- MIGRATIONS ADICIONAIS (originadas de initializeDatabase) ---
+    // Garantir colunas na tabela arremates
+    try {
+        const arrematesInfo = await db.all("PRAGMA table_info(arremates)");
+        const arrematesColumns = arrematesInfo.map(c => c.name);
+        const calcColumns = [
+            'calc_valor_avaliacao', 'calc_custo_itbi', 'calc_custo_registro', 'calc_custo_leiloeiro',
+            'calc_custo_reforma', 'calc_outros_custos', 'calc_valor_venda', 'calc_custo_corretagem',
+            'calc_imposto_ganho_capital', 'calc_lucro_liquido', 'calc_roi_liquido'
+        ];
+
+        for (const colName of calcColumns) {
+            if (!arrematesColumns.includes(colName)) {
+                await db.exec(`ALTER TABLE arremates ADD COLUMN ${colName} REAL`);
+                console.log(`✅ Coluna "${colName}" adicionada à tabela de arremates.`);
+            }
+        }
+    } catch (e) {
+        console.error('Erro na migração de arremates:', e);
+    }
+
+    // Garantir colunas na tabela carteira_imoveis
+    try {
+        const carteiraInfo = await db.all("PRAGMA table_info(carteira_imoveis)");
+        const carteiraCols = carteiraInfo.map(c => c.name);
+        const newCols = [
+            { name: 'condominio_estimado', type: 'REAL DEFAULT 0' },
+            { name: 'iptu_estimado', type: 'REAL DEFAULT 0' },
+            { name: 'observacoes', type: 'TEXT' },
+            { name: 'created_at', type: 'DATETIME DEFAULT CURRENT_TIMESTAMP' }
+        ];
+
+        for (const col of newCols) {
+            if (!carteiraCols.includes(col.name)) {
+                await db.exec(`ALTER TABLE carteira_imoveis ADD COLUMN ${col.name} ${col.type}`);
+                console.log(`✅ Coluna "${col.name}" adicionada à tabela carteira_imoveis.`);
+            }
+        }
+    } catch (e) {
+        console.error('Erro na migração de carteira_imoveis (extra):', e);
+    }
+
+    // Limpeza de tabelas antigas
+    await db.exec('DROP TABLE IF EXISTS carteira_entries');
 }
 
 await ensureTables();
@@ -499,10 +532,7 @@ async function createIndexes() {
         await db.run('CREATE INDEX IF NOT EXISTS idx_saved_calculations_user_id ON saved_calculations(user_id)');
         await db.run('CREATE INDEX IF NOT EXISTS idx_saved_calculations_created ON saved_calculations(created_at DESC)');
 
-        // Índices para chat
-        await db.run('CREATE INDEX IF NOT EXISTS idx_chat_messages_user_id ON chat_messages(user_id)');
-        await db.run('CREATE INDEX IF NOT EXISTS idx_chat_messages_email ON chat_messages(email)');
-        await db.run('CREATE INDEX IF NOT EXISTS idx_chat_messages_status ON chat_messages(status)');
+
 
         // Índices para invites
         await db.run('CREATE INDEX IF NOT EXISTS idx_invites_token ON invites(token)');
@@ -636,18 +666,11 @@ app.post('/admin/invites', isAuthenticated, async (req, res) => {
 
         const inviteUrl = `${req.protocol}://${req.get('host')}/invite/accept?token=${token}`;
 
-        // Envia para n8n webhook para disparar e-mail, se configurado
-        if (process.env.N8N_WEBHOOK_URL) {
-            try {
-                await fetch(process.env.N8N_WEBHOOK_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ to: email, subject: 'Convite para criar acesso', inviteUrl })
-                });
-            } catch (err) {
-                console.error('Erro ao chamar webhook N8N:', err);
-            }
-        }
+
+
+
+        // (Integração n8n removida)
+
 
         res.redirect('/admin/invites');
     } catch (err) {
@@ -720,212 +743,8 @@ app.post('/invite/accept', async (req, res) => {
 });
 
 // -----------------------
-// Rotas do Chat / Integração com n8n
+// Rotas do Chat / Integração com n8n - REMOVIDAS
 // -----------------------
-
-// Página do chat (lead pode usar para tirar dúvidas)
-app.get('/chat', (req, res) => {
-    // Se não estiver logado, ainda permitimos chat, mas pedimos email no cliente
-    res.render('chat', { userEmail: req.session?.email || '' });
-});
-
-// Envia mensagem ao n8n (dispara workflow que processa com Gemini e responde via webhook)
-
-app.post('/chat/send', async (req, res) => {
-    try {
-        const { message, email: bodyEmail, response: providedResponse, _skip_n8n } = req.body;
-        if (!message) return res.status(400).json({ error: 'message required' });
-
-        const email = (req.session?.email) || (bodyEmail || null);
-        const skipN8n = (req.headers['x-skip-n8n'] === '1') || !!_skip_n8n;
-
-        console.log('[chat/send] recebendo pedido. email:', email, 'message:', message.substring(0, 200), 'skipN8n=', skipN8n);
-
-        // If the client provided a response (e.g., client called n8n synchronously) or asked to skip server forwarding,
-        // persist both message and response and mark done (or pending if no response provided).
-        if (providedResponse || skipN8n) {
-            const result = await db.run('INSERT INTO chat_messages (user_id, email, message, response, status) VALUES (?, ?, ?, ?, ?)', [req.session?.userId || null, email, message, providedResponse || null, providedResponse ? 'done' : 'pending']);
-            const messageId = result.lastID || result.stmt?.lastID;
-            return res.json({ ok: true, messageId, skippedN8n: true });
-        }
-
-        // Default behavior: persist message and forward to N8N asynchronously (callback to /webhook/n8n-reply)
-        const result = await db.run('INSERT INTO chat_messages (user_id, email, message, status) VALUES (?, ?, ?, ?)', [req.session?.userId || null, email, message, 'pending']);
-        const messageId = result.lastID || result.stmt?.lastID;
-
-        const replyUrl = `${req.protocol}://${req.get('host')}/webhook/n8n-reply`;
-        const payload = { message, email, message_id: messageId, reply_url: replyUrl };
-
-        let webhookStatus = null;
-        let webhookText = null;
-        if (!process.env.N8N_WEBHOOK_URL) {
-            console.warn('[chat/send] N8N_WEBHOOK_URL não configurado; não foi possível enviar ao n8n');
-        } else {
-            try {
-                const resp = await fetch(process.env.N8N_WEBHOOK_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'x-reply-secret': process.env.N8N_REPLY_SECRET || ''
-                    },
-                    body: JSON.stringify(payload)
-                });
-                webhookStatus = resp.status;
-                try { webhookText = await resp.text(); } catch (e) { webhookText = null; }
-                console.log('[chat/send] webhook enviado. status=', webhookStatus, 'body=', webhookText);
-
-                // Se o n8n respondeu com sucesso (200) e tem corpo, tentamos extrair a resposta imediatamente
-                if (webhookStatus === 200 && webhookText) {
-                    try {
-                        const jsonResp = JSON.parse(webhookText);
-                        let rawResponse = jsonResp.response || jsonResp.output || jsonResp.text || jsonResp.answer || jsonResp.content || jsonResp.result;
-                        let responseText = null;
-
-                        if (typeof rawResponse === 'string') {
-                            responseText = rawResponse;
-                        } else if (rawResponse && typeof rawResponse === 'object') {
-                            if (Array.isArray(rawResponse.choices) && rawResponse.choices[0]) {
-                                responseText = rawResponse.choices[0].text || rawResponse.choices[0].message?.content || null;
-                            } else if (rawResponse.output_text) {
-                                responseText = rawResponse.output_text;
-                            } else if (rawResponse.output) {
-                                responseText = typeof rawResponse.output === 'string' ? rawResponse.output : JSON.stringify(rawResponse.output);
-                            } else if (rawResponse.text) {
-                                responseText = typeof rawResponse.text === 'string' ? rawResponse.text : JSON.stringify(rawResponse.text);
-                            } else if (rawResponse.content && typeof rawResponse.content === 'string') {
-                                responseText = rawResponse.content;
-                            } else if (rawResponse.message && rawResponse.message.content) {
-                                if (Array.isArray(rawResponse.message.content)) {
-                                    responseText = rawResponse.message.content.map(c => c.text || c).join('\n');
-                                } else if (typeof rawResponse.message.content === 'string') {
-                                    responseText = rawResponse.message.content;
-                                }
-                            } else {
-                                try { responseText = JSON.stringify(rawResponse); } catch (e) { responseText = String(rawResponse); }
-                            }
-                        }
-
-                        if (responseText) {
-                            await db.run(
-                                `UPDATE chat_messages SET response = ?, responded_at = CURRENT_TIMESTAMP, status = 'done' WHERE id = ?`,
-                                [responseText, messageId]
-                            );
-                            console.log('[chat/send] Resposta síncrona processada e salva.');
-                        }
-                    } catch (e) {
-                        console.error('[chat/send] Erro ao processar resposta síncrona:', e);
-                    }
-                }
-
-                res.json({ status: 'sent', messageId });
-            } catch (err) {
-                console.error('[chat/send] Erro ao chamar webhook N8N (chat):', err);
-                res.json({ status: 'sent_with_error', error: String(err) });
-            }
-        }
-    } catch (error) {
-        console.error('Erro no endpoint /chat/send:', error);
-        res.status(500).json({ error: 'Erro interno' });
-    }
-});
-
-// Rota para limpar histórico de chat
-app.delete('/chat/history', isAuthenticated, async (req, res) => {
-    try {
-        await db.run('DELETE FROM chat_messages WHERE user_id = ?', [req.session.userId]);
-        res.json({ success: true });
-    } catch (error) {
-        console.error('Erro ao limpar histórico:', error);
-        res.status(500).json({ error: 'Erro ao limpar histórico' });
-    }
-});
-
-// Endpoint que n8n deve chamar para enviar a resposta do agente
-app.post('/webhook/n8n-reply', express.json(), async (req, res) => {
-    try {
-        // Secret básico para evitar chamadas indevidas
-        const incomingSecret = req.headers['x-reply-secret'] || req.body?.reply_secret || '';
-        if (process.env.N8N_REPLY_SECRET && incomingSecret !== process.env.N8N_REPLY_SECRET) {
-            console.warn('Webhook reply rejected: invalid secret');
-            return res.status(403).send('Forbidden');
-        }
-
-        const { message_id, response, n8n_id } = req.body;
-        if (!message_id) return res.status(400).send('message_id required');
-
-        // Tenta encontrar o conteúdo da resposta em vários lugares
-        let rawResponse = req.body.response || req.body.output || req.body.text || req.body.answer || req.body.content || req.body.result;
-
-        let responseText = null;
-        if (typeof rawResponse === 'string') {
-            responseText = rawResponse;
-        } else if (rawResponse && typeof rawResponse === 'object') {
-            // common shapes: { choices: [{ text }] } or { content: { text: '...' } } or { message: { content: [{ type: 'text', text: '...' }] } }
-            if (Array.isArray(rawResponse.choices) && rawResponse.choices[0]) {
-                responseText = rawResponse.choices[0].text || rawResponse.choices[0].message?.content || null;
-            } else if (rawResponse.output_text) {
-                responseText = rawResponse.output_text;
-            } else if (rawResponse.output) {
-                responseText = typeof rawResponse.output === 'string' ? rawResponse.output : JSON.stringify(rawResponse.output);
-            } else if (rawResponse.text) {
-                responseText = typeof rawResponse.text === 'string' ? rawResponse.text : JSON.stringify(rawResponse.text);
-            } else if (rawResponse.content && typeof rawResponse.content === 'string') {
-                responseText = rawResponse.content;
-            } else if (rawResponse.message && rawResponse.message.content) {
-                // content might be array
-                if (Array.isArray(rawResponse.message.content)) {
-                    responseText = rawResponse.message.content.map(c => c.text || c).join('\n');
-                } else if (typeof rawResponse.message.content === 'string') {
-                    responseText = rawResponse.message.content;
-                }
-            } else {
-                // fallback - stringify
-                try { responseText = JSON.stringify(rawResponse); } catch (e) { responseText = String(rawResponse); }
-            }
-        }
-
-        // Se responseText ainda for null, mas recebemos algo, forçamos stringify do body inteiro (exceto message_id/n8n_id) para debug
-        if (!responseText && !rawResponse && Object.keys(req.body).length > 2) {
-            const { message_id, n8n_id, ...rest } = req.body;
-            try { responseText = JSON.stringify(rest); } catch (e) { }
-        }
-
-        await db.run('UPDATE chat_messages SET response = ?, status = ?, n8n_message_id = ?, responded_at = ? WHERE id = ?', [responseText || null, 'done', n8n_id || null, new Date().toISOString(), message_id]);
-
-        console.log('[webhook/n8n-reply] updated message', message_id, 'n8n_id=', n8n_id);
-
-        return res.json({ ok: true });
-    } catch (err) {
-        console.error('Erro em webhook/n8n-reply:', err);
-        return res.status(500).send('server error');
-    }
-});
-
-// API para o cliente buscar mensagens (do usuário atual ou por email se não logado)
-app.get('/chat/messages', async (req, res) => {
-    try {
-        const email = req.session?.email || req.query.email || null;
-        const userId = req.session?.userId || null;
-
-        let messages = [];
-        console.log('[chat/messages] fetch requested. userId=', userId, 'email=', email);
-        if (userId) {
-            messages = await db.all('SELECT * FROM chat_messages WHERE user_id = ? ORDER BY id ASC LIMIT 200', [userId]);
-        } else if (email) {
-            messages = await db.all('SELECT * FROM chat_messages WHERE email = ? ORDER BY id ASC LIMIT 200', [email]);
-        } else {
-            // sem identificação, retorna últimas 50 mensagens públicas (ou vazias)
-            messages = await db.all('SELECT * FROM chat_messages ORDER BY id DESC LIMIT 50');
-            messages = messages.reverse();
-        }
-        console.log('[chat/messages] returning', messages.length, 'messages');
-
-        return res.json(messages);
-    } catch (err) {
-        console.error('Erro em /chat/messages:', err);
-        return res.status(500).json({ error: 'server error' });
-    }
-});
 
 // Endpoint que cria sessão local a partir do access_token do Supabase (POST JSON { access_token })
 app.post('/session', authLimiter, async (req, res) => {
@@ -2587,119 +2406,11 @@ app.use((err, req, res, next) => {
     res.status(500).send('Ocorreu um erro inesperado no servidor.');
 });
 
-// Função para inicializar o banco de dados
-async function initializeDatabase() {
-    // users table handled by ensureUsersTableAndColumns() earlier; do not recreate here.
-    // Cria tabela de convites (invitations) para fluxos de convite
-    await db.exec(`
-        CREATE TABLE IF NOT EXISTS invites(
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            email TEXT NOT NULL,
-            token TEXT NOT NULL UNIQUE,
-            created_by INTEGER,
-            used INTEGER DEFAULT 0,
-            expires_at DATETIME,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-        )
-            `);
-    await db.exec(`
-        CREATE TABLE IF NOT EXISTS arremates(
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER NOT NULL,
-                descricao_imovel TEXT NOT NULL,
-                endereco TEXT,
-                data_arremate DATE NOT NULL,
-                valor_arremate REAL NOT NULL,
-                leiloeiro TEXT,
-                edital TEXT,
-                calc_valor_avaliacao REAL,
-                calc_custo_itbi REAL,
-                calc_custo_registro REAL,
-                calc_custo_leiloeiro REAL,
-                calc_custo_reforma REAL,
-                calc_outros_custos REAL,
-                calc_valor_venda REAL,
-                calc_custo_corretagem REAL,
-                calc_imposto_ganho_capital REAL,
-                calc_lucro_liquido REAL,
-                calc_roi_liquido REAL,
-                FOREIGN KEY(user_id) REFERENCES users(id)
-            )
-            `);
-    await db.exec(`
-        CREATE TABLE IF NOT EXISTS saved_calculations(
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER NOT NULL,
-                name TEXT NOT NULL,
-                data TEXT NOT NULL, --Armazena os dados do formulário como JSON
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY(user_id) REFERENCES users(id)
-        )
-    `);
-
-    // Adiciona a coluna profile_pic_url se ela não existir (para migração)
-    try {
-        const columns = await db.all("PRAGMA table_info(users)");
-        if (!columns.some(col => col.name === 'profile_pic_url')) {
-            await db.exec('ALTER TABLE users ADD COLUMN profile_pic_url TEXT');
-            console.log('Coluna "profile_pic_url" adicionada à tabela de usuários.');
-        }
-
-        // Adiciona colunas de cálculo na tabela arremates se não existirem
-        const arrematesColumns = await db.all("PRAGMA table_info(arremates)");
-        const calcColumns = [
-            'calc_valor_avaliacao', 'calc_custo_itbi', 'calc_custo_registro', 'calc_custo_leiloeiro',
-            'calc_custo_reforma', 'calc_outros_custos', 'calc_valor_venda', 'calc_custo_corretagem',
-            'calc_imposto_ganho_capital', 'calc_lucro_liquido', 'calc_roi_liquido'
-        ];
-
-        for (const colName of calcColumns) {
-            if (!arrematesColumns.some(col => col.name === colName)) {
-                await db.exec(`ALTER TABLE arremates ADD COLUMN ${colName} REAL`);
-                console.log(`Coluna "${colName}" adicionada à tabela de arremates.`);
-            }
-        }
-    } catch (e) { /* Ignora o erro se a coluna já existir */ }
-
-    // Migração: Adicionar colunas de estimativa na carteira_imoveis se não existirem
-    try {
-        const carteiraCols = await db.all("PRAGMA table_info(carteira_imoveis)");
-        const newCols = ['condominio_estimado', 'iptu_estimado', 'observacoes'];
-        for (const colName of newCols) {
-            if (!carteiraCols.some(col => col.name === colName)) {
-                let type = colName === 'observacoes' ? 'TEXT' : 'REAL DEFAULT 0';
-                await db.exec(`ALTER TABLE carteira_imoveis ADD COLUMN ${colName} ${type} `);
-                console.log(`Coluna "${colName}" adicionada à tabela carteira_imoveis.`);
-            }
-        }
-    } catch (e) { console.error('Erro na migração da carteira:', e); }
-
-    // Cria tabela para armazenar mensagens de chat
-    await db.exec(`
-        CREATE TABLE IF NOT EXISTS chat_messages(
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER,
-                email TEXT,
-                message TEXT NOT NULL,
-                response TEXT,
-                status TEXT DEFAULT 'pending',
-                n8n_message_id TEXT,
-                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-                responded_at DATETIME
-            )
-    `);
-
-    // --- NOVAS TABELAS DA CARTEIRA ---
-    await db.exec(`DROP TABLE IF EXISTS carteira_entries`); // Remove a tabela antiga
-    await db.exec(`CREATE TABLE IF NOT EXISTS carteira_imoveis(id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, descricao TEXT NOT NULL, endereco TEXT, status TEXT DEFAULT 'Em Análise', valor_compra REAL DEFAULT 0, valor_venda_estimado REAL DEFAULT 0, data_aquisicao DATE, condominio_estimado REAL DEFAULT 0, iptu_estimado REAL DEFAULT 0, observacoes TEXT, created_at DATETIME DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY(user_id) REFERENCES users(id))`);
-    await db.exec(`CREATE TABLE IF NOT EXISTS carteira_custos(id INTEGER PRIMARY KEY AUTOINCREMENT, imovel_id INTEGER NOT NULL, user_id INTEGER NOT NULL, tipo_custo TEXT NOT NULL, descricao TEXT, valor REAL NOT NULL, data_custo DATE, created_at DATETIME DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY(imovel_id) REFERENCES carteira_imoveis(id) ON DELETE CASCADE, FOREIGN KEY(user_id) REFERENCES users(id))`);
-    console.log('Tabelas da nova Carteira/Portfólio inicializadas.');
-}
-
 // --- Inicialização do Servidor ---
 (async () => {
-    await initializeDatabase();
-    app.listen(PORT, () => {
+    // ensureTables runs via top-level await at line 473
+
+    app.listen(PORT, '0.0.0.0', () => {
         console.log(`Servidor rodando em http://localhost:${PORT}`);
     });
 })();

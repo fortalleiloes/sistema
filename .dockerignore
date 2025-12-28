@@ -7,3 +7,6 @@ yarn-error.log*
 .env
 dist
 coverage
+db/*.sqlite
+*.db
+*.sqlite

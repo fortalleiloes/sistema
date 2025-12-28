@@ -1,0 +1,1689 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <title>Gerador de Proposta - Fortal</title>
+    <%- include('partials/head') %>
+        <%- include('partials/head') %>
+            <link rel="preconnect" href="https://fonts.googleapis.com">
+            <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+            <link
+                href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Merriweather:ital,wght@0,300;0,700;1,300&display=swap"
+                rel="stylesheet">
+            <style>
+                /* PREMIUM PDF DESIGN SYSTEM (Da Vinci 2.0) */
+                /* FORCE SITE FONT GLOBAL OVERRIDE */
+                :root {
+                    --font-primary: var(--macos-font-system);
+                }
+
+                body,
+                .font-serif,
+                .pdf-serif,
+                .font-sans,
+                .pdf-sans,
+                p,
+                div,
+                span,
+                strong,
+                b {
+                    font-family: var(--macos-font-system) !important;
+                    letter-spacing: -0.02em;
+                }
+
+                h1,
+                h2,
+                h3,
+                h4,
+                h5,
+                h6 {
+                    font-family: var(--macos-font-heading) !important;
+                }
+
+                /* Base PDF Font Settings */
+                .pdf-sans {
+                    font-family: var(--macos-font-system) !important;
+                }
+
+                .pdf-serif {
+                    font-family: var(--macos-font-heading) !important;
+                }
+
+                /* Screen Only Styles */
+                .page-container {
+                    max-width: 1200px;
+                    margin: 0 auto;
+                    padding: 24px;
+                }
+
+                .step-card {
+                    background: white;
+                    border-radius: 12px;
+                    padding: 24px;
+                    margin-bottom: 24px;
+                    border: 1px solid #e5e7eb;
+                    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+                }
+
+                .step-header {
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                    margin-bottom: 20px;
+                    border-bottom: 1px solid #f3f4f6;
+                    padding-bottom: 12px;
+                }
+
+                .step-number {
+                    background: #FFD60A;
+                    color: #000000;
+                    width: 32px;
+                    height: 32px;
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-weight: 800;
+                    flex-shrink: 0;
+                }
+
+                .step-title {
+                    font-size: 1.1rem;
+                    font-weight: 600;
+                    color: #1f2937;
+                    margin: 0;
+                    line-height: 1.2;
+                }
+
+                /* Dark Mode Overrides */
+                html.dark .step-card {
+                    background: #1f2937;
+                    border-color: #374151;
+                }
+
+                html.dark .step-title {
+                    color: #ffffff;
+                }
+
+                html.dark .step-header {
+                    border-bottom-color: #374151;
+                }
+
+                html.dark input[type="text"],
+                html.dark input[type="number"],
+                html.dark select {
+                    background-color: #374151;
+                    border-color: #4b5563;
+                    color: white;
+                }
+
+                html.dark input::placeholder {
+                    color: #9ca3af;
+                }
+
+                html.dark label,
+                html.dark .text-gray-600,
+                html.dark .text-gray-700 {
+                    color: #d1d5db !important;
+                }
+
+                html.dark .bg-blue-50 {
+                    background-color: rgba(30, 58, 138, 0.2);
+                }
+
+                html.dark .border-blue-100 {
+                    border-color: #1e40af;
+                }
+
+                html.dark .text-blue-900 {
+                    color: #dbeafe;
+                }
+
+                html.dark .hover\:bg-gray-50:hover {
+                    background-color: #374151;
+                }
+
+                /* PRINT & PDF STYLES */
+                @media print {
+                    @page {
+                        margin: 0;
+                        size: auto;
+                    }
+
+                    html,
+                    body {
+                        margin: 0 !important;
+                        padding: 0 !important;
+                        background: white !important;
+                        color: #111 !important;
+                        width: 100%;
+                        height: 100%;
+                        -webkit-print-color-adjust: exact;
+                        print-color-adjust: exact;
+                        font-family: 'Inter', sans-serif;
+                    }
+
+                    /* Hide UI */
+                    .macos-toolbar,
+                    .macos-sidebar,
+                    header,
+                    aside,
+                    .no-print,
+                    .page-container {
+                        display: none !important;
+                    }
+
+                    /* Reset Main */
+                    .macos-main-content,
+                    main {
+                        display: block !important;
+                        margin: 0 !important;
+                        padding: 0 !important;
+                        position: static !important;
+                        overflow: visible !important;
+                    }
+
+                    /* PDF Content Wrapper */
+                    #pdf-content {
+                        display: block !important;
+                        visibility: visible !important;
+                        position: absolute !important;
+                        left: 0 !important;
+                        top: 0 !important;
+                        width: 100% !important;
+                        background: white !important;
+                        z-index: 9999;
+                    }
+
+                    /* Core Layout Classes */
+                    .page-break-after-always {
+                        page-break-after: always;
+                        break-after: page;
+                        break-inside: avoid;
+                        display: block;
+                        position: relative;
+                        width: 210mm;
+                        min-height: 297mm;
+                        padding: 40px;
+                        margin: 0 auto;
+                        box-sizing: border-box;
+                        background-color: white;
+                        /* Ensure white bg */
+                    }
+
+                    .force-print-bg {
+                        -webkit-print-color-adjust: exact !important;
+                        print-color-adjust: exact !important;
+                        background-repeat: repeat !important;
+                        z-index: 0 !important;
+                    }
+
+                    /* Typography */
+                    .brand-title {
+                        font-family: 'Playfair Display', serif;
+                        font-weight: 700;
+                        color: #000;
+                    }
+
+                    /* Design Components */
+                    .brand-header {
+                        margin-bottom: 2.5rem;
+                        position: relative;
+                    }
+
+                    .brand-header-line {
+                        width: 60px;
+                        height: 4px;
+                        background: #FFD60A;
+                        margin-top: 10px;
+                        border-radius: 2px;
+                    }
+
+                    .brand-header-title {
+                        font-family: 'Playfair Display', serif;
+                        font-size: 2.5rem;
+                        font-weight: 700;
+                        color: #111;
+                        line-height: 1.1;
+                    }
+
+                    .brand-card {
+                        background: rgba(255, 255, 255, 0.95);
+                        border: 1px solid #e5e5e5;
+                        border-radius: 12px;
+                        padding: 20px;
+                        position: relative;
+                        z-index: 10;
+                        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+                        backdrop-filter: blur(5px);
+                    }
+
+                    .brand-tag {
+                        background: #000;
+                        color: #fff;
+                        font-size: 0.65rem;
+                        font-weight: 800;
+                        text-transform: uppercase;
+                        letter-spacing: 0.05em;
+                        padding: 4px 8px;
+                        border-radius: 4px;
+                    }
+
+                    .brand-highlight-text {
+                        background: linear-gradient(180deg, transparent 65%, #FFD60A 65%);
+                        display: inline;
+                        padding-right: 2px;
+                        padding-left: 2px;
+                    }
+                }
+            </style>
+</head>
+
+<body class="bg-gray-50 dark:bg-gray-900 min-h-screen transition-colors duration-200">
+    <%- include('partials/header', { title: 'Gerador de Proposta' , showTrafficLights: false,
+        titleStyle: 'font-size: 30px; font-weight: 700; letter-spacing: -0.5px;' , profile_pic_url: user.profile_pic_url
+        }) %>
+        <%- include('partials/sidebar') %>
+
+            <!-- MAIN CONTENT WRAPPER -->
+            <main class="macos-main-content">
+                <!-- INPUT SECTION (Visible on Screen) -->
+                <div class="page-container no-print">
+
+                    <!-- Botões de Rascunho -->
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding: 16px; background: var(--macos-bg-secondary); border-radius: 12px; border: 1px solid var(--macos-divider);">
+                        <div>
+                            <h3
+                                style="font-size: 16px; font-weight: 600; color: var(--macos-text-primary); margin: 0 0 4px 0;">
+                                <i class="fa-solid fa-file-pen"
+                                    style="margin-right: 8px; color: var(--macos-accent);"></i>
+                                Rascunho Automático
+                            </h3>
+                            <p style="font-size: 13px; color: var(--macos-text-secondary); margin: 0;">
+                                Seus dados são salvos automaticamente no navegador
+                            </p>
+                        </div>
+                        <div style="display: flex; gap: 12px;">
+                            <button type="button" onclick="salvarRascunho()" class="macos-btn-primary"
+                                style="display: flex; align-items: center; gap: 8px;">
+                                <i class="fa-solid fa-save"></i>
+                                Salvar Rascunho
+                            </button>
+                            <button type="button" onclick="carregarRascunho()" class="macos-btn-secondary"
+                                style="display: flex; align-items: center; gap: 8px;">
+                                <i class="fa-solid fa-rotate-left"></i>
+                                Carregar Rascunho
+                            </button>
+                            <button type="button" onclick="limparRascunho()" class="macos-btn-secondary"
+                                style="display: flex; align-items: center; gap: 8px; color: #FF3B30;"
+                                onmouseover="this.style.background='rgba(255,59,48,0.1)'"
+                                onmouseout="this.style.background='var(--macos-bg-tertiary)'">
+                                <i class="fa-solid fa-trash"></i>
+                                Limpar
+                            </button>
+                        </div>
+                    </div>
+
+                    <div
+                        class="step-card bg-white dark:bg-gray-800 dark:border-gray-700 transition-colors duration-200">
+                        <div class="step-header border-b border-gray-100 dark:border-gray-700">
+                            <div class="step-number">1</div>
+                            <h2 class="step-title dark:text-white">Dados Gerais e Imagens</h2>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Nome do
+                                    Condomínio /
+                                    Bairro</label>
+                                <input type="text" id="inputNome"
+                                    class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                                    placeholder="Ex: Nome do Condomínio">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Endereço
+                                    Completo</label>
+                                <input type="text" id="inputEndereco"
+                                    class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                                    placeholder="Ex: Endereço Completo">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Número do
+                                    Bem</label>
+                                <input type="text" id="inputBem"
+                                    class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                                    placeholder="Ex: 000000000000-0">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Licitação
+                                    Aberta</label>
+                                <input type="text" id="inputLicitacao"
+                                    class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                                    placeholder="Ex: DD/MM/AAAA às HHh">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-3 gap-4 mb-6">
+                            <div>
+                                <label
+                                    class="block text-xs font-medium text-gray-700 dark:text-gray-300">Apartamento/Bloco</label>
+                                <input type="text" id="inputApto"
+                                    class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                                    placeholder="Ex: Apto 00, Bloco X">
+                            </div>
+                            <div>
+                                <label
+                                    class="block text-xs font-medium text-gray-700 dark:text-gray-300">Metragem</label>
+                                <input type="text" id="inputMetragem"
+                                    class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                                    placeholder="Ex: 00m²">
+                            </div>
+                            <div>
+                                <label
+                                    class="block text-xs font-medium text-gray-700 dark:text-gray-300">Quartos</label>
+                                <input type="text" id="inputQuartos"
+                                    class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                                    placeholder="Ex: 00">
+                            </div>
+                            <div>
+                                <label
+                                    class="block text-xs font-medium text-gray-700 dark:text-gray-300">Banheiros</label>
+                                <input type="text" id="inputBanheiros"
+                                    class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                                    placeholder="Ex: 00">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Vaga
+                                    Garagem</label>
+                                <input type="text" id="inputVaga"
+                                    class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                                    placeholder="Ex: 00">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Condomínio
+                                    (R$)</label>
+                                <input type="text" id="inputCondominio"
+                                    class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                                    placeholder="Ex: R$ 0,00">
+                            </div>
+                        </div>
+
+                        <!-- Image Uploads -->
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="border border-dashed border-gray-400 dark:border-gray-600 p-4 rounded text-center cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700"
+                                onclick="document.getElementById('fileFachada').click()">
+                                <p class="text-sm font-bold text-gray-600 dark:text-gray-300">Foto da Fachada (Capa)</p>
+                                <input type="file" id="fileFachada" class="hidden" accept="image/*"
+                                    onchange="previewUpload(this, 'previewFachada', 'pdfImage')">
+                                <img id="previewFachada" class="h-32 mx-auto mt-2 object-contain hidden" />
+                            </div>
+                            <div class="border border-dashed border-gray-400 dark:border-gray-600 p-4 rounded text-center cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700"
+                                onclick="document.getElementById('fileMapa').click()">
+                                <p class="text-sm font-bold text-gray-600 dark:text-gray-300">Foto do Mapa (Pág 2)</p>
+                                <input type="file" id="fileMapa" class="hidden" accept="image/*"
+                                    onchange="previewUpload(this, 'previewMapa', 'pdfMapImage')">
+                                <img id="previewMapa" class="h-32 mx-auto mt-2 object-contain hidden" />
+                            </div>
+                        </div>
+
+                        <div class="mt-4 border-t pt-4 dark:border-gray-700">
+                            <p class="text-sm font-bold text-gray-600 dark:text-gray-300 mb-2">Fotos Análise de Mercado
+                                (Pág 3 - Max 3)</p>
+                            <div class="grid grid-cols-3 gap-4">
+                                <div class="border border-dashed border-gray-400 dark:border-gray-600 p-2 text-center hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer"
+                                    onclick="document.getElementById('fileMkt1').click()">
+                                    <span class="dark:text-gray-300">Img 1</span>
+                                    <input type="file" id="fileMkt1" class="hidden"
+                                        onchange="previewUpload(this, 'pMkt1', 'pdfMkt1')">
+                                    <img id="pMkt1" class="h-20 mx-auto hidden">
+                                </div>
+                                <div class="border border-dashed border-gray-400 dark:border-gray-600 p-2 text-center hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer"
+                                    onclick="document.getElementById('fileMkt2').click()">
+                                    <span class="dark:text-gray-300">Img 2</span>
+                                    <input type="file" id="fileMkt2" class="hidden"
+                                        onchange="previewUpload(this, 'pMkt2', 'pdfMkt2')">
+                                    <img id="pMkt2" class="h-20 mx-auto hidden">
+                                </div>
+                                <div class="border border-dashed border-gray-400 dark:border-gray-600 p-2 text-center hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer"
+                                    onclick="document.getElementById('fileMkt3').click()">
+                                    <span class="dark:text-gray-300">Img 3</span>
+                                    <input type="file" id="fileMkt3" class="hidden"
+                                        onchange="previewUpload(this, 'pMkt3', 'pdfMkt3')">
+                                    <img id="pMkt3" class="h-20 mx-auto hidden">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 1.5: Company Info (New) -->
+                    <div
+                        class="step-card bg-white dark:bg-gray-800 dark:border-gray-700 transition-colors duration-200 mb-4">
+                        <div class="step-header border-b border-gray-100 dark:border-gray-700">
+                            <div class="step-number">2</div>
+                            <h2 class="step-title dark:text-white">Informações da Empresa / Rodapé</h2>
+                        </div>
+
+                        <!-- Saved Companies Manager -->
+                        <div
+                            class="mb-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 flex gap-2 items-end">
+                            <div class="flex-grow">
+                                <label
+                                    class="block text-xs font-bold text-gray-500 dark:text-gray-300 uppercase tracking-wide mb-1">Empresas
+                                    Salvas</label>
+                                <select id="selectSavedCompany"
+                                    class="w-full p-2 border rounded text-sm bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white"
+                                    onchange="loadCompanyProfile(this.value)">
+                                    <option value="">-- Selecione ou Cadastre Nova --</option>
+                                </select>
+                            </div>
+                            <button onclick="saveCompanyProfile()"
+                                class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-bold rounded shadow-sm whitespace-nowrap transition-colors">
+                                <i class="fa-solid fa-save mr-1"></i> Salvar Empresa
+                            </button>
+                            <button onclick="deleteCompanyProfile()"
+                                class="px-3 py-2 bg-red-100 dark:bg-red-900 hover:bg-red-200 dark:hover:bg-red-800 text-red-600 dark:text-red-200 rounded shadow-sm transition-colors"
+                                title="Excluir Empresa Selecionada">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Instagram
+                                    Comercial</label>
+                                <input type="text" id="inputInstagram"
+                                    class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                                    placeholder="Ex: @seuinstagram">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Nome da
+                                    Empresa / CRECI</label>
+                                <input type="text" id="inputCreci"
+                                    class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                                    placeholder="Ex: Nome da Empresa - CRECI 00000">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Texto
+                                Personalizado do Rodapé</label>
+                            <input type="text" id="inputFooter"
+                                class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                                placeholder="Editável: direitos reservados...">
+                        </div>
+
+                        <!-- Watermark Upload -->
+                        <div class="mt-4 border-t pt-4 dark:border-gray-700">
+                            <div class="border border-dashed border-gray-400 dark:border-gray-600 p-4 rounded text-center cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700"
+                                onclick="document.getElementById('fileLogoWatermark').click()">
+                                <p class="text-sm font-bold text-gray-600 dark:text-gray-300">Logo para Marca D'água
+                                    (Fundo)</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Sua logo ficará repetida no
+                                    fundo das páginas</p>
+                                <input type="file" id="fileLogoWatermark" class="hidden" accept="image/*"
+                                    onchange="updateWatermark(this)">
+                                <img id="previewWatermark" class="h-16 mx-auto mt-2 object-contain hidden" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Financial Data (Import) -->
+                    <div
+                        class="step-card bg-white dark:bg-gray-800 dark:border-gray-700 transition-colors duration-200">
+                        <div class="step-header border-b border-gray-100 dark:border-gray-700">
+                            <div class="step-number">3</div>
+                            <h2 class="step-title dark:text-white">Dados Financeiros (Viabilidade)</h2>
+                        </div>
+
+                        <div
+                            class="bg-blue-50 dark:bg-gray-700 p-4 rounded-lg border border-blue-100 dark:border-gray-600 mb-4">
+                            <label class="block text-sm font-medium text-blue-900 dark:text-gray-200 mb-2">Importar de
+                                um cálculo
+                                salvo:</label>
+                            <select id="selectCalculo"
+                                class="w-full p-2 border border-blue-200 rounded-lg bg-white dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+                                onchange="loadCalculationData(this)">
+                                <option value="">Selecione para preencher automaticamente...</option>
+                                <% if (savedCalculations && savedCalculations.length> 0) { %>
+                                    <% savedCalculations.forEach(calc=> { %>
+                                        <option value="<%= calc.id %>">
+                                            <%= calc.name %> - <%= new Date(calc.created_at).toLocaleDateString('pt-BR')
+                                                    %>
+                                        </option>
+                                        <% }) %>
+                                            <% } %>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end mb-12">
+                        <button onclick="window.print()"
+                            class="bg-gray-900 text-white px-8 py-3 rounded-lg font-bold hover:bg-gray-800 flex items-center gap-2">
+                            <i class="fa-solid fa-file-pdf"></i>
+                            Gerar PDF Completo
+                        </button>
+                    </div>
+                </div>
+
+                <!-- HIDDEN PDF TEMPLATE -->
+                <div id="pdf-content" class="hidden font-sans text-black">
+
+                    <!-- PAGE 1: CAPA PREMIUM -->
+                    <div
+                        class="w-[210mm] min-h-[297mm] bg-white p-[40px] mx-auto relative page-break-after-always flex flex-col justify-center">
+                        <div class="absolute inset-0 opacity-[0.1] pointer-events-none force-print-bg pdf-watermark-bg"
+                            style="background-image: url('/images/logo-placeholder-watermark.png'); background-repeat: repeat; background-size: 80px;">
+                        </div>
+
+                        <div class="relative z-10 w-full flex flex-col h-full py-12">
+                            <!-- Header Info -->
+                            <div class="flex justify-between items-end border-b-4 border-black pb-6 mb-12">
+                                <div>
+                                    <p class="text-xs font-bold tracking-[0.2em] uppercase text-gray-400 mb-2">Relatório
+                                        de Oportunidade</p>
+                                    <div class="max-w-[450px]">
+                                        <h1 class="text-4xl font-serif font-black text-black leading-tight break-words"
+                                            id="pdfNomeImovel">Nome do Imóvel Premium</h1>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-1">Data
+                                        do Leilão</p>
+                                    <div class="bg-[#FFD60A] px-4 py-2 font-black text-xl text-black inline-block"
+                                        id="pdfLicitacao">--/--/----</div>
+                                </div>
+                            </div>
+
+                            <!-- Main Image -->
+                            <div class="flex-grow flex items-center justify-center mb-12">
+                                <div class="w-full h-[500px] p-2 bg-white border border-gray-100 shadow-2xl relative">
+                                    <div class="w-full h-full overflow-hidden relative grayscale-[10%] contrast-[1.1]">
+                                        <img id="pdfImage" src="" class="w-full h-full object-cover">
+                                    </div>
+                                    <!-- Badge Processo -->
+                                    <div class="absolute top-6 right-6 bg-black text-white px-4 py-2 shadow-lg">
+                                        <p class="text-[10px] uppercase tracking-widest font-bold mb-0.5 opacity-70">
+                                            Processo</p>
+                                        <p class="font-mono font-bold text-sm" id="pdfBem">00000.0000</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Footer Prices -->
+                            <!-- Footer Prices (Redesigned) -->
+                            <div
+                                class="bg-gray-50 border border-gray-100 p-6 rounded-xl flex items-center justify-between shadow-sm">
+                                <!-- Market Value -->
+                                <div>
+                                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">
+                                        Avaliação de Mercado</p>
+                                    <div class="flex items-baseline gap-2">
+                                        <p class="text-2xl font-serif font-bold text-gray-500" id="pdfAvaliacao">R$ 0,00
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <!-- Separator Arrow -->
+                                <div class="text-gray-300">
+                                    <i class="fa-solid fa-arrow-right text-xl"></i>
+                                </div>
+
+                                <!-- Bid Value (Highlight) -->
+                                <div class="text-right">
+                                    <p
+                                        class="text-[10px] font-bold text-black uppercase tracking-widest mb-1 flex items-center justify-end gap-2">
+                                        <span class="w-2 h-2 bg-[#FFD60A] rounded-full animate-pulse"></span>
+                                        Oportunidade (Lance)
+                                    </p>
+                                    <p class="text-4xl font-serif font-black text-black tracking-tight bg-[#FFD60A] px-2 py-0.5 transform -rotate-1 inline-block shadow-sm"
+                                        id="pdfLance">
+                                        R$ 0,00
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PAGE 2: INFORMAÇÕES -->
+                    <div class="w-[210mm] min-h-[297mm] bg-white p-[40px] mx-auto relative page-break-after-always">
+                        <div class="absolute inset-0 opacity-[0.1] pointer-events-none force-print-bg pdf-watermark-bg"
+                            style="background-image: url('/images/logo-placeholder-watermark.png'); background-repeat: repeat; background-size: 80px;">
+                        </div>
+
+                        <div class="brand-header">
+                            <h2 class="brand-header-title">Ficha Técnica</h2>
+                            <div class="brand-header-line"></div>
+                        </div>
+
+                        <!-- Main Location Card -->
+                        <div class="brand-card mb-8">
+                            <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Localização
+                                Privilegiada</p>
+                            <p class="text-xl font-serif text-gray-900 leading-relaxed flex gap-3 items-start">
+                                <i class="fa-solid fa-location-dot mt-1.5 text-[#FFD60A]"></i>
+                                <span id="pdfEndereco" class="font-medium">Endereço Completo do Imóvel</span>
+                            </p>
+                        </div>
+
+                        <!-- Map Container -->
+                        <div class="brand-card p-2 mb-8 !bg-white">
+                            <div class="w-full h-[280px] bg-gray-100 rounded-lg overflow-hidden relative">
+                                <img id="pdfMapImage" src="" class="w-full h-full object-cover">
+                                <div class="absolute inset-0 border border-black/5 pointer-events-none rounded-lg">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Grid Info -->
+                        <!-- Grid Info -->
+                        <div class="grid grid-cols-2 gap-5">
+                            <div id="cardMetragem" class="brand-card flex items-center gap-5">
+                                <div
+                                    class="w-10 h-10 rounded-full bg-black flex items-center justify-center text-[#FFD60A] text-lg">
+                                    <i class="fa-solid fa-ruler-combined"></i>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] text-gray-500 uppercase font-bold tracking-wider">Área</p>
+                                    <p class="text-lg font-bold text-gray-900" id="pdfMetragem">-- m²</p>
+                                </div>
+                            </div>
+
+                            <div id="cardQuartos" class="brand-card flex items-center gap-5">
+                                <div
+                                    class="w-10 h-10 rounded-full bg-black flex items-center justify-center text-[#FFD60A] text-lg">
+                                    <i class="fa-solid fa-bed"></i>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] text-gray-500 uppercase font-bold tracking-wider">Quartos</p>
+                                    <p class="text-lg font-bold text-gray-900" id="pdfQuartos">--</p>
+                                </div>
+                            </div>
+
+                            <div id="cardBanheiros" class="brand-card flex items-center gap-5">
+                                <div
+                                    class="w-10 h-10 rounded-full bg-black flex items-center justify-center text-[#FFD60A] text-lg">
+                                    <i class="fa-solid fa-shower"></i>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] text-gray-500 uppercase font-bold tracking-wider">Banheiros
+                                    </p>
+                                    <p class="text-lg font-bold text-gray-900" id="pdfBanheiros">--</p>
+                                </div>
+                            </div>
+
+                            <div id="cardVaga" class="brand-card flex items-center gap-5">
+                                <div
+                                    class="w-10 h-10 rounded-full bg-black flex items-center justify-center text-[#FFD60A] text-lg">
+                                    <i class="fa-solid fa-car"></i>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] text-gray-500 uppercase font-bold tracking-wider">Vagas</p>
+                                    <p class="text-lg font-bold text-gray-900" id="pdfVaga">--</p>
+                                </div>
+                            </div>
+
+                            <div id="cardApto" class="brand-card flex items-center gap-5 col-span-2">
+                                <div
+                                    class="w-10 h-10 rounded-full bg-black flex items-center justify-center text-[#FFD60A] text-lg">
+                                    <i class="fa-solid fa-building"></i>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] text-gray-500 uppercase font-bold tracking-wider">Complemento
+                                    </p>
+                                    <p class="text-lg font-bold text-gray-900" id="pdfApto">Apto --</p>
+                                </div>
+                            </div>
+
+                            <div id="cardCondominio" class="brand-card flex items-center gap-5 col-span-2">
+                                <div
+                                    class="w-10 h-10 rounded-full bg-black flex items-center justify-center text-[#FFD60A] text-lg">
+                                    <i class="fa-solid fa-money-bill-wave"></i>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] text-gray-500 uppercase font-bold tracking-wider">Condomínio
+                                    </p>
+                                    <p class="text-lg font-bold text-gray-900" id="pdfCondominio">R$ --</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PAGE 3: MERCADO -->
+                    <div class="w-[210mm] min-h-[297mm] bg-white p-[40px] mx-auto relative page-break-after-always">
+                        <div class="absolute inset-0 opacity-[0.1] pointer-events-none force-print-bg pdf-watermark-bg"
+                            style="background-image: url('/images/logo-placeholder-watermark.png'); background-repeat: repeat; background-size: 80px;">
+                        </div>
+
+                        <div class="brand-header">
+                            <h2 class="brand-header-title">Análise de Mercado</h2>
+                            <div class="brand-header-line"></div>
+                        </div>
+
+                        <div class="space-y-6">
+                            <div class="brand-card !p-0 overflow-hidden h-[250px]">
+                                <img id="pdfMkt1" src="" class="w-full h-full object-cover">
+                            </div>
+                            <div class="brand-card !p-0 overflow-hidden h-[250px]">
+                                <img id="pdfMkt2" src="" class="w-full h-full object-cover">
+                            </div>
+                            <div class="brand-card !p-0 overflow-hidden h-[250px]">
+                                <img id="pdfMkt3" src="" class="w-full h-full object-cover">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PAGE 4: VIABILIDADE FINANCEIRA (REDESIGNED) -->
+                    <div class="w-[210mm] min-h-[297mm] bg-white p-[40px] mx-auto relative page-break-after-always">
+                        <div class="absolute inset-0 opacity-[0.1] pointer-events-none force-print-bg pdf-watermark-bg"
+                            style="background-image: url('/images/logo-placeholder-watermark.png'); background-repeat: repeat; background-size: 80px;">
+                        </div>
+
+                        <div class="brand-header">
+                            <h2 class="brand-header-title">Estudo de Viabilidade</h2>
+                            <div class="brand-header-line"></div>
+                        </div>
+
+                        <!-- DYNAMIC CONTENT CONTAINER -->
+                        <div id="pdfViabilityContent" class="space-y-6">
+                            <!-- Filled by JS -->
+                        </div>
+
+                    </div>
+
+                    <!-- PAGE 5: CONCLUSÃO -->
+                    <div
+                        class="w-[210mm] min-h-[297mm] bg-white p-[40px] mx-auto relative page-break-after-always flex flex-col justify-between">
+                        <div class="absolute inset-0 opacity-[0.1] pointer-events-none force-print-bg pdf-watermark-bg"
+                            style="background-image: url('/images/logo-placeholder-watermark.png'); background-repeat: repeat; background-size: 80px;">
+                        </div>
+
+                        <div>
+                            <!-- Checklist Header -->
+                            <div class="brand-header">
+                                <h2 class="brand-header-title">Checklist de Validação</h2>
+                                <div class="brand-header-line"></div>
+                                <!-- Checklist Cards -->
+                                <div class="grid grid-cols-2 gap-6 mb-12">
+                                    <div class="brand-card">
+                                        <div class="flex items-start gap-4">
+                                            <div
+                                                class="mt-1 w-5 h-5 rounded-full bg-green-100 flex items-center justify-center text-green-600 text-xs text-center shrink-0">
+                                                <i class="fa-solid fa-check"></i>
+                                            </div>
+                                            <div>
+                                                <p class="font-bold text-gray-900 text-sm mb-1">Consulta com Corretores
+                                                </p>
+                                                <p class="text-xs text-gray-500">Validação de preço e liquidez com
+                                                    especialistas locais.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="brand-card">
+                                        <div class="flex items-start gap-4">
+                                            <div
+                                                class="mt-1 w-5 h-5 rounded-full bg-green-100 flex items-center justify-center text-green-600 text-xs shrink-0">
+                                                <i class="fa-solid fa-check"></i>
+                                            </div>
+                                            <div>
+                                                <p class="font-bold text-gray-900 text-sm mb-1">Vistoria Técnica</p>
+                                                <p class="text-xs text-gray-500">Avaliação presencial ou por imagens do
+                                                    estado do imóvel.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="brand-card">
+                                        <div class="flex items-start gap-4">
+                                            <div
+                                                class="mt-1 w-5 h-5 rounded-full bg-green-100 flex items-center justify-center text-green-600 text-xs shrink-0">
+                                                <i class="fa-solid fa-check"></i>
+                                            </div>
+                                            <div>
+                                                <p class="font-bold text-gray-900 text-sm mb-1">Comparativo em Sites</p>
+                                                <p class="text-xs text-gray-500">Análise de ofertas similares nos
+                                                    principais portais.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="brand-card">
+                                        <div class="flex items-start gap-4">
+                                            <div
+                                                class="mt-1 w-5 h-5 rounded-full bg-green-100 flex items-center justify-center text-green-600 text-xs shrink-0">
+                                                <i class="fa-solid fa-check"></i>
+                                            </div>
+                                            <div>
+                                                <p class="font-bold text-gray-900 text-sm mb-1">Análise Documental</p>
+                                                <p class="text-xs text-gray-500">Conferência da matrícula, edital e
+                                                    certidões.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="brand-card">
+                                        <div class="flex items-start gap-4">
+                                            <div
+                                                class="mt-1 w-5 h-5 rounded-full bg-green-100 flex items-center justify-center text-green-600 text-xs shrink-0">
+                                                <i class="fa-solid fa-check"></i>
+                                            </div>
+                                            <div>
+                                                <p class="font-bold text-gray-900 text-sm mb-1">Análise Jurídica</p>
+                                                <p class="text-xs text-gray-500">Auditoria processual para segurança da
+                                                    arrematação.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="brand-card">
+                                        <div class="flex items-start gap-4">
+                                            <div
+                                                class="mt-1 w-5 h-5 rounded-full bg-green-100 flex items-center justify-center text-green-600 text-xs shrink-0">
+                                                <i class="fa-solid fa-check"></i>
+                                            </div>
+                                            <div>
+                                                <p class="font-bold text-gray-900 text-sm mb-1">Levantamento de Débitos
+                                                </p>
+                                                <p class="text-xs text-gray-500">Apuração de IPTU, condomínio e outras
+                                                    dívidas.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="brand-header mt-8">
+                                <h2 class="brand-header-title">Considerações Finais</h2>
+                                <div class="brand-header-line"></div>
+                            </div>
+
+                            <div class="brand-card">
+                                <p class="text-justify text-lg leading-relaxed text-gray-800 font-serif">
+                                    Este investimento apresenta um potencial significativo de retorno, considerando a
+                                    valorização da região e os custos envolvidos. A <span id="pdfCompanyInText"
+                                        class="font-bold brand-highlight-text">Sua Empresa</span> está à disposição para
+                                    esclarecer quaisquer dúvidas e prosseguir com a estratégia de arrematação.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Footer -->
+                        <!-- Footer -->
+                        <div class="brand-card bg-gray-50 border border-gray-100 !p-6 mt-8">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <p class="text-xs text-gray-400 uppercase font-bold tracking-widest mb-1">Elaborado
+                                        Por</p>
+                                    <p class="text-xl font-bold font-serif text-gray-900" id="pdfCreci">Sua Empresa</p>
+                                </div>
+                                <div class="text-right">
+                                    <div class="flex items-center gap-2 justify-end mb-1 text-gray-600">
+                                        <i class="fa-brands fa-instagram text-gray-400"></i>
+                                        <span class="text-sm font-medium" id="pdfInstagram">@seuinsta</span>
+                                    </div>
+                                    <p class="text-[10px] text-gray-400" id="pdfFooter">Todos os direitos reservados.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+
+            <script>
+                // Sync Inputs to PDF Text with Logic to Hide Empty Fields
+                const fields = ['Nome', 'Bem', 'Licitacao', 'Endereco', 'Apto', 'Metragem', 'Quartos', 'Banheiros', 'Vaga', 'Condominio', 'Instagram', 'Creci', 'Footer'];
+
+                // Fields that trigger card hiding if empty
+                const optionalFields = {
+                    'Metragem': 'cardMetragem',
+                    'Quartos': 'cardQuartos',
+                    'Banheiros': 'cardBanheiros',
+                    'Vaga': 'cardVaga',
+                    'Apto': 'cardApto',
+                    'Condominio': 'cardCondominio'
+                };
+
+                const updateFieldVisibility = (id, value) => {
+                    const cardId = optionalFields[id];
+                    if (cardId) {
+                        const card = document.getElementById(cardId);
+                        if (card) {
+                            if (!value || value.trim() === '') {
+                                card.style.display = 'none';
+                            } else {
+                                card.style.display = ''; // Reverts to CSS (flex)
+                            }
+                        }
+                    }
+                };
+
+                fields.forEach(id => {
+                    const input = document.getElementById('input' + id);
+                    if (input) {
+                        // Initialize visibility on load
+                        updateFieldVisibility(id, input.value);
+
+                        input.addEventListener('input', (e) => {
+                            const val = e.target.value;
+
+                            // 1. Update Text
+                            // Special handling for 'Nome' which updates Title and Subtitle areas if needed
+                            const target = document.getElementById('pdf' + (id === 'Nome' ? 'NomeImovel' : id));
+                            if (target) target.innerText = val;
+
+                            // 2. Handle Creci/Company Name special update in text body
+                            if (id === 'Creci') {
+                                const companyName = val.split('-')[0].trim();
+                                const textTarget = document.getElementById('pdfCompanyInText');
+                                if (textTarget) textTarget.innerText = companyName || "Sua Empresa";
+                            }
+
+                            // 3. Update Visibility for Optional Cards
+                            updateFieldVisibility(id, val);
+                        });
+                    }
+                });
+
+                // Image Preview Handler
+                function previewUpload(input, previewId, pdfTargetId) {
+                    if (input.files && input.files[0]) {
+                        const reader = new FileReader();
+                        reader.onload = function (e) {
+                            const preview = document.getElementById(previewId);
+                            // Handle both img tags and background divs depending on what's consistent
+                            if (preview.tagName === 'IMG') {
+                                preview.src = e.target.result;
+                            } else {
+                                preview.style.backgroundImage = `url(${e.target.result})`;
+                            }
+                            preview.classList.remove('hidden');
+
+                            if (pdfTargetId) {
+                                const pdfImg = document.getElementById(pdfTargetId);
+                                if (pdfImg) pdfImg.src = e.target.result;
+                            }
+                        }
+                        reader.readAsDataURL(input.files[0]);
+                    }
+                }
+
+                // --- Company Profile Management (LocalStorage) ---
+                let currentLogoBase64 = null;
+
+                function getSavedProfiles() {
+                    try {
+                        return JSON.parse(localStorage.getItem('savedCompanies') || '[]');
+                    } catch (e) {
+                        console.error("Erro ao acessar localStorage", e);
+                        return [];
+                    }
+                }
+
+                function saveCompanyProfile() {
+                    const instagram = document.getElementById('inputInstagram').value;
+                    const creci = document.getElementById('inputCreci').value;
+                    const footer = document.getElementById('inputFooter').value;
+                    const select = document.getElementById('selectSavedCompany');
+
+                    if (!instagram && !creci) {
+                        alert("Preencha pelo menos o Creci ou Instagram para salvar.");
+                        return;
+                    }
+
+                    const name = creci.split('-')[0].trim() || "Nova Empresa " + new Date().toLocaleTimeString();
+                    let saved = getSavedProfiles();
+                    let id = select.value;
+
+                    // If an ID is selected, UPDATE existing. Otherwise CREATE new.
+                    if (id) {
+                        const index = saved.findIndex(c => c.id === id);
+                        if (index !== -1) {
+                            saved[index] = { ...saved[index], name, instagram, creci, footer, logo: currentLogoBase64 || saved[index].logo };
+                            if (!confirm("Deseja atualizar o perfil existente '" + saved[index].name + "'?")) return;
+                        } else {
+                            // Fallback if ID not found
+                            id = Date.now().toString();
+                            saved.push({ id, name, instagram, creci, footer, logo: currentLogoBase64 });
+                        }
+                    } else {
+                        id = Date.now().toString();
+                        saved.push({ id, name, instagram, creci, footer, logo: currentLogoBase64 });
+                    }
+
+                    localStorage.setItem('savedCompanies', JSON.stringify(saved));
+
+                    refreshCompanySelect();
+                    document.getElementById('selectSavedCompany').value = id; // Re-select
+                    alert("Empresa salva/atualizada com sucesso!");
+                }
+
+                function newCompanyProfile() {
+                    document.getElementById('selectSavedCompany').value = "";
+                    document.getElementById('inputInstagram').value = "";
+                    document.getElementById('inputCreci').value = "";
+                    document.getElementById('inputFooter').value = "";
+                    document.getElementById('previewWatermark').classList.add('hidden');
+                    document.getElementById('previewWatermark').src = "";
+                    currentLogoBase64 = null;
+
+                    // Clear watermark from background
+                    const watermarks = document.querySelectorAll('.pdf-watermark-bg');
+                    watermarks.forEach(div => {
+                        div.style.backgroundImage = "url('/images/logo-placeholder-watermark.png')";
+                        div.style.backgroundSize = "80px";
+                    });
+
+                    // Trigger input events to clear PDF preview text
+                    ['inputInstagram', 'inputCreci', 'inputFooter'].forEach(id => {
+                        document.getElementById(id).dispatchEvent(new Event('input'));
+                    });
+                }
+
+                function deleteCompanyProfile() {
+                    const id = document.getElementById('selectSavedCompany').value;
+                    if (!id) return;
+                    if (!confirm("Tem certeza que deseja excluir esta empresa salva?")) return;
+
+                    let saved = getSavedProfiles();
+                    saved = saved.filter(c => c.id !== id);
+                    localStorage.setItem('savedCompanies', JSON.stringify(saved));
+
+                    refreshCompanySelect();
+                    newCompanyProfile(); // Reset form
+                    alert("Empresa removida.");
+                }
+
+                function loadCompanyProfile(id) {
+                    if (!id) {
+                        newCompanyProfile(); // Clear if deselecting
+                        return;
+                    }
+
+                    const saved = getSavedProfiles();
+                    const profile = saved.find(c => c.id === id);
+
+                    if (profile) {
+                        const setVal = (eid, val) => {
+                            const el = document.getElementById(eid);
+                            if (el) {
+                                el.value = val || '';
+                                el.dispatchEvent(new Event('input'));
+                            }
+                        };
+
+                        setVal('inputInstagram', profile.instagram);
+                        setVal('inputCreci', profile.creci);
+                        setVal('inputFooter', profile.footer);
+
+                        if (profile.logo) {
+                            currentLogoBase64 = profile.logo;
+                            applyWatermarkFromBase64(profile.logo);
+                        }
+                    }
+                }
+
+                function refreshCompanySelect() {
+                    const saved = getSavedProfiles();
+                    const select = document.getElementById('selectSavedCompany');
+                    if (!select) return;
+
+                    const currentVal = select.value; // Store current selection
+
+                    select.innerHTML = '<option value="">-- Selecione ou Cadastre Nova --</option>';
+
+                    saved.forEach(c => {
+                        const opt = document.createElement('option');
+                        opt.value = c.id;
+                        opt.innerText = c.name;
+                        select.appendChild(opt);
+                    });
+
+                    // Try to restore selection if it still exists
+                    if (currentVal && saved.find(c => c.id === currentVal)) {
+                        select.value = currentVal;
+                    }
+                }
+
+                document.addEventListener('DOMContentLoaded', refreshCompanySelect);
+
+                // --- Watermark Logic Refactored ---
+                function applyWatermarkFromBase64(base64) {
+                    const img = new Image();
+                    img.onload = function () {
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+                        const tileSize = 200; // Increased even more for better spacing
+                        const maxLogoSize = 80;
+
+                        canvas.width = tileSize;
+                        canvas.height = tileSize;
+
+                        const aspect = img.width / img.height;
+                        let drawW = maxLogoSize;
+                        let drawH = maxLogoSize;
+
+                        if (aspect > 1) drawH = maxLogoSize / aspect;
+                        else drawW = maxLogoSize * aspect;
+
+                        const x = (tileSize - drawW) / 2;
+                        const y = (tileSize - drawH) / 2;
+
+                        ctx.globalAlpha = 1.0;
+                        ctx.drawImage(img, x, y, drawW, drawH);
+
+                        const patternUrl = `url('${canvas.toDataURL()}')`;
+
+                        const preview = document.getElementById('previewWatermark');
+                        if (preview) {
+                            preview.src = base64;
+                            preview.classList.remove('hidden');
+                        }
+
+                        const watermarks = document.querySelectorAll('.pdf-watermark-bg');
+                        watermarks.forEach(div => {
+                            div.style.backgroundImage = patternUrl;
+                            div.style.backgroundSize = `${tileSize}px`;
+                        });
+                    };
+                    img.src = base64;
+                }
+
+                function updateWatermark(input) {
+                    if (input.files && input.files[0]) {
+                        const reader = new FileReader();
+                        reader.onload = function (e) {
+                            currentLogoBase64 = e.target.result;
+                            applyWatermarkFromBase64(currentLogoBase64);
+                        }
+                        reader.readAsDataURL(input.files[0]);
+                    }
+                }
+
+                // Format Currency Helper
+                const fmt = (v) => parseFloat(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+                // NEW STRATEGY: Fetch from API on demand
+                async function loadCalculationData(select) {
+                    const id = select.value;
+                    const container = document.getElementById('pdfViabilityContent');
+
+                    if (!id) {
+                        // Optional: restore placeholder
+                        return;
+                    }
+
+                    // 0. Visual Loading Feedback
+                    container.innerHTML = `
+                        <div class="h-[400px] flex items-center justify-center">
+                            <p class="text-xl font-bold text-gray-400 animate-pulse">Carregando dados...</p>
+                        </div>
+                    `;
+
+                    try {
+                        // 1. Fetch Fresh Data (Avoids embedding issues)
+                        const response = await fetch('/api/saved-calculations');
+                        if (!response.ok) throw new Error("Falha ao buscar cálculos");
+
+                        const allCalcs = await response.json();
+                        const targetCalc = allCalcs.find(c => c.id == id);
+
+                        if (!targetCalc) {
+                            alert("Cálculo não encontrado.");
+                            return;
+                        }
+
+                        // 2. Parse Data Safe
+                        let data;
+                        try {
+                            data = typeof targetCalc.data === 'string' ? JSON.parse(targetCalc.data) : targetCalc.data;
+                        } catch (e) {
+                            console.error("JSON Error:", e);
+                            alert("Dados corrompidos.");
+                            return;
+                        }
+
+                        console.log("Dados carregados via API:", data);
+
+                        // HELPER: Float Parser (Prevents NaN)
+                        const num = (val) => {
+                            if (val === undefined || val === null || val === '') return 0;
+                            if (typeof val === 'string' && val.includes(',')) {
+                                const sanitized = val.replace(/\./g, '').replace(',', '.');
+                                return parseFloat(sanitized) || 0;
+                            }
+                            return parseFloat(val) || 0;
+                        };
+
+                        // 1. UPDATE INPUTS
+                        if (document.getElementById('inputCondominio')) document.getElementById('inputCondominio').value = fmt(num(data.condominioMensal));
+
+                        // 2. UPDATE PDF HEADERS
+                        const setText = (id, txt) => {
+                            const el = document.getElementById(id);
+                            if (el) el.innerText = txt;
+                        }
+
+                        setText('pdfAvaliacao', fmt(num(data.valorAvaliacao)));
+                        setText('pdfLance', fmt(num(data.valorArrematado)));
+                        setText('pdfCondominio', fmt(num(data.condominioMensal)));
+
+
+                        // 3. FINANCIAL CALCULATIONS (Robust)
+
+                        // Acquisition
+                        const vlrArremate = num(data.valorArrematado);
+                        const vlrAvaliacao = num(data.valorAvaliacao);
+
+                        // Leiloeiro
+                        const leiloeiro = data.incluirLeiloeiro === false ? 0 : vlrArremate * 0.05;
+
+                        // ITBI
+                        const itbiPercent = num(data.itbi) > 0 ? num(data.itbi) / 100 : 0.03;
+                        const itbi = vlrArremate * itbiPercent;
+
+                        // Assessoria
+                        let assessoria = 6000;
+                        if (data.assessoriaThreshold !== undefined) {
+                            const thresh = num(data.assessoriaThreshold) || 120000;
+                            const feeLow = num(data.assessoriaFeeBelow) || 6000;
+                            const feeHighPct = (num(data.assessoriaFeeAbovePercent) || 5) / 100;
+
+                            assessoria = vlrArremate <= thresh ? feeLow : vlrArremate * feeHighPct;
+                        } else if (data.valorAssessoria) {
+                            assessoria = num(data.valorAssessoria);
+                        }
+
+                        // Other Costs
+                        const cartorio = num(data.custosCartorarios);
+                        const reforma = num(data.reforma);
+                        const debitos = num(data.debitosPendentes);
+                        const desocupacao = num(data.custoDesocupacao);
+                        const seguro = 190;
+
+                        // Monthly Recurrent
+                        const cond = num(data.condominioMensal);
+                        const iptuMo = num(data.iptuMensal);
+                        const custoMensal = cond + iptuMo;
+                        const iptu12 = iptuMo * 12;
+
+                        // Totals
+                        const investTotalBasico = vlrArremate + leiloeiro + itbi + cartorio + reforma + debitos;
+
+                        const op06 = custoMensal * 6;
+                        const op12 = custoMensal * 12;
+
+                        const invest6 = investTotalBasico + op06 + desocupacao + seguro + assessoria;
+                        const invest12 = investTotalBasico + op12 + desocupacao + seguro + assessoria;
+
+                        // Projections
+                        const venda = num(data.valorVendaFinal) > 0 ? num(data.valorVendaFinal) : vlrAvaliacao;
+                        const corretagem = venda * 0.06;
+
+                        const bruto6 = venda - corretagem - invest6;
+                        const bruto12 = venda - corretagem - invest12;
+
+                        const imposto6 = bruto6 > 0 ? bruto6 * 0.15 : 0;
+                        const imposto12 = bruto12 > 0 ? bruto12 * 0.15 : 0;
+
+                        const liq6 = bruto6 - imposto6;
+                        const liq12 = bruto12 - imposto12;
+
+                        const roiLiq6 = invest6 > 0 ? (liq6 / invest6) * 100 : 0;
+                        const roiLiq12 = invest12 > 0 ? (liq12 / invest12) * 100 : 0;
+
+                        // Margin Gross
+                        const marginGross = investTotalBasico > 0 ? ((venda - investTotalBasico) / investTotalBasico * 100) : 0;
+
+                        // Variables for new HTML structure
+                        const lance = vlrArremate;
+                        const comissao = leiloeiro;
+
+
+                        // 4. GENERATE DASHBOARD HTML
+
+                        // Pre-calculate 12-month cards
+                        let cardsHTML = '';
+                        for (let m = 1; m <= 12; m++) {
+                            const opCost = custoMensal * m;
+                            const totalInvest = investTotalBasico + opCost + desocupacao + seguro + assessoria;
+                            const bruto = venda - corretagem - totalInvest;
+                            // const imposto = bruto > 0 ? bruto * 0.15 : 0;
+                            // Simplification: Standard 15% on gain
+                            const imposto = bruto > 0 ? bruto * 0.15 : 0;
+                            const liq = bruto - imposto;
+                            const roi = totalInvest > 0 ? (liq / totalInvest) * 100 : 0;
+
+                            const isHighlight = (m === 6 || m === 12);
+                            const extraClass = isHighlight ? 'ring-2 ring-[#FFD60A] bg-[#FFFBEB]' : 'bg-white';
+                            const roiTagClass = roi >= 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
+
+                            // Use formatting carefully
+                            const liqFmt = fmt(liq);
+                            const roiFmt = roi.toFixed(1);
+
+                            cardsHTML += `
+                            <div class="brand-card flex flex-col justify-between !p-4 ${extraClass}">
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Mês ${m}</span>
+                                    <span class="text-[10px] font-bold px-1.5 py-0.5 rounded ${roiTagClass}">
+                                        ROI ${roiFmt}%
+                                    </span>
+                                </div>
+                                <p class="text-lg font-serif font-bold ${liq >= 0 ? 'text-gray-900' : 'text-red-600'} tracking-tight">
+                                    ${liqFmt}
+                                </p>
+                            </div>`;
+                        }
+
+                        const dashboardHTML = `
+                            <!-- Resumo Principal -->
+                            <div class="grid grid-cols-2 gap-6 p-6 bg-black rounded-2xl shadow-xl mb-8 force-print-bg">
+                                <div>
+                                    <p class="text-gray-400 text-xs font-bold uppercase tracking-widest mb-1">Investimento Total Estimado</p>
+                                    <p class="text-4xl font-black text-[#FFD60A] pdf-sans tracking-tight">${fmt(investTotalBasico)}</p>
+                                    <p class="text-gray-500 text-xs mt-2 font-medium">+ Encargos e Custos Operacionais</p>
+                                </div>
+                                <div class="border-l border-gray-800 pl-6">
+                                     <p class="text-gray-400 text-xs font-bold uppercase tracking-widest mb-1">Potencial de Venda (Estimado)</p>
+                                    <p class="text-3xl font-bold text-white pdf-sans tracking-tight">${fmt(venda)}</p>
+                                    <div class="mt-3 flex items-center gap-2">
+                                        <span class="bg-gray-800 text-white text-[10px] font-bold px-2 py-1 rounded">Margem Bruta ${marginGross.toFixed(0)}%</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-8">
+                                <!-- Coluna 1: Custos de Aquisição -->
+                                <div>
+                                    <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2 border-b border-gray-200 pb-2">
+                                        <i class="fa-solid fa-wallet text-gray-400"></i> Custos de Aquisição
+                                    </h3>
+                                    <div class="space-y-3">
+                                        <div class="flex justify-between items-center text-sm p-3 bg-gray-50 rounded-lg border border-gray-100">
+                                            <span class="text-gray-600 font-medium">Valor Arremate</span>
+                                            <span class="font-bold text-gray-900">${fmt(vlrArremate)}</span>
+                                        </div>
+                                        <div class="flex justify-between items-center text-sm p-3 bg-gray-50 rounded-lg border border-gray-100">
+                                            <span class="text-gray-600 font-medium">Leiloeiro (5%)</span>
+                                            <span class="font-bold text-gray-900">${fmt(leiloeiro)}</span>
+                                        </div>
+                                        <div class="flex justify-between items-center text-sm p-3 bg-gray-50 rounded-lg border border-gray-100">
+                                            <span class="text-gray-600 font-medium">Assessoria</span>
+                                            <span class="font-bold text-gray-900">${fmt(assessoria)}</span>
+                                        </div>
+                                        <div class="flex justify-between items-center text-sm p-3 bg-gray-50 rounded-lg border border-gray-100">
+                                            <span class="text-gray-600 font-medium">ITBI (${(itbiPercent * 100).toFixed(1)}%)</span>
+                                            <span class="font-bold text-gray-900">${fmt(itbi)}</span>
+                                        </div>
+                                        <div class="flex justify-between items-center text-sm p-3 bg-gray-50 rounded-lg border border-gray-100">
+                                            <span class="text-gray-600 font-medium">Cartório e Registro</span>
+                                            <span class="font-bold text-gray-900">${fmt(cartorio)}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Coluna 2: Custos Pós-Leilão e Operacionais -->
+                                <div>
+                                    <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2 border-b border-gray-200 pb-2">
+                                        <i class="fa-solid fa-tools text-gray-400"></i> Custos Pós-Leilão
+                                    </h3>
+                                    <div class="space-y-3">
+                                         <div class="flex justify-between items-center text-sm p-3 bg-gray-50 rounded-lg border border-gray-100">
+                                            <span class="text-gray-600 font-medium">Regularização / Débitos</span>
+                                            <span class="font-bold text-gray-900">${fmt(debitos)}</span>
+                                        </div>
+                                        <div class="flex justify-between items-center text-sm p-3 bg-gray-50 rounded-lg border border-gray-100">
+                                            <span class="text-gray-600 font-medium">Reforma Estimada</span>
+                                            <span class="font-bold text-gray-900">${fmt(reforma)}</span>
+                                        </div>
+                                        <div class="flex justify-between items-center text-sm p-3 bg-gray-50 rounded-lg border border-gray-100">
+                                            <span class="text-gray-600 font-medium">Desocupação</span>
+                                            <span class="font-bold text-gray-900">${fmt(desocupacao)}</span>
+                                        </div>
+                                         <div class="flex justify-between items-center text-sm p-3 bg-gray-50 rounded-lg border border-gray-100">
+                                            <span class="text-gray-600 font-medium">Taxa Seguro</span>
+                                            <span class="font-bold text-gray-900">${fmt(seguro)}</span>
+                                        </div>
+                                        
+                                        <div class="mt-4 pt-4 border-t border-dashed border-gray-300">
+                                            <p class="text-xs font-bold text-gray-400 uppercase mb-2">Custo Mensal Recorrente</p>
+                                            <div class="flex justify-between text-sm">
+                                                <span class="text-gray-600">Condomínio + IPTU</span>
+                                                <span class="font-bold text-gray-900">${fmt(custoMensal)} /mês</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                <!-- Projeção de Cenários (1 a 12 Meses - Premium Grid) -->
+                            <div class="mt-8">
+                                <h3 class="text-xl font-bold mb-6 flex items-center gap-3 text-gray-900">
+                                    <span class="w-8 h-8 rounded-full bg-black flex items-center justify-center text-[#FFD60A] text-sm"><i class="fa-solid fa-chart-line"></i></span>
+                                    Projeção de Lucro Líquido (12 Meses)
+                                </h3>
+
+                                <div class="grid grid-cols-4 gap-4">
+                                    ${cardsHTML}
+                                </div>
+                            </div>
+                            </div>
+                        `;
+                        // Close the backtick here
+
+                        document.getElementById('pdfViabilityContent').innerHTML = dashboardHTML;
+                    } catch (e) {
+                        console.error("Erro Fatal:", e);
+                        const container = document.getElementById('pdfViabilityContent');
+                        if (container) {
+                            container.innerHTML = `
+                                 <div class="p-4 bg-red-100 border border-red-400 text-red-700 rounded text-center">
+                                     <p class="font-bold">Erro de Carregamento</p>
+                                     <p class="text-xs font-mono">${e.message}</p>
+                                 </div>
+                             `;
+                        }
+                        alert("Erro no carregamento: " + e.message);
+                    }
+                }
+
+                // ===== FUNÇÕES DE RASCUNHO =====
+                const RASCUNHO_KEY = 'davinci_rascunho';
+
+                // Lista de todos os campos de input
+                const camposRascunho = [
+                    'inputNome', 'inputEndereco', 'inputBem', 'inputLicitacao',
+                    'inputApto', 'inputMetragem', 'inputQuartos', 'inputBanheiros',
+                    'inputVaga', 'inputCondominio', 'inputInstagram', 'inputCreci',
+                    'inputFooter'
+                ];
+
+                function salvarRascunho() {
+                    try {
+                        const rascunho = {};
+
+                        // Salvar valores dos campos de texto
+                        camposRascunho.forEach(id => {
+                            const elemento = document.getElementById(id);
+                            if (elemento) {
+                                rascunho[id] = elemento.value;
+                            }
+                        });
+
+                        // Salvar seleção de cálculo
+                        const selectCalculo = document.getElementById('selectCalculo');
+                        if (selectCalculo) {
+                            rascunho.selectCalculo = selectCalculo.value;
+                        }
+
+                        // Salvar seleção de empresa
+                        const selectCompany = document.getElementById('selectSavedCompany');
+                        if (selectCompany) {
+                            rascunho.selectSavedCompany = selectCompany.value;
+                        }
+
+                        // Salvar no localStorage
+                        localStorage.setItem(RASCUNHO_KEY, JSON.stringify(rascunho));
+
+                        // Feedback visual
+                        mostrarNotificacao('Rascunho salvo com sucesso!', 'success');
+                    } catch (error) {
+                        console.error('Erro ao salvar rascunho:', error);
+                        mostrarNotificacao('Erro ao salvar rascunho', 'error');
+                    }
+                }
+
+                function carregarRascunho() {
+                    try {
+                        const rascunhoSalvo = localStorage.getItem(RASCUNHO_KEY);
+
+                        if (!rascunhoSalvo) {
+                            mostrarNotificacao('Nenhum rascunho encontrado', 'info');
+                            return;
+                        }
+
+                        const rascunho = JSON.parse(rascunhoSalvo);
+
+                        // Restaurar valores dos campos
+                        camposRascunho.forEach(id => {
+                            if (rascunho[id] !== undefined) {
+                                const elemento = document.getElementById(id);
+                                if (elemento) {
+                                    elemento.value = rascunho[id];
+                                    // Disparar evento input para atualizar PDF
+                                    elemento.dispatchEvent(new Event('input'));
+                                }
+                            }
+                        });
+
+                        // Restaurar seleção de cálculo
+                        if (rascunho.selectCalculo) {
+                            const selectCalculo = document.getElementById('selectCalculo');
+                            if (selectCalculo) {
+                                selectCalculo.value = rascunho.selectCalculo;
+                                // Disparar evento change para carregar dados do cálculo
+                                selectCalculo.dispatchEvent(new Event('change'));
+                            }
+                        }
+
+                        // Restaurar seleção de empresa
+                        if (rascunho.selectSavedCompany) {
+                            const selectCompany = document.getElementById('selectSavedCompany');
+                            if (selectCompany) {
+                                selectCompany.value = rascunho.selectSavedCompany;
+                                // Disparar evento change para carregar dados da empresa
+                                selectCompany.dispatchEvent(new Event('change'));
+                            }
+                        }
+
+                        mostrarNotificacao('Rascunho carregado com sucesso!', 'success');
+                    } catch (error) {
+                        console.error('Erro ao carregar rascunho:', error);
+                        mostrarNotificacao('Erro ao carregar rascunho', 'error');
+                    }
+                }
+
+                function limparRascunho() {
+                    if (confirm('Tem certeza que deseja limpar o rascunho salvo? Esta ação não pode ser desfeita.')) {
+                        try {
+                            localStorage.removeItem(RASCUNHO_KEY);
+                            mostrarNotificacao('Rascunho removido com sucesso!', 'success');
+                        } catch (error) {
+                            console.error('Erro ao limpar rascunho:', error);
+                            mostrarNotificacao('Erro ao limpar rascunho', 'error');
+                        }
+                    }
+                }
+
+                function mostrarNotificacao(mensagem, tipo) {
+                    // Criar elemento de notificação
+                    const notif = document.createElement('div');
+                    notif.style.cssText = `
+                        position: fixed;
+                        top: 80px;
+                        right: 20px;
+                        padding: 16px 24px;
+                        background: ${tipo === 'success' ? '#34C759' : tipo === 'error' ? '#FF3B30' : '#007AFF'};
+                        color: white;
+                        border-radius: 12px;
+                        font-weight: 600;
+                        font-size: 14px;
+                        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                        z-index: 10000;
+                        animation: slideIn 0.3s ease-out;
+                        display: flex;
+                        align-items: center;
+                        gap: 10px;
+                    `;
+
+                    const icon = tipo === 'success' ? '✓' : tipo === 'error' ? '✕' : 'ℹ';
+                    notif.innerHTML = `<span style="font-size: 18px;">${icon}</span> ${mensagem}`;
+
+                    document.body.appendChild(notif);
+
+                    // Remover após 3 segundos
+                    setTimeout(() => {
+                        notif.style.animation = 'slideOut 0.3s ease-in';
+                        setTimeout(() => notif.remove(), 300);
+                    }, 3000);
+                }
+
+                // Adicionar animações CSS
+                const style = document.createElement('style');
+                style.textContent = `
+                    @keyframes slideIn {
+                        from {
+                            transform: translateX(400px);
+                            opacity: 0;
+                        }
+                        to {
+                            transform: translateX(0);
+                            opacity: 1;
+                        }
+                    }
+                    @keyframes slideOut {
+                        from {
+                            transform: translateX(0);
+                            opacity: 1;
+                        }
+                        to {
+                            transform: translateX(400px);
+                            opacity: 0;
+                        }
+                    }
+                `;
+                document.head.appendChild(style);
+
+                // Carregar rascunho automaticamente ao carregar a página (opcional)
+                // Descomente a linha abaixo se quiser carregar automaticamente
+                // window.addEventListener('DOMContentLoaded', carregarRascunho);
+
+            </script>
+
+            <!-- Script de Tema Dark/Light -->
+            <script>
+                // Aplicar tema salvo no localStorage
+                (function () {
+                    const savedTheme = localStorage.getItem('theme') || 'dark';
+                    if (savedTheme === 'dark') {
+                        document.documentElement.classList.add('dark');
+                    } else {
+                        document.documentElement.classList.remove('dark');
+                    }
+
+                    // Observar mudanças no localStorage (quando outro tab muda o tema)
+                    window.addEventListener('storage', (e) => {
+                        if (e.key === 'theme') {
+                            if (e.newValue === 'dark') {
+                                document.documentElement.classList.add('dark');
+                            } else {
+                                document.documentElement.classList.remove('dark');
+                            }
+                        }
+                    });
+                })();
+            </script>
+</body>
+
+</html>

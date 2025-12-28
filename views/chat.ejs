@@ -1,0 +1,202 @@
+<%- include('partials/head') %>
+<%- include('partials/header') %>
+
+<div class="container mx-auto p-6">
+  <h1 class="text-2xl font-bold mb-4">Chat com o Agente</h1>
+
+  <div id="chatBox" class="border rounded p-4 h-80 overflow-auto bg-white">
+    <!-- mensagens irão aparecer aqui -->
+  </div>
+
+  <form id="chatForm" class="mt-4 flex gap-2">
+    <% if (!userEmail) { %>
+      <input id="emailInput" name="email" type="email" placeholder="Seu e-mail (opcional)" class="p-2 border rounded flex-1" />
+    <% } %>
+    <input id="messageInput" name="message" placeholder="Escreva sua dúvida sobre os leilões Caixa..." class="p-2 border rounded flex-1" />
+    <button class="px-4 py-2 bg-blue-600 text-white rounded">Enviar</button>
+  </form>
+  <div id="sendStatus" class="text-sm text-gray-500 mt-2"></div>
+</div>
+
+<script>
+(async function(){
+  const chatBox = document.getElementById('chatBox');
+  const form = document.getElementById('chatForm');
+  const messageInput = document.getElementById('messageInput');
+  const emailInput = document.getElementById('emailInput');
+  // prevent double submits
+  let sending = false;
+
+  function createBubble({ text, who = 'user', time = null }){
+    const wrapper = document.createElement('div');
+    wrapper.className = 'mb-3 flex';
+    if (who === 'user') wrapper.style.justifyContent = 'flex-end';
+    else wrapper.style.justifyContent = 'flex-start';
+
+    const bubble = document.createElement('div');
+    bubble.className = who === 'user' ? 'px-4 py-2 rounded-lg bg-blue-600 text-white max-w-[80%] shadow' : 'px-4 py-2 rounded-lg bg-gray-100 text-gray-900 max-w-[80%] shadow-sm';
+    bubble.style.whiteSpace = 'pre-wrap';
+    bubble.textContent = text;
+
+    const meta = document.createElement('div');
+    meta.className = 'text-xs text-gray-500 mt-1';
+    meta.style.fontSize = '11px';
+    meta.style.textAlign = who === 'user' ? 'right' : 'left';
+    if (time) {
+      meta.textContent = time;
+      bubble.appendChild(meta);
+    }
+
+    wrapper.appendChild(bubble);
+    return wrapper;
+  }
+
+  function addMessage(text, fromUser = true) {
+    const when = new Date();
+    const timeStr = when.toLocaleString('pt-BR', { timeStyle: 'short', dateStyle: 'short' });
+    const bubble = createBubble({ text, who: fromUser ? 'user' : 'agent', time: timeStr });
+    chatBox.appendChild(bubble);
+    chatBox.scrollTop = chatBox.scrollHeight;
+  }
+
+  async function loadMessages(){
+    const params = {};
+    if (emailInput && emailInput.value) params.email = emailInput.value;
+    const qs = new URLSearchParams(params).toString();
+    const res = await fetch('/chat/messages' + (qs ? ('?' + qs) : ''));
+    const messages = await res.json();
+    chatBox.innerHTML = '';
+
+    for (const m of messages) {
+      // mensagem do usuário
+      const createdAt = m.created_at ? new Date(m.created_at) : null;
+      const createdStr = createdAt && !isNaN(createdAt) ? createdAt.toLocaleString('pt-BR', { timeStyle: 'short', dateStyle: 'short' }) : '';
+      const userBubble = createBubble({ text: m.message, who: 'user', time: createdStr });
+      chatBox.appendChild(userBubble);
+
+      // resposta do agente, se houver
+      if (m.response) {
+        const respAt = m.responded_at ? new Date(m.responded_at) : null;
+        const respStr = respAt && !isNaN(respAt) ? respAt.toLocaleString('pt-BR', { timeStyle: 'short', dateStyle: 'short' }) : '';
+        const respBubble = createBubble({ text: m.response, who: 'agent', time: respStr });
+        chatBox.appendChild(respBubble);
+      }
+    }
+
+    chatBox.scrollTop = chatBox.scrollHeight;
+  }
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const message = messageInput.value.trim();
+    if (!message) return;
+    console.log('Envio iniciado');
+    const payload = { message };
+    if (emailInput && emailInput.value) payload.email = emailInput.value;
+    messageInput.value = '';
+
+  // prevent duplicate submissions
+  if (sending) return;
+  sending = true;
+
+  // optimistic user message
+  addMessage(message, true);
+
+  const btn = form.querySelector('button');
+    const statusEl = document.getElementById('sendStatus');
+    if (btn) btn.disabled = true;
+    if (statusEl) statusEl.textContent = 'Enviando...';
+
+    // If n8n webhook URL is provided to the client, call it synchronously and expect a simple JSON { "response": "..." }
+  const n8nUrl = <%- JSON.stringify(n8nWebhookUrl || '') %>;
+    if (n8nUrl) {
+      // show loading state
+      if (statusEl) statusEl.textContent = 'Enviando...';
+
+      // show typing indicator
+      const typingBubble = createBubble({ text: 'Digitando...', who: 'agent' });
+      chatBox.appendChild(typingBubble);
+      chatBox.scrollTop = chatBox.scrollHeight;
+
+      try {
+        const resp = await fetch(n8nUrl, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+
+        if (!resp.ok) {
+          const txt = await resp.text().catch(()=>'');
+          console.error('n8n webhook returned non-OK:', resp.status, txt);
+          alert('Erro: webhook retornou erro. Veja o console para detalhes.');
+          try { typingBubble.remove(); } catch(e){}
+          // fallback: persist message for async processing
+          await fetch('/chat/send', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) }).catch(()=>{});
+          return;
+        }
+
+  // parse exact JSON shape: { "response": "..." }
+  const data = await resp.json();
+  // DEBUG: print full response for inspection
+  console.log('Resposta do N8N:', data);
+        // The backend now returns { "response": "texto..." }
+        // If the site expects 'parts' or 'content', it will break — we read exactly data.response
+  const textoFinal = (data && typeof data.response !== 'undefined') ? data.response : JSON.stringify(data);
+  console.log('Sucesso:', data);
+        try { typingBubble.remove(); } catch(e){}
+        addMessage(textoFinal, false);
+
+        // persist message + response to server and refresh messages to avoid duplicates
+        try {
+          await fetch('/chat/send', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ message, email: payload.email, response: textoFinal }) });
+          // reload authoritative list from server
+          await loadMessages();
+        } catch (err) {
+          console.error('Erro ao persistir:', err);
+        }
+
+      } catch (err) {
+        console.error('Error contacting n8n webhook:', err);
+        alert('Erro ao contatar o webhook. Veja console.');
+        try { typingBubble.remove(); } catch(e){}
+        // fallback: persist message for async processing
+        await fetch('/chat/send', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) }).catch(()=>{});
+      } finally {
+        sending = false;
+        if (btn) btn.disabled = false;
+        if (statusEl) statusEl.textContent = '';
+        messageInput.focus();
+      }
+
+      return;
+    }
+
+    // If no n8nUrl, fallback to server-driven flow
+    try {
+      const resp = await fetch('/chat/send', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload)});
+      if (!resp.ok) {
+        const text = await resp.text();
+        console.error('Erro ao enviar mensagem:', resp.status, text);
+        if (statusEl) statusEl.textContent = 'Erro ao enviar (veja console)';
+        alert('Erro ao enviar a mensagem. Veja o console para detalhes.');
+      } else {
+        const json = await resp.json();
+        console.log('chat/send response:', json);
+        if (statusEl) statusEl.textContent = `Enviado (webhook: ${json.webhookStatus || 'n/a'})`;
+        await loadMessages();
+      }
+    } catch (err) {
+      console.error('Erro no fetch /chat/send:', err);
+      alert('Erro ao conectar com o servidor.');
+    } finally {
+      if (btn) btn.disabled = false;
+      messageInput.focus();
+    }
+  });
+
+  // polling
+  setInterval(loadMessages, 3000);
+  // initial load
+  loadMessages();
+})();
+</script>
+
+<%- include('partials/theme-script') %>
+</body>
+</html>

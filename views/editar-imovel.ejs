@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <title>Editar Imóvel - Fortal</title>
+    <%- include('partials/head') %>
+</head>
+
+<body class="min-h-screen">
+
+    <%- include('partials/header', { title: 'Editar Imóvel' , showTrafficLights: false,
+        titleStyle: 'font-size: 30px; font-weight: 700; letter-spacing: -0.5px;' }) %>
+        <%- include('partials/sidebar') %>
+
+            <main class="macos-main-content">
+                <div class="animate-fade-in" style="padding-bottom: 40px; max-width: 800px; margin: 0 auto;">
+
+                    <div style="margin-bottom: 24px; padding-left: 4px;">
+                        <p style="font-size: 16px; color: var(--macos-text-secondary); font-weight: 500;">Atualize as
+                            informações do seu imóvel na carteira</p>
+                    </div>
+
+                    <div class="macos-card" style="padding: 32px;">
+                        <form action="/carteira/edit/<%= imovel.id %>" method="POST">
+
+                            <div class="macos-form-group">
+                                <label class="macos-form-label">Descrição do Imóvel</label>
+                                <input type="text" id="descricao" name="descricao" value="<%= imovel.descricao %>"
+                                    required class="macos-input">
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                                <div class="macos-form-group">
+                                    <label class="macos-form-label">Endereço</label>
+                                    <input type="text" id="endereco" name="endereco" value="<%= imovel.endereco %>"
+                                        class="macos-input">
+                                </div>
+                                <div class="macos-form-group">
+                                    <label class="macos-form-label">Status</label>
+                                    <div class="macos-select-wrapper">
+                                        <select name="status" class="macos-input">
+                                            <option value="Em Análise" <%=imovel.status==='Em Análise' ? 'selected' : ''
+                                                %>>Em Análise</option>
+                                            <option value="Arrematado" <%=imovel.status==='Arrematado' ? 'selected' : ''
+                                                %>>Arrematado</option>
+                                            <option value="Em Reforma" <%=imovel.status==='Em Reforma' ? 'selected' : ''
+                                                %>>Em Reforma</option>
+                                            <option value="À Venda" <%=imovel.status==='À Venda' ? 'selected' : '' %>>À
+                                                Venda</option>
+                                            <option value="Vendido" <%=imovel.status==='Vendido' ? 'selected' : '' %>
+                                                >Vendido</option>
+                                            <option value="Alugado" <%=imovel.status==='Alugado' ? 'selected' : '' %>
+                                                >Alugado</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                                <div class="macos-form-group">
+                                    <label class="macos-form-label">Valor de Compra (R$)</label>
+                                    <input type="number" step="0.01" id="valor_compra" name="valor_compra"
+                                        value="<%= imovel.valor_compra %>" required class="macos-input">
+                                </div>
+                                <div class="macos-form-group">
+                                    <label class="macos-form-label">Valor de Venda Estimado (R$)</label>
+                                    <input type="number" step="0.01" id="valor_venda_estimado"
+                                        name="valor_venda_estimado" value="<%= imovel.valor_venda_estimado %>"
+                                        class="macos-input">
+                                </div>
+                            </div>
+
+                            <div class="macos-form-group">
+                                <label class="macos-form-label">Data de Aquisição</label>
+                                <input type="date" id="data_aquisicao" name="data_aquisicao"
+                                    value="<%= imovel.data_aquisicao %>" class="macos-input">
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                                <div class="macos-form-group">
+                                    <label class="macos-form-label">Condomínio Estimado (R$)</label>
+                                    <input type="number" step="0.01" name="condominio_estimado"
+                                        value="<%= imovel.condominio_estimado || 0 %>" class="macos-input">
+                                </div>
+                                <div class="macos-form-group">
+                                    <label class="macos-form-label">IPTU Estimado (Mensal) (R$)</label>
+                                    <input type="number" step="0.01" name="iptu_estimado"
+                                        value="<%= imovel.iptu_estimado || 0 %>" class="macos-input">
+                                </div>
+                            </div>
+
+                            <div class="macos-form-group">
+                                <label class="macos-form-label">Observações</label>
+                                <textarea id="observacoes" name="observacoes" rows="4" class="macos-input"
+                                    style="height: auto;"><%= imovel.observacoes %></textarea>
+                            </div>
+
+                            <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 32px;">
+                                <a href="/carteira/<%= imovel.id %>" class="macos-btn-secondary"
+                                    style="text-decoration: none; display: flex; align-items: center; justify-content: center;">Cancelar</a>
+                                <button type="submit" class="macos-btn-primary">Salvar Alterações</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </main>
+
+</body>
+
+</html>

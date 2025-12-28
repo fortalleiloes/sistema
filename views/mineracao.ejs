@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <title>Mineração - Fortal</title>
+    <%- include('partials/head') %>
+        <!-- Leaflet CSS -->
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+            integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+
+        <style>
+            /* Map Container */
+            #map {
+                height: calc(100vh - 52px);
+                /* Subtract toolbar height if any, or adjust */
+                width: 100%;
+                z-index: 1;
+            }
+
+            /* Custom Toolbar for Map */
+            .map-toolbar {
+                position: absolute;
+                top: 20px;
+                left: 20px;
+                z-index: 1000;
+                display: flex;
+                gap: 12px;
+                background: var(--macos-bg-window);
+                backdrop-filter: blur(20px);
+                -webkit-backdrop-filter: blur(20px);
+                padding: 12px;
+                border-radius: 12px;
+                border: 1px solid var(--macos-border);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            }
+
+            .map-search-input {
+                width: 300px;
+                padding: 8px 12px;
+                border-radius: 8px;
+                border: 1px solid var(--macos-border);
+                background: var(--macos-bg-tertiary);
+                color: var(--macos-text-primary);
+                font-size: 14px;
+                outline: none;
+            }
+
+            .map-search-input:focus {
+                border-color: var(--macos-accent);
+                box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.2);
+            }
+
+            .map-filter-btn {
+                padding: 8px 16px;
+                border-radius: 8px;
+                border: 1px solid var(--macos-border);
+                background: var(--macos-bg-secondary);
+                color: var(--macos-text-primary);
+                font-size: 13px;
+                font-weight: 500;
+                cursor: pointer;
+                transition: all 0.2s;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+            }
+
+            .map-filter-btn:hover {
+                background: var(--macos-bg-tertiary);
+            }
+
+            .map-filter-btn.active {
+                background: var(--macos-accent);
+                color: white;
+                border-color: var(--macos-accent);
+            }
+
+            /* Property Card Popup */
+            .property-popup .leaflet-popup-content-wrapper {
+                background: var(--macos-bg-window);
+                backdrop-filter: blur(20px);
+                -webkit-backdrop-filter: blur(20px);
+                border-radius: 12px;
+                padding: 0;
+                overflow: hidden;
+                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+            }
+
+            .property-popup .leaflet-popup-content {
+                margin: 0;
+                width: 280px !important;
+            }
+
+            .property-popup .leaflet-popup-tip {
+                background: var(--macos-bg-window);
+            }
+
+            .popup-image {
+                width: 100%;
+                height: 160px;
+                object-fit: cover;
+            }
+
+            .popup-info {
+                padding: 16px;
+            }
+
+            .popup-price {
+                font-size: 20px;
+                font-weight: 700;
+                color: var(--macos-text-primary);
+                margin-bottom: 4px;
+            }
+
+            .popup-address {
+                font-size: 13px;
+                color: var(--macos-text-secondary);
+                margin-bottom: 12px;
+                line-height: 1.4;
+            }
+
+            .popup-meta {
+                display: flex;
+                gap: 12px;
+                margin-bottom: 16px;
+            }
+
+            .popup-badge {
+                background: var(--macos-bg-tertiary);
+                padding: 4px 8px;
+                border-radius: 6px;
+                font-size: 11px;
+                font-weight: 600;
+                color: var(--macos-text-secondary);
+            }
+
+            .popup-btn {
+                width: 100%;
+                padding: 10px;
+                background: var(--macos-accent);
+                color: white;
+                border: none;
+                border-radius: 8px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: opacity 0.2s;
+            }
+
+            .popup-btn:hover {
+                opacity: 0.9;
+            }
+
+            /* Marker Cluster Customization (Simulated) */
+            .marker-cluster-custom {
+                background: rgba(0, 122, 255, 0.6);
+                border: 2px solid white;
+                border-radius: 50%;
+                color: white;
+                font-weight: bold;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+        </style>
+</head>
+
+<body class="min-h-screen">
+    <%- include('partials/header', { title: 'Mineração' , showTrafficLights: false,
+        titleStyle: 'font-size: 30px; font-weight: 700; letter-spacing: -0.5px;' }) %>
+        <%- include('partials/sidebar') %>
+
+            <main class="macos-main-content"
+                style="padding: 0; position: relative; overflow: hidden; height: calc(100vh - 52px);">
+
+                <!-- Map Toolbar -->
+                <div class="map-toolbar" style="top: 12px; left: 12px;">
+                    <div style="position: relative;">
+                        <i class="fa-solid fa-search"
+                            style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--macos-text-secondary);"></i>
+                        <input type="text" class="map-search-input" placeholder="Buscar por cidade, bairro ou rua..."
+                            style="padding-left: 36px;">
+                    </div>
+
+                    <button class="map-filter-btn active">
+                        <i class="fa-solid fa-house"></i>
+                        Casas
+                    </button>
+                    <button class="map-filter-btn">
+                        <i class="fa-solid fa-building"></i>
+                        Apartamentos
+                    </button>
+                    <button class="map-filter-btn">
+                        <i class="fa-solid fa-tag"></i>
+                        Até R$ 200k
+                    </button>
+                    <button class="map-filter-btn">
+                        <i class="fa-solid fa-percent"></i>
+                        Desconto > 40%
+                    </button>
+                </div>
+
+                <!-- Map Element -->
+                <div id="map" style="height: 100%; width: 100%;"></div>
+
+            </main>
+
+            <!-- Leaflet JS -->
+            <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+                integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+            <script>
+                // Initialize Map
+                // Centered on Fortaleza
+                const map = L.map('map', {
+                    zoomControl: false,
+                    attributionControl: false
+                }).setView([-3.71722, -38.5434], 13);
+
+                // Add Tile Layer (CartoDB Positron for a clean, Apple Maps-like look)
+                L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+                    maxZoom: 20
+                }).addTo(map);
+
+                // Move Zoom Control to bottom right
+                L.control.zoom({
+                    position: 'bottomright'
+                }).addTo(map);
+
+                // Mock Data - Properties (Fortaleza)
+                const properties = [
+                    {
+                        lat: -3.725,
+                        lng: -38.495,
+                        price: 450000,
+                        address: "Av. Beira Mar, 2000 - Meireles, Fortaleza - CE",
+                        type: "Apartamento",
+                        discount: "35%",
+                        image: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60"
+                    },
+                    {
+                        lat: -3.735,
+                        lng: -38.505,
+                        price: 850000,
+                        address: "Rua Leonardo Mota, 1500 - Aldeota, Fortaleza - CE",
+                        type: "Apartamento",
+                        discount: "28%",
+                        image: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60"
+                    },
+                    {
+                        lat: -3.745,
+                        lng: -38.485,
+                        price: 320000,
+                        address: "Rua Dr. Gilberto Studart, 500 - Cocó, Fortaleza - CE",
+                        type: "Apartamento",
+                        discount: "42%",
+                        image: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60"
+                    },
+                    {
+                        lat: -3.720,
+                        lng: -38.525,
+                        price: 180000,
+                        address: "Rua Senador Pompeu, 800 - Centro, Fortaleza - CE",
+                        type: "Comercial",
+                        discount: "55%",
+                        image: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60"
+                    },
+                    {
+                        lat: -3.738,
+                        lng: -38.475,
+                        price: 290000,
+                        address: "Av. Santos Dumont, 3000 - Papicu, Fortaleza - CE",
+                        type: "Apartamento",
+                        discount: "30%",
+                        image: "https://images.unsplash.com/photo-1513584685908-2274653fa36f?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60"
+                    }
+                ];
+
+                // Custom Icon
+                const createCustomIcon = (price) => {
+                    return L.divIcon({
+                        className: 'custom-price-marker',
+                        html: `<div style="
+                    background: var(--macos-accent);
+                    color: white;
+                    padding: 4px 8px;
+                    border-radius: 12px;
+                    font-weight: 600;
+                    font-size: 12px;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+                    white-space: nowrap;
+                    border: 2px solid white;
+                ">R$ ${price}</div>`,
+                        iconSize: [80, 30],
+                        iconAnchor: [40, 30]
+                    });
+                };
+
+                // Add Markers
+                properties.forEach(prop => {
+                    const marker = L.marker([prop.lat, prop.lng], {
+                        icon: createCustomIcon((prop.price / 1000).toFixed(0) + 'k')
+                    }).addTo(map);
+
+                    const popupContent = `
+                <div class="property-popup">
+                    <img src="${prop.image}" class="popup-image" alt="Imóvel">
+                    <div class="popup-info">
+                        <div class="popup-price">R$ ${prop.price.toLocaleString('pt-BR')}</div>
+                        <div class="popup-address">${prop.address}</div>
+                        <div class="popup-meta">
+                            <span class="popup-badge">${prop.type}</span>
+                            <span class="popup-badge" style="background: rgba(52, 199, 89, 0.1); color: var(--macos-success);">${prop.discount} OFF</span>
+                        </div>
+                        <button class="popup-btn" onclick="window.location.href='/calculadora?valor=${prop.price}'">
+                            Simular Viabilidade
+                        </button>
+                    </div>
+                </div>
+            `;
+
+                    marker.bindPopup(popupContent, {
+                        className: 'property-popup',
+                        maxWidth: 280,
+                        minWidth: 280
+                    });
+                });
+
+                // Handle Search (Demo)
+                document.querySelector('.map-search-input').addEventListener('keypress', function (e) {
+                    if (e.key === 'Enter') {
+                        // Simulate search by moving map slightly
+                        map.flyTo([-23.5505 + (Math.random() - 0.5) * 0.05, -46.6333 + (Math.random() - 0.5) * 0.05], 14);
+                    }
+                });
+
+                // Handle Filters (Visual Toggle)
+                document.querySelectorAll('.map-filter-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        btn.classList.toggle('active');
+                    });
+                });
+
+            </script>
+</body>
+
+</html>

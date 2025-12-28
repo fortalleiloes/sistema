@@ -1,0 +1,875 @@
+/* ============================================
+   🍎 COMPONENTES ADICIONAIS macOS
+   Componentes específicos para páginas do sistema
+   ============================================ */
+
+/* ============================================
+   1. LAYOUT PRINCIPAL
+   ============================================ */
+.macos-main-content {
+    margin-left: 240px;
+    margin-top: 52px;
+    padding: 24px;
+    min-height: calc(100vh - 52px);
+    transition: margin-left var(--macos-transition-normal);
+}
+
+/* Scrollbar estilo macOS para main content */
+.macos-main-content::-webkit-scrollbar {
+    width: 10px;
+}
+
+.macos-main-content::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.macos-main-content::-webkit-scrollbar-thumb {
+    background: var(--macos-divider);
+    border-radius: 5px;
+}
+
+.macos-main-content::-webkit-scrollbar-thumb:hover {
+    background: var(--macos-text-tertiary);
+}
+
+/* Responsivo */
+@media (max-width: 768px) {
+    .macos-main-content {
+        margin-left: 0;
+        padding: 16px;
+    }
+}
+
+@media (max-width: 768px) {
+    .macos-main-content {
+        margin-left: 0;
+    }
+}
+
+/* ============================================
+   2. CHAT / MENSAGENS (Estilo iMessage)
+   ============================================ */
+.macos-chat-container {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 52px);
+    background: var(--macos-bg-primary);
+}
+
+.macos-chat-header {
+    padding: 16px 20px;
+    background: var(--macos-bg-toolbar);
+    backdrop-filter: blur(40px) saturate(180%);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    border-bottom: 1px solid var(--macos-divider);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.macos-chat-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--macos-text-primary);
+}
+
+.macos-chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.macos-message {
+    display: flex;
+    gap: 12px;
+    max-width: 70%;
+    animation: macos-fade-in 0.3s ease;
+}
+
+.macos-message.sent {
+    align-self: flex-end;
+    flex-direction: row-reverse;
+}
+
+.macos-message-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--macos-accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 600;
+    flex-shrink: 0;
+}
+
+.macos-message-bubble {
+    background: var(--macos-bg-tertiary);
+    padding: 10px 14px;
+    border-radius: 18px;
+    color: var(--macos-text-primary);
+    font-size: 14px;
+    line-height: 1.4;
+    word-wrap: break-word;
+}
+
+.macos-message.sent .macos-message-bubble {
+    background: var(--macos-accent);
+    color: #ffffff;
+}
+
+.macos-chat-input-container {
+    padding: 16px 20px;
+    background: var(--macos-bg-toolbar);
+    backdrop-filter: blur(40px) saturate(180%);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    border-top: 1px solid var(--macos-divider);
+}
+
+.macos-chat-input-wrapper {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    background: var(--macos-bg-tertiary);
+    border-radius: 20px;
+    padding: 8px 12px;
+}
+
+.macos-chat-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--macos-text-primary);
+    font-size: 14px;
+    font-family: var(--macos-font-system);
+    resize: none;
+    max-height: 100px;
+    min-height: 20px;
+}
+
+.macos-chat-send-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--macos-accent);
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all var(--macos-transition-fast);
+    flex-shrink: 0;
+}
+
+.macos-chat-send-btn:hover {
+    transform: scale(1.05);
+}
+
+.macos-chat-send-btn:active {
+    transform: scale(0.95);
+}
+
+.macos-chat-send-btn svg {
+    width: 16px;
+    height: 16px;
+    color: #ffffff;
+}
+
+/* ============================================
+   3. GRID DE CARDS (Para vídeos, imóveis, etc)
+   ============================================ */
+.macos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.macos-grid-item {
+    background: var(--macos-glass-bg);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border-radius: var(--macos-radius-lg);
+    border: 1px solid var(--macos-glass-border);
+    overflow: hidden;
+    transition: all var(--macos-transition-normal);
+    cursor: pointer;
+}
+
+.macos-grid-item:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--macos-shadow-lg);
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+.macos-grid-item-image {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    background: var(--macos-bg-tertiary);
+}
+
+.macos-grid-item-content {
+    padding: 16px;
+}
+
+.macos-grid-item-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--macos-text-primary);
+    margin-bottom: 8px;
+}
+
+.macos-grid-item-description {
+    font-size: 13px;
+    color: var(--macos-text-secondary);
+    line-height: 1.4;
+}
+
+/* ============================================
+   4. LISTA (Para histórico, transações, etc)
+   ============================================ */
+.macos-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.macos-list-item {
+    background: var(--macos-glass-bg);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border-radius: var(--macos-radius-md);
+    border: 1px solid var(--macos-glass-border);
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    transition: all var(--macos-transition-fast);
+    cursor: pointer;
+}
+
+.macos-list-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+.macos-list-item-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: var(--macos-radius-sm);
+    background: var(--macos-accent-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--macos-accent);
+    flex-shrink: 0;
+}
+
+.macos-list-item-content {
+    flex: 1;
+}
+
+.macos-list-item-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--macos-text-primary);
+    margin-bottom: 4px;
+}
+
+.macos-list-item-subtitle {
+    font-size: 12px;
+    color: var(--macos-text-secondary);
+}
+
+.macos-list-item-action {
+    color: var(--macos-text-tertiary);
+    transition: color var(--macos-transition-fast);
+}
+
+.macos-list-item:hover .macos-list-item-action {
+    color: var(--macos-accent);
+}
+
+/* ============================================
+   5. FORMULÁRIOS macOS
+   ============================================ */
+.macos-form-group {
+    margin-bottom: 20px;
+}
+
+.macos-form-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--macos-text-primary);
+    margin-bottom: 8px;
+}
+
+.macos-form-hint {
+    display: block;
+    font-size: 11px;
+    color: var(--macos-text-tertiary);
+    margin-top: 4px;
+}
+
+.macos-form-error {
+    display: block;
+    font-size: 11px;
+    color: var(--macos-red);
+    margin-top: 4px;
+}
+
+/* ============================================
+   6. MODAIS macOS
+   ============================================ */
+.macos-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    animation: macos-fade-in 0.2s ease;
+}
+
+.macos-modal {
+    background: var(--macos-bg-window);
+    backdrop-filter: blur(40px) saturate(180%);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    border-radius: var(--macos-radius-lg);
+    border: 1px solid var(--macos-border);
+    box-shadow: var(--macos-shadow-xl);
+    max-width: 500px;
+    width: 90%;
+    max-height: 80vh;
+    overflow: hidden;
+    animation: macos-scale-in 0.2s ease;
+}
+
+.macos-modal-header {
+    padding: 20px;
+    border-bottom: 1px solid var(--macos-divider);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.macos-modal-title {
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--macos-text-primary);
+}
+
+.macos-modal-close {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all var(--macos-transition-fast);
+}
+
+.macos-modal-close:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.macos-modal-body {
+    padding: 20px;
+    max-height: calc(80vh - 140px);
+    overflow-y: auto;
+}
+
+.macos-modal-footer {
+    padding: 16px 20px;
+    border-top: 1px solid var(--macos-divider);
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+}
+
+/* ============================================
+   7. TABS macOS
+   ============================================ */
+.macos-tabs {
+    display: flex;
+    gap: 4px;
+    background: var(--macos-bg-tertiary);
+    padding: 4px;
+    border-radius: var(--macos-radius-md);
+    margin-bottom: 20px;
+}
+
+.macos-tab {
+    flex: 1;
+    padding: 8px 16px;
+    border-radius: var(--macos-radius-sm);
+    background: transparent;
+    border: none;
+    color: var(--macos-text-secondary);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--macos-transition-fast);
+}
+
+.macos-tab:hover {
+    color: var(--macos-text-primary);
+}
+
+.macos-tab.active {
+    background: var(--macos-bg-window);
+    color: var(--macos-text-primary);
+    box-shadow: var(--macos-shadow-sm);
+}
+
+/* ============================================
+   8. STATS / KPIs (Para Dashboard)
+   ============================================ */
+.macos-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.macos-stat-card {
+    background: var(--macos-glass-bg);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border-radius: var(--macos-radius-lg);
+    border: 1px solid var(--macos-glass-border);
+    padding: 20px;
+    transition: all var(--macos-transition-normal);
+}
+
+.macos-stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--macos-shadow-md);
+}
+
+.macos-stat-label {
+    font-size: 12px;
+    color: var(--macos-text-secondary);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.macos-stat-value {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--macos-text-primary);
+    margin-bottom: 4px;
+}
+
+.macos-stat-change {
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.macos-stat-change.positive {
+    color: var(--macos-green);
+}
+
+.macos-stat-change.negative {
+    color: var(--macos-red);
+}
+
+/* ============================================
+   9. EMPTY STATES
+   ============================================ */
+.macos-empty-state {
+    text-align: center;
+    padding: 60px 20px;
+}
+
+.macos-empty-state-icon {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 20px;
+    border-radius: 50%;
+    background: var(--macos-bg-tertiary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--macos-text-tertiary);
+}
+
+.macos-empty-state-icon svg {
+    width: 40px;
+    height: 40px;
+}
+
+.macos-empty-state-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--macos-text-primary);
+    margin-bottom: 8px;
+}
+
+.macos-empty-state-description {
+    font-size: 14px;
+    color: var(--macos-text-secondary);
+    margin-bottom: 24px;
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* ============================================
+   10. LOADING / SKELETON
+   ============================================ */
+.macos-skeleton {
+    background: linear-gradient(90deg,
+            var(--macos-bg-tertiary) 0%,
+            rgba(255, 255, 255, 0.1) 50%,
+            var(--macos-bg-tertiary) 100%);
+    background-size: 200% 100%;
+    animation: macos-skeleton-loading 1.5s ease-in-out infinite;
+    border-radius: var(--macos-radius-sm);
+}
+
+@keyframes macos-skeleton-loading {
+    0% {
+        background-position: 200% 0;
+    }
+
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+.macos-skeleton-text {
+    height: 14px;
+    margin-bottom: 8px;
+}
+
+.macos-skeleton-title {
+    height: 20px;
+    width: 60%;
+    margin-bottom: 12px;
+}
+
+.macos-skeleton-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+}
+
+/* ============================================
+   11. TOOLTIPS macOS
+   ============================================ */
+.macos-tooltip {
+    position: relative;
+    display: inline-block;
+}
+
+.macos-tooltip-text {
+    visibility: hidden;
+    background: rgba(0, 0, 0, 0.9);
+    color: #ffffff;
+    text-align: center;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    position: absolute;
+    z-index: 1;
+    bottom: 125%;
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity var(--macos-transition-fast);
+}
+
+.macos-tooltip:hover .macos-tooltip-text {
+    visibility: visible;
+    opacity: 1;
+}
+
+/* ============================================
+   12. PROGRESS BAR
+   ============================================ */
+.macos-progress {
+    width: 100%;
+    height: 6px;
+    background: var(--macos-bg-tertiary);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.macos-progress-bar {
+    height: 100%;
+    background: var(--macos-accent);
+    border-radius: 3px;
+    transition: width var(--macos-transition-normal);
+}
+
+/* ============================================
+   13. RESPONSIVIDADE MOBILE
+   ============================================ */
+@media (max-width: 768px) {
+    .macos-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .macos-stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .macos-message {
+        max-width: 85%;
+    }
+
+    .macos-modal {
+        width: 95%;
+        max-height: 90vh;
+    }
+}
+
+/* ============================================
+   14. SEGMENTED CONTROL
+   ============================================ */
+.macos-segmented-control {
+    background: var(--macos-bg-tertiary);
+    padding: 2px;
+    border-radius: 8px;
+    display: inline-flex;
+    position: relative;
+    border: 1px solid var(--macos-border);
+}
+
+.macos-segmented-control button {
+    padding: 4px 12px;
+    border-radius: 6px;
+    border: none;
+    background: transparent;
+    color: var(--macos-text-secondary);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    z-index: 1;
+}
+
+.macos-segmented-control button:hover {
+    color: var(--macos-text-primary);
+}
+
+.macos-segmented-control button.active {
+    background: var(--macos-bg-window);
+    color: var(--macos-text-primary);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    font-weight: 600;
+}
+
+/* ============================================
+   BUTTONS
+   ============================================ */
+.macos-btn-primary {
+    background: #FFD60A;
+    color: #000000;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.macos-btn-primary:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(255, 214, 10, 0.2);
+}
+
+.macos-btn-secondary {
+    background: var(--macos-bg-tertiary);
+    color: var(--macos-text-primary);
+    border: 1px solid var(--macos-border);
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.macos-btn-secondary:hover {
+    background: var(--macos-bg-secondary);
+}
+
+/* ============================================
+   LIST ITEMS (Finder Style)
+   ============================================ */
+.macos-list-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--macos-divider);
+    transition: background-color 0.2s;
+}
+
+.macos-list-item:last-child {
+    border-bottom: none;
+}
+
+.macos-list-item:hover {
+    background-color: var(--macos-bg-tertiary);
+}
+
+/* Utilities */
+.hidden {
+    display: none !important;
+}
+
+/* ============================================
+   FORMS & INPUTS
+   ============================================ */
+.macos-form-label {
+    display: block;
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--macos-text-secondary);
+    margin-bottom: 8px;
+}
+
+.macos-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.macos-input-prefix {
+    position: absolute;
+    left: 12px;
+    color: var(--macos-text-secondary);
+    font-size: 17px;
+    pointer-events: none;
+}
+
+.macos-input {
+    width: 100%;
+    background: var(--macos-bg-tertiary);
+    border: 1px solid var(--macos-border);
+    border-radius: 8px;
+    padding: 10px 12px 10px 36px;
+    color: var(--macos-text-primary);
+    font-size: 17px;
+    outline: none;
+    transition: all 0.2s;
+}
+
+.macos-input:focus {
+    background: var(--macos-bg-window);
+    border-color: var(--macos-accent);
+    box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+}
+
+/* Ajuste para inputs formatados por JavaScript (currency-input.js) */
+.macos-input.currency-input {
+    padding: 10px 12px;
+    /* Remove padding esquerdo extra pois o JS já adiciona R$ */
+}
+
+.macos-form-group {
+    margin-bottom: 16px;
+}
+
+/* Apple-style Theme Toggle Switch */
+.theme-toggle-ios {
+    position: relative;
+    width: 60px;
+    height: 30px;
+    display: block;
+    cursor: pointer;
+    margin-bottom: 0;
+    /* Reset margin */
+}
+
+.theme-toggle-ios input {
+    display: none;
+}
+
+.toggle-track {
+    width: 100%;
+    height: 100%;
+    background: var(--macos-bg-tertiary);
+    border-radius: 30px;
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 6px;
+    box-sizing: border-box;
+    border: 1px solid var(--macos-border);
+    transition: background-color 0.3s ease;
+}
+
+.toggle-thumb {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 24px;
+    height: 24px;
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+    z-index: 2;
+}
+
+.toggle-icon {
+    font-size: 14px;
+    color: var(--macos-text-secondary);
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    transition: color 0.3s;
+}
+
+/* Checked State (Dark Mode) */
+.theme-toggle-ios input:checked+.toggle-track .toggle-thumb {
+    transform: translateX(30px);
+}
+
+.theme-toggle-ios input:checked+.toggle-track {
+    background-color: var(--macos-bg-secondary);
+}
+
+/* Icon Colors */
+.theme-toggle-ios input:not(:checked)+.toggle-track .toggle-icon.sun {
+    color: #F59E0B;
+    /* Amber */
+}
+
+.theme-toggle-ios input:checked+.toggle-track .toggle-icon.moon {
+    color: #8B5CF6;
+    /* Purple */
+}
+
+/* Dark Mode Adjustments for Thumb */
+.dark .toggle-thumb {
+    background: #e5e7eb;
+    /* Light gray in dark mode */
+}

@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <title>
+        <%= imovel.descricao %> - Fortal
+    </title>
+    <%- include('partials/head') %>
+        <script src="/js/animatedCounter.js"></script>
+</head>
+
+<body class="min-h-screen">
+    <%- include('partials/header', { title: 'Detalhes do Imóvel' , showTrafficLights: false,
+        titleStyle: 'font-size: 30px; font-weight: 700; letter-spacing: -0.5px;' }) %>
+        <%- include('partials/sidebar') %>
+
+            <main class="macos-main-content">
+                <div class="animate-fade-in" style="padding-bottom: 40px; max-width: 1200px; margin: 0 auto;">
+
+                    <!-- Breadcrumb Melhorado -->
+                    <div
+                        style="display: flex; align-items: center; gap: 8px; font-size: 14px; margin-bottom: 24px; padding-left: 4px;">
+                        <a href="/carteira"
+                            style="color: var(--macos-text-secondary); text-decoration: none; display: flex; align-items: center; gap: 6px; transition: color 0.2s;"
+                            onmouseover="this.style.color='var(--macos-accent)'"
+                            onmouseout="this.style.color='var(--macos-text-secondary)'">
+                            <i class="fa-solid fa-users"></i>
+                            <span>Clientes</span>
+                        </a>
+
+                        <% if (cliente) { %>
+                            <i class="fa-solid fa-chevron-right"
+                                style="font-size: 10px; color: var(--macos-text-tertiary);"></i>
+                            <a href="/cliente/<%= cliente.id %>"
+                                style="color: var(--macos-text-secondary); text-decoration: none; display: flex; align-items: center; gap: 6px; transition: color 0.2s;"
+                                onmouseover="this.style.color='var(--macos-accent)'"
+                                onmouseout="this.style.color='var(--macos-text-secondary)'">
+                                <i class="fa-solid fa-user"></i>
+                                <span>
+                                    <%= cliente.nome %>
+                                </span>
+                            </a>
+                            <% } %>
+
+                                <i class="fa-solid fa-chevron-right"
+                                    style="font-size: 10px; color: var(--macos-text-tertiary);"></i>
+                                <span
+                                    style="color: var(--macos-text-primary); font-weight: 600; display: flex; align-items: center; gap: 6px;">
+                                    <i class="fa-solid fa-house"></i>
+                                    <%= imovel.descricao %>
+                                </span>
+                    </div>
+
+                    <!-- Ações -->
+                    <div style="display: flex; justify-content: flex-end; gap: 12px; margin-bottom: 24px;">
+                        <button onclick="window.location.href='/carteira/edit/<%= imovel.id %>'"
+                            class="macos-btn-secondary" style="display: flex; align-items: center; gap: 8px;">
+                            <i class="fa-solid fa-pen"></i> Editar
+                        </button>
+                        <button onclick="openAddCustoModal()" class="macos-btn-primary"
+                            style="display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(255, 214, 10, 0.3);">
+                            <i class="fa-solid fa-plus"></i> Adicionar Custo
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Botão de Lançamento Rápido (Se houver estimativas) -->
+                <% if (imovel.condominio_estimado> 0 || imovel.iptu_estimado > 0) {
+                    const today = new Date();
+                    const currentMonth = today.getMonth();
+                    const currentYear = today.getFullYear();
+                    // Verifica se já existe custo de condomínio ou iptu neste mês
+                    const hasMonthlyCosts = custos.some(c => {
+                    const d = new Date(c.data_custo);
+                    return d.getMonth() === currentMonth && d.getFullYear() === currentYear && (c.tipo_custo ===
+                    'Condomínio' || c.tipo_custo === 'Impostos');
+                    });
+                    %>
+                    <% if (!hasMonthlyCosts) { %>
+                        <div class="macos-card"
+                            style="padding: 16px; margin-bottom: 24px; background: rgba(0, 122, 255, 0.05); border: 1px solid rgba(0, 122, 255, 0.2); display: flex; justify-content: space-between; align-items: center;">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div
+                                    style="width: 32px; height: 32px; border-radius: 50%; background: #007AFF; display: flex; align-items: center; justify-content: center; color: white;">
+                                    <i class="fa-solid fa-calendar-check"></i>
+                                </div>
+                                <div>
+                                    <h4
+                                        style="font-size: 14px; font-weight: 600; color: var(--macos-text-primary); margin-bottom: 2px;">
+                                        Despesas de <%= today.toLocaleDateString('pt-BR', { month: 'long' }) %>
+                                            pendentes</h4>
+                                    <p style="font-size: 12px; color: var(--macos-text-secondary);">Lance
+                                        automaticamente o Condomínio e IPTU deste mês.</p>
+                                </div>
+                            </div>
+                            <button onclick="lancarDespesasMensais()" class="macos-btn-secondary"
+                                style="background: white; border: 1px solid var(--macos-divider); color: #007AFF; font-weight: 500;">
+                                Lançar Agora
+                            </button>
+                        </div>
+                        <% } %>
+                            <% } %>
+
+                                <!-- Header do Imóvel -->
+                                <div class="macos-card" style="padding: 32px; margin-bottom: 24px;">
+                                    <div
+                                        style="display: flex; justify-content: space-between; align-items: flex-start;">
+                                        <div>
+                                            <div
+                                                style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                                                <h1
+                                                    style="font-size: 32px; font-weight: 700; color: var(--macos-text-primary); letter-spacing: -0.5px;">
+                                                    <%= imovel.descricao %>
+                                                </h1>
+                                                <span
+                                                    style="padding: 4px 12px; border-radius: 12px; background: rgba(0,122,255,0.1); color: #007AFF; font-size: 12px; font-weight: 600; text-transform: uppercase;">
+                                                    <%= imovel.status || 'Em Análise' %>
+                                                </span>
+                                            </div>
+                                            <p
+                                                style="color: var(--macos-text-secondary); font-size: 15px; display: flex; align-items: center; gap: 6px;">
+                                                <i class="fa-solid fa-location-dot"></i>
+                                                <%= imovel.endereco || 'Endereço não informado' %>
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <!-- KPIs Grid -->
+                                    <div
+                                        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 24px; padding-top: 32px; margin-top: 24px; border-top: 1px solid var(--macos-divider);">
+
+                                        <!-- Total Investido -->
+                                        <div>
+                                            <p
+                                                style="font-size: 12px; color: var(--macos-text-secondary); text-transform: uppercase; font-weight: 600; margin-bottom: 8px;">
+                                                Total Investido</p>
+                                            <h3 id="kpi-total-investido"
+                                                style="font-size: 24px; font-weight: 700; color: var(--macos-text-primary);">
+                                                <%= totais.investido.toLocaleString('pt-BR', { style: 'currency' ,
+                                                    currency: 'BRL' }) %>
+                                            </h3>
+                                            <p
+                                                style="font-size: 12px; color: var(--macos-text-secondary); margin-top: 4px;">
+                                                Compra
+                                                + Custos</p>
+                                        </div>
+
+                                        <!-- Valor de Venda -->
+                                        <div>
+                                            <p
+                                                style="font-size: 12px; color: var(--macos-text-secondary); text-transform: uppercase; font-weight: 600; margin-bottom: 8px;">
+                                                Venda Estimada</p>
+                                            <h3 id="kpi-valor-venda"
+                                                style="font-size: 24px; font-weight: 700; color: #AF52DE;">
+                                                <%= (imovel.valor_venda_estimado || 0).toLocaleString('pt-BR', {
+                                                    style: 'currency' , currency: 'BRL' }) %>
+                                            </h3>
+                                            <p
+                                                style="font-size: 12px; color: var(--macos-text-secondary); margin-top: 4px;">
+                                                Valor
+                                                de Mercado</p>
+                                        </div>
+
+                                        <!-- Lucro Potencial -->
+                                        <div>
+                                            <p
+                                                style="font-size: 12px; color: var(--macos-text-secondary); text-transform: uppercase; font-weight: 600; margin-bottom: 8px;">
+                                                Lucro Potencial</p>
+                                            <h3 id="kpi-lucro"
+                                                style="font-size: 24px; font-weight: 700; color: #34C759;">
+                                                <%= totais.lucro.toLocaleString('pt-BR', { style: 'currency' ,
+                                                    currency: 'BRL' }) %>
+                                            </h3>
+                                            <p
+                                                style="font-size: 12px; color: var(--macos-text-secondary); margin-top: 4px;">
+                                                Venda -
+                                                Investimento</p>
+                                        </div>
+
+                                        <!-- ROI -->
+                                        <div>
+                                            <p
+                                                style="font-size: 12px; color: var(--macos-text-secondary); text-transform: uppercase; font-weight: 600; margin-bottom: 8px;">
+                                                ROI Líquido</p>
+                                            <h3 id="kpi-roi" style="font-size: 24px; font-weight: 700; color: #FF9500;">
+                                                <%= totais.roi.toFixed(2) %>%
+                                            </h3>
+                                            <p
+                                                style="font-size: 12px; color: var(--macos-text-secondary); margin-top: 4px;">
+                                                Retorno
+                                                sobre investimento</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px;">
+
+                                    <!-- Lista de Custos -->
+                                    <div class="macos-card" style="padding: 0; overflow: hidden;">
+                                        <div
+                                            style="padding: 16px 20px; border-bottom: 1px solid var(--macos-divider); background: var(--macos-bg-tertiary); display: flex; justify-content: space-between; align-items: center;">
+                                            <h3
+                                                style="font-size: 15px; font-weight: 600; color: var(--macos-text-primary);">
+                                                Histórico de Custos</h3>
+                                            <span style="font-size: 12px; color: var(--macos-text-secondary);">Total:
+                                                <%= totais.custos.toLocaleString('pt-BR', { style: 'currency' ,
+                                                    currency: 'BRL' }) %>
+                                            </span>
+                                        </div>
+
+                                        <% if (custos && custos.length> 0) { %>
+                                            <div style="max-height: 400px; overflow-y: auto;">
+                                                <% custos.forEach(custo=> { %>
+                                                    <div class="macos-list-item"
+                                                        style="padding: 16px 20px; border-bottom: 1px solid var(--macos-divider); display: flex; justify-content: space-between; align-items: center;">
+                                                        <div style="display: flex; gap: 16px; align-items: center;">
+                                                            <div
+                                                                style="width: 36px; height: 36px; border-radius: 8px; background: var(--macos-bg-tertiary); display: flex; align-items: center; justify-content: center; color: var(--macos-text-secondary);">
+                                                                <i class="fa-solid fa-receipt"></i>
+                                                            </div>
+                                                            <div>
+                                                                <p
+                                                                    style="font-size: 14px; font-weight: 600; color: var(--macos-text-primary); margin-bottom: 2px;">
+                                                                    <%= custo.descricao || 'Sem descrição' %>
+                                                                </p>
+                                                                <div
+                                                                    style="display: flex; gap: 8px; align-items: center;">
+                                                                    <span
+                                                                        style="font-size: 11px; padding: 2px 6px; border-radius: 4px; background: var(--macos-bg-tertiary); color: var(--macos-text-secondary); border: 1px solid var(--macos-divider);">
+                                                                        <%= custo.tipo_custo || 'Outro' %>
+                                                                    </span>
+                                                                    <span
+                                                                        style="font-size: 12px; color: var(--macos-text-secondary);">
+                                                                        <%= custo.data_custo ? new
+                                                                            Date(custo.data_custo).toLocaleDateString('pt-BR')
+                                                                            : 'Data não informada' %>
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div style="display: flex; align-items: center; gap: 16px;">
+                                                            <span
+                                                                style="font-size: 15px; font-weight: 600; color: var(--macos-text-primary);">
+                                                                <%= (custo.valor || 0).toLocaleString('pt-BR', {
+                                                                    style: 'currency' , currency: 'BRL' }) %>
+                                                            </span>
+                                                            <button onclick="deleteCusto(<%= custo.id %>)"
+                                                                style="background: none; border: none; color: var(--macos-text-tertiary); cursor: pointer; transition: color 0.2s;"
+                                                                onmouseover="this.style.color='var(--macos-red)'"
+                                                                onmouseout="this.style.color='var(--macos-text-tertiary)'">
+                                                                <i class="fa-solid fa-trash"></i>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                    <% }); %>
+                                            </div>
+                                            <% } else { %>
+                                                <div
+                                                    style="padding: 40px; text-align: center; color: var(--macos-text-secondary);">
+                                                    <i class="fa-solid fa-receipt"
+                                                        style="font-size: 32px; margin-bottom: 16px; opacity: 0.3;"></i>
+                                                    <p style="font-size: 14px;">Nenhum custo registrado ainda.</p>
+                                                    <button onclick="openAddCustoModal()"
+                                                        style="margin-top: 12px; color: var(--macos-accent); font-size: 13px; font-weight: 500; background: none; border: none; cursor: pointer;">
+                                                        Adicionar primeiro custo
+                                                    </button>
+                                                </div>
+                                                <% } %>
+                                    </div>
+
+                                    <!-- Info Card -->
+                                    <div class="macos-card" style="padding: 24px; height: fit-content;">
+                                        <h3
+                                            style="font-size: 15px; font-weight: 600; color: var(--macos-text-primary); margin-bottom: 16px;">
+                                            Detalhes da Aquisição</h3>
+                                        <div style="display: flex; flex-direction: column; gap: 16px;">
+                                            <div>
+                                                <p
+                                                    style="font-size: 12px; color: var(--macos-text-secondary); text-transform: uppercase; font-weight: 600; margin-bottom: 4px;">
+                                                    Data de Aquisição</p>
+                                                <p style="font-size: 15px; color: var(--macos-text-primary);">
+                                                    <%= imovel.data_aquisicao ? new
+                                                        Date(imovel.data_aquisicao).toLocaleDateString('pt-BR')
+                                                        : 'Não informado' %>
+                                                </p>
+                                            </div>
+                                            <div>
+                                                <p
+                                                    style="font-size: 12px; color: var(--macos-text-secondary); text-transform: uppercase; font-weight: 600; margin-bottom: 4px;">
+                                                    Valor de Compra</p>
+                                                <p style="font-size: 15px; color: var(--macos-text-primary);">
+                                                    <%= (imovel.valor_compra || 0).toLocaleString('pt-BR', {
+                                                        style: 'currency' , currency: 'BRL' }) %>
+                                                </p>
+                                            </div>
+                                            <div>
+                                                <p
+                                                    style="font-size: 12px; color: var(--macos-text-secondary); text-transform: uppercase; font-weight: 600; margin-bottom: 4px;">
+                                                    Observações</p>
+                                                <p
+                                                    style="font-size: 14px; color: var(--macos-text-secondary); line-height: 1.4;">
+                                                    <%= imovel.observacoes || 'Nenhuma observação registrada.' %>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                </div>
+            </main>
+
+            <!-- Modal Adicionar Custo (macOS Style) -->
+            <div id="modal-add-custo" class="macos-modal-overlay" style="display: none;">
+                <div class="macos-modal" style="width: 400px;">
+                    <div class="macos-modal-header"
+                        style="justify-content: center; border-bottom: none; padding-bottom: 0;">
+                        <h3 class="macos-modal-title">Adicionar Custo</h3>
+                    </div>
+                    <form id="form-add-custo">
+                        <div class="macos-modal-body" style="padding-top: 8px;">
+                            <div class="macos-form-group">
+                                <label class="macos-form-label">Tipo de Custo</label>
+                                <div class="macos-select-wrapper">
+                                    <select name="tipo_custo" required class="macos-input">
+                                        <option value="Reforma">Reforma</option>
+                                        <option value="Manutenção">Manutenção</option>
+                                        <option value="Documentação">Documentação</option>
+                                        <option value="Impostos">Impostos (IPTU/ITBI)</option>
+                                        <option value="Condomínio">Condomínio</option>
+                                        <option value="Comissão">Comissão</option>
+                                        <option value="Outros">Outros</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="macos-form-group">
+                                <label class="macos-form-label">Descrição</label>
+                                <input type="text" name="descricao" required class="macos-input"
+                                    placeholder="Ex: Pintura, IPTU Janeiro...">
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                                <div class="macos-form-group">
+                                    <label class="macos-form-label">Valor (R$)</label>
+                                    <input type="number" name="valor" step="0.01" required class="macos-input"
+                                        placeholder="0,00">
+                                </div>
+                                <div class="macos-form-group">
+                                    <label class="macos-form-label">Data</label>
+                                    <input type="date" name="data_custo" required class="macos-input"
+                                        value="<%= new Date().toISOString().split('T')[0] %>">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="macos-modal-footer"
+                            style="background: var(--macos-bg-tertiary); border-top: 1px solid var(--macos-divider);">
+                            <button type="button" onclick="closeAddCustoModal()" class="macos-btn-secondary"
+                                style="min-width: 80px;">Cancelar</button>
+                            <button type="submit" class="macos-btn-primary" style="min-width: 80px;">Adicionar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <script>
+                // Modal functions
+                function openAddCustoModal() {
+                    const modal = document.getElementById('modal-add-custo');
+                    modal.style.display = 'flex';
+                    // Focus no primeiro input
+                    setTimeout(() => modal.querySelector('select').focus(), 100);
+                }
+
+                function closeAddCustoModal() {
+                    document.getElementById('modal-add-custo').style.display = 'none';
+                    document.getElementById('form-add-custo').reset();
+                }
+
+                // Fechar modal ao clicar fora
+                document.getElementById('modal-add-custo').addEventListener('click', (e) => {
+                    if (e.target === document.getElementById('modal-add-custo')) {
+                        closeAddCustoModal();
+                    }
+                });
+
+                // Form submit
+                document.getElementById('form-add-custo').addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const formData = new FormData(e.target);
+                    const data = Object.fromEntries(formData);
+
+                    try {
+                        const response = await fetch('/api/portfolio/imoveis/<%= imovel.id %>/custos', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(data)
+                        });
+
+                        if (response.ok) {
+                            window.location.reload();
+                        } else {
+                            alert('Erro ao adicionar custo');
+                        }
+                    } catch (error) {
+                        console.error('Erro:', error);
+                        alert('Erro ao adicionar custo');
+                    }
+                });
+
+                async function deleteCusto(id) {
+                    if (!confirm('Tem certeza que deseja excluir este custo?')) return;
+
+                    try {
+                        const response = await fetch(`/api/portfolio/custos/${id}`, {
+                            method: 'DELETE'
+                        });
+
+                        if (response.ok) {
+                            window.location.reload();
+                        } else {
+                            alert('Erro ao excluir custo');
+                        }
+                    } catch (error) {
+                        console.error('Erro:', error);
+                        alert('Erro ao excluir custo');
+                    }
+                }
+
+                async function lancarDespesasMensais() {
+                    if (!confirm('Deseja lançar as despesas recorrentes (Condomínio/IPTU) para este mês?')) return;
+
+                    try {
+                        const response = await fetch('/api/portfolio/imoveis/<%= imovel.id %>/lancar-mensais', {
+                            method: 'POST'
+                        });
+
+                        const data = await response.json();
+
+                        if (response.ok) {
+                            // alert(data.message);
+                            window.location.reload();
+                        } else {
+                            alert(data.error || 'Erro ao lançar despesas');
+                        }
+                    } catch (error) {
+                        console.error('Erro:', error);
+                        alert('Erro ao lançar despesas');
+                    }
+                }
+            </script>
+</body>
+</body>
+
+</html>

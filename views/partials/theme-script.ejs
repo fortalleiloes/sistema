@@ -1,0 +1,13 @@
+<script>
+    // Este script é executado antes da renderização para evitar a "piscada" do tema.
+    (function() {
+        try {
+            const theme = localStorage.getItem('theme');
+            if (theme === 'light') {
+                document.documentElement.classList.add('light');
+            }
+        } catch (e) {
+            console.error('Failed to apply theme from localStorage', e);
+        }
+    })();
+</script>

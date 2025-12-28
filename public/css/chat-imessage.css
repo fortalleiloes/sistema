@@ -1,0 +1,165 @@
+/* ============================================
+   💬 CHAT ESTILO iMessage
+   Estilos para mensagens do chat
+   ============================================ */
+
+/* Container de mensagem */
+.chat-message {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 8px;
+    animation: slideIn 0.3s ease;
+}
+
+.chat-message.sent {
+    flex-direction: row-reverse;
+    justify-content: flex-start;
+}
+
+/* Avatar */
+.chat-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #007AFF 0%, #0051D5 100%);
+    color: white;
+    font-size: 14px;
+}
+
+.chat-message.sent .chat-avatar {
+    background: var(--macos-bg-tertiary);
+    color: var(--macos-text-primary);
+}
+
+/* Bolha de mensagem */
+.chat-bubble {
+    max-width: 70%;
+    padding: 10px 14px;
+    border-radius: 18px;
+    font-size: 15px;
+    line-height: 1.4;
+    word-wrap: break-word;
+    position: relative;
+}
+
+/* Mensagem recebida (cinza) */
+.chat-message.received .chat-bubble {
+    background: var(--macos-bg-tertiary);
+    color: var(--macos-text-primary);
+    border-top-left-radius: 4px;
+}
+
+/* Mensagem enviada (azul) */
+.chat-message.sent .chat-bubble {
+    background: var(--macos-accent);
+    color: #ffffff;
+    border-top-right-radius: 4px;
+}
+
+/* Timestamp */
+.chat-timestamp {
+    font-size: 11px;
+    color: var(--macos-text-tertiary);
+    margin-top: 4px;
+    padding: 0 14px;
+}
+
+.chat-message.sent .chat-timestamp {
+    text-align: right;
+}
+
+/* Animação de entrada */
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Imagem na mensagem */
+.chat-image {
+    max-width: 300px;
+    border-radius: 12px;
+    margin-top: 4px;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.chat-image:hover {
+    transform: scale(1.02);
+}
+
+/* Link na mensagem */
+.chat-bubble a {
+    color: inherit;
+    text-decoration: underline;
+}
+
+.chat-message.sent .chat-bubble a {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+/* Código na mensagem */
+.chat-bubble code {
+    background: rgba(0, 0, 0, 0.1);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
+    font-size: 14px;
+}
+
+.chat-message.sent .chat-bubble code {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* Bloco de código */
+.chat-bubble pre {
+    background: rgba(0, 0, 0, 0.1);
+    padding: 12px;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin: 8px 0;
+}
+
+.chat-bubble pre code {
+    background: transparent;
+    padding: 0;
+}
+
+/* Status de leitura */
+.chat-read-status {
+    font-size: 11px;
+    color: var(--macos-text-tertiary);
+    margin-top: 2px;
+    text-align: right;
+}
+
+/* Agrupamento de mensagens */
+.chat-message+.chat-message.same-sender {
+    margin-top: -4px;
+}
+
+.chat-message.same-sender .chat-avatar {
+    visibility: hidden;
+}
+
+/* Responsivo */
+@media (max-width: 768px) {
+    .chat-bubble {
+        max-width: 85%;
+    }
+
+    .chat-image {
+        max-width: 250px;
+    }
+}

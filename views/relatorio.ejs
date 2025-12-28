@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <title>Relatório de Arremates - <%= user.username %>
+    </title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Google Fonts for Premium Feel -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS (via CDN for simplicity in this view, assuming project has it or this works standalone) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            /* Gray-100 */
+        }
+
+        @media print {
+            @page {
+                margin: 0;
+                size: A4;
+            }
+
+            body {
+                background-color: white;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            .no-print {
+                display: none !important;
+            }
+
+            .page-break-avoid {
+                break-inside: avoid;
+            }
+
+            .shadow-sm,
+            .shadow-md,
+            .shadow-lg {
+                box-shadow: none !important;
+                border: 1px solid #e5e7eb;
+                /* Border for clarity in print where shadows fade */
+            }
+        }
+
+        /* Custom Utilities */
+        .glass-header {
+            background: #111827;
+            /* Gray-900 */
+            color: white;
+        }
+    </style>
+</head>
+
+<body class="text-gray-700 antialiased min-h-screen p-8 md:p-12 print:p-0">
+
+    <!-- Print Control Bar -->
+    <div class="fixed bottom-8 left-1/2 transform -translate-x-1/2 no-print z-50">
+        <button onclick="window.print()"
+            class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-full shadow-lg transition duration-200 flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+            </svg>
+            Imprimir Relatório
+        </button>
+    </div>
+
+    <!-- Document Container -->
+    <div
+        class="max-w-5xl mx-auto bg-white shadow-xl rounded-xl overflow-hidden print:shadow-none print:rounded-none outline-none">
+
+        <!-- Header -->
+        <header class="glass-header p-10 print:p-8">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+                <div>
+                    <h1 class="text-3xl font-bold tracking-tight text-white mb-2">Relatório de Ativos</h1>
+                    <p class="text-blue-200 text-sm font-medium tracking-wide uppercase">Carteira de Imóveis Arrematados
+                    </p>
+                </div>
+                <div class="text-left md:text-right text-gray-300 space-y-1">
+                    <p class="text-sm"><span class="font-medium text-gray-400">Investidor:</span> <span
+                            class="text-white ml-1 font-semibold">
+                            <%= user.username %>
+                        </span></p>
+                    <p class="text-sm"><span class="font-medium text-gray-400">Gerado em:</span> <span
+                            class="text-white ml-1">
+                            <%= dataGeracao %>
+                        </span></p>
+                    <p class="text-xs text-gray-500 mt-2">ID do Relatório: #<%= Date.now().toString().slice(-6) %>
+                    </p>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="p-10 print:p-8">
+            <% if (arremates.length===0) { %>
+                <div class="py-20 text-center rounded-lg bg-gray-50 border border-dashed border-gray-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto text-gray-400 mb-4" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <p class="text-gray-500 font-medium">Nenhum registro encontrado para este período.</p>
+                </div>
+                <% } else { %>
+
+                    <div class="space-y-8">
+                        <% arremates.forEach((item, index)=> { %>
+                            <article
+                                class="page-break-avoid bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300 print:border-gray-300">
+                                <!-- Item Header -->
+                                <div
+                                    class="bg-gray-50 px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+                                    <div class="flex items-center gap-3">
+                                        <span class="bg-gray-900 text-white text-xs font-bold px-2.5 py-1 rounded">
+                                            #<%= String(index + 1).padStart(2, '0' ) %>
+                                        </span>
+                                        <h2
+                                            class="text-lg font-bold text-gray-800 tracking-tight text-ellipsis overflow-hidden whitespace-nowrap max-w-md">
+                                            <%= item.descricao_imovel %>
+                                        </h2>
+                                    </div>
+                                    <% if (item.data_arremate) { %>
+                                        <div class="flex items-center text-gray-500 text-sm">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5" fill="none"
+                                                viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                            </svg>
+                                            <%= new Date(item.data_arremate).toLocaleDateString('pt-BR',
+                                                {timeZone: 'UTC' }) %>
+                                        </div>
+                                        <% } %>
+                                </div>
+
+                                <!-- Item Content -->
+                                <div class="p-6">
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-12">
+                                        <!-- Left Column: Details -->
+                                        <div class="space-y-4">
+                                            <% if (item.endereco) { %>
+                                                <div>
+                                                    <dt
+                                                        class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">
+                                                        Localização</dt>
+                                                    <dd class="text-sm text-gray-800 font-medium leading-relaxed">
+                                                        <%= item.endereco %>
+                                                    </dd>
+                                                </div>
+                                                <% } %>
+
+                                                    <% if (item.leiloeiro) { %>
+                                                        <div>
+                                                            <dt
+                                                                class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">
+                                                                Origem do Arremate (Leiloeiro)</dt>
+                                                            <dd class="text-sm text-gray-800">
+                                                                <%= item.leiloeiro %>
+                                                            </dd>
+                                                        </div>
+                                                        <% } %>
+
+                                                            <% if (item.edital) { %>
+                                                                <div>
+                                                                    <dt
+                                                                        class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">
+                                                                        Referência (Edital/Processo)</dt>
+                                                                    <dd
+                                                                        class="text-sm text-gray-800 font-mono bg-gray-50 px-2 py-1 rounded inline-block border border-gray-100">
+                                                                        <%= item.edital %>
+                                                                    </dd>
+                                                                </div>
+                                                                <% } %>
+                                        </div>
+
+                                        <!-- Right Column: Financials -->
+                                        <div
+                                            class="flex flex-col justify-center items-start md:items-end border-t md:border-t-0 md:border-l border-gray-100 pt-6 md:pt-0 md:pl-6">
+                                            <% if (item.valor_formatado) { %>
+                                                <div class="text-left md:text-right">
+                                                    <p
+                                                        class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">
+                                                        Valor de Aquisição</p>
+                                                    <p class="text-3xl font-bold text-gray-900 tracking-tight">
+                                                        <%= item.valor_formatado %>
+                                                    </p>
+                                                    <p
+                                                        class="text-xs text-green-600 font-medium flex items-center justify-start md:justify-end mt-1">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1"
+                                                            fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                                stroke-width="2"
+                                                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                        </svg>
+                                                        Arremate Confirmado
+                                                    </p>
+                                                </div>
+                                                <% } %>
+                                        </div>
+                                    </div>
+                                </div>
+                            </article>
+                            <% }); %>
+                    </div>
+                    <% } %>
+        </main>
+
+        <!-- Footer -->
+        <footer
+            class="bg-gray-50 border-t border-gray-200 p-8 print:p-6 text-center print:bg-white print:border-t-2 print:border-gray-800">
+            <h4 class="text-sm font-bold text-gray-900 mb-2">Fortal - Gestão de Ativos Imobiliários</h4>
+            <p class="text-xs text-gray-500 max-w-2xl mx-auto leading-relaxed">
+                Este documento serve exclusivamente para fins de controle gerencial e acompanhamento de portfólio.
+                Os valores aqui apresentados devem ser conferidos com as notas oficiais de arrematação e documentos
+                cartorários
+                para efeitos fiscais e contábeis.
+            </p>
+            <p class="text-[10px] text-gray-400 mt-4 font-mono">
+                Gerado automaticamente pelo sistema em <%= new Date().toLocaleDateString('pt-BR') %> às <%= new
+                        Date().toLocaleTimeString('pt-BR') %>
+            </p>
+        </footer>
+    </div>
+
+</body>
+
+</html>

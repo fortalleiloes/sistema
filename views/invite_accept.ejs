@@ -1,0 +1,27 @@
+<%- include('partials/head') %>
+<%- include('partials/header') %>
+
+<div class="container mx-auto p-6">
+  <h1 class="text-2xl font-bold mb-4">Criar acesso</h1>
+  <p>Você está criando acesso para: <strong><%= email %></strong></p>
+
+  <% if (error) { %>
+    <div class="text-red-600"><%= error %></div>
+  <% } %>
+
+  <form method="POST" action="/invite/accept" class="mt-4 max-w-md">
+    <input type="hidden" name="token" value="<%= token %>" />
+
+    <label class="block mb-2">Nome de usuário</label>
+    <input name="username" class="w-full p-2 border rounded mb-3" required />
+
+    <label class="block mb-2">Senha</label>
+    <input name="password" type="password" class="w-full p-2 border rounded mb-3" required minlength="8" />
+
+    <button class="px-4 py-2 bg-blue-600 text-white rounded">Criar minha conta</button>
+  </form>
+</div>
+
+<%- include('partials/theme-script') %>
+</body>
+</html>

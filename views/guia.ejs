@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <title>Guia do Site - Fortal</title>
+    <%- include('partials/head') %>
+        <style>
+            .guide-layout {
+                display: flex;
+                gap: 40px;
+                max-width: 1400px;
+                margin: 0 auto;
+                padding: 40px 20px;
+            }
+
+            .guide-sidebar {
+                width: 280px;
+                flex-shrink: 0;
+                position: sticky;
+                top: 80px;
+                height: fit-content;
+            }
+
+            .guide-nav {
+                background: var(--macos-bg-secondary);
+                border: 1px solid var(--macos-divider);
+                border-radius: 16px;
+                padding: 20px;
+            }
+
+            .guide-nav-title {
+                font-size: 13px;
+                font-weight: 700;
+                color: var(--macos-text-secondary);
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                margin-bottom: 16px;
+            }
+
+            .guide-nav-item {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                padding: 10px 12px;
+                border-radius: 8px;
+                color: var(--macos-text-primary);
+                text-decoration: none;
+                font-size: 15px;
+                font-weight: 500;
+                transition: all 0.2s;
+                margin-bottom: 4px;
+            }
+
+            .guide-nav-item:hover {
+                background: var(--macos-bg-tertiary);
+            }
+
+            .guide-nav-item.active {
+                background: var(--macos-accent);
+                color: #000;
+            }
+
+            .guide-nav-icon {
+                width: 24px;
+                height: 24px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 16px;
+            }
+
+            .guide-container {
+                flex: 1;
+                min-width: 0;
+            }
+
+            .guide-section {
+                margin-bottom: 80px;
+                scroll-margin-top: 80px;
+            }
+
+            .guide-title {
+                font-size: 32px;
+                font-weight: 700;
+                color: var(--macos-text-primary);
+                margin-bottom: 16px;
+                display: flex;
+                align-items: center;
+                gap: 16px;
+            }
+
+            .guide-text {
+                font-size: 16px;
+                line-height: 1.6;
+                color: var(--macos-text-secondary);
+                margin-bottom: 24px;
+            }
+
+            .guide-card {
+                background: var(--macos-bg-secondary);
+                border: 1px solid var(--macos-divider);
+                border-radius: 16px;
+                padding: 28px;
+                margin-bottom: 24px;
+            }
+
+            .feature-list {
+                list-style: none;
+                padding: 0;
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+                gap: 20px;
+            }
+
+            .feature-item {
+                display: flex;
+                align-items: flex-start;
+                gap: 14px;
+            }
+
+            .feature-icon {
+                width: 36px;
+                height: 36px;
+                border-radius: 10px;
+                background: var(--macos-bg-tertiary);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: var(--macos-accent);
+                flex-shrink: 0;
+                font-size: 16px;
+            }
+
+            .feature-content h4 {
+                font-size: 16px;
+                font-weight: 600;
+                color: var(--macos-text-primary);
+                margin: 0 0 6px 0;
+            }
+
+            .feature-content p {
+                font-size: 14px;
+                color: var(--macos-text-secondary);
+                margin: 0;
+                line-height: 1.5;
+            }
+
+            .section-icon {
+                width: 48px;
+                height: 48px;
+                border-radius: 12px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 24px;
+                flex-shrink: 0;
+            }
+
+            @media (max-width: 1024px) {
+                .guide-layout {
+                    flex-direction: column;
+                }
+
+                .guide-sidebar {
+                    width: 100%;
+                    position: static;
+                }
+
+                .guide-nav {
+                    display: flex;
+                    overflow-x: auto;
+                    padding: 16px;
+                }
+
+                .guide-nav-title {
+                    display: none;
+                }
+
+                .guide-nav-item {
+                    white-space: nowrap;
+                }
+            }
+        </style>
+</head>
+
+<body class="min-h-screen">
+    <%- include('partials/header', { title: 'Guia do Site' , showTrafficLights: false,
+        titleStyle: 'font-size: 30px; font-weight: 700; letter-spacing: -0.5px;' }) %>
+        <%- include('partials/sidebar') %>
+
+            <main class="macos-main-content">
+                <div class="guide-layout">
+
+                    <!-- Sidebar de Navegação -->
+                    <aside class="guide-sidebar">
+                        <nav class="guide-nav">
+                            <div class="guide-nav-title">Navegação</div>
+                            <a href="#intro" class="guide-nav-item active">
+                                <div class="guide-nav-icon"><i class="fa-solid fa-house"></i></div>
+                                Introdução
+                            </a>
+                            <a href="#carteira" class="guide-nav-item">
+                                <div class="guide-nav-icon"><i class="fa-solid fa-wallet"></i></div>
+                                Carteira
+                            </a>
+                            <a href="#calculadora" class="guide-nav-item">
+                                <div class="guide-nav-icon"><i class="fa-solid fa-calculator"></i></div>
+                                Calculadora
+                            </a>
+                            <a href="#proposta" class="guide-nav-item">
+                                <div class="guide-nav-icon"><i class="fa-solid fa-file-pdf"></i></div>
+                                Gerador de Proposta
+                            </a>
+                            <a href="#perfil" class="guide-nav-item">
+                                <div class="guide-nav-icon"><i class="fa-solid fa-user"></i></div>
+                                Perfil
+                            </a>
+                        </nav>
+                    </aside>
+
+                    <!-- Conteúdo Principal -->
+                    <div class="guide-container">
+
+                        <!-- Intro -->
+                        <section id="intro" class="guide-section">
+                            <h1
+                                style="font-size: 48px; font-weight: 800; letter-spacing: -1.5px; margin-bottom: 20px; background: linear-gradient(135deg, var(--macos-text-primary) 0%, var(--macos-text-secondary) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                                Bem-vindo ao Fortal!
+                            </h1>
+                            <p class="guide-text" style="font-size: 20px; max-width: 700px;">
+                                Sua plataforma completa para <strong>gestão de assessoria imobiliária</strong> focada em
+                                leilões. Gerencie clientes, analise viabilidade de imóveis e crie propostas
+                                profissionais com facilidade.
+                            </p>
+                        </section>
+
+                        <!-- Carteira -->
+                        <section id="carteira" class="guide-section">
+                            <div class="guide-title">
+                                <div class="section-icon" style="background: #FFD60A; color: black;">
+                                    <i class="fa-solid fa-wallet"></i>
+                                </div>
+                                Carteira de Clientes
+                            </div>
+                            <div class="guide-card">
+                                <p class="guide-text">
+                                    Gerencie sua carteira de clientes de forma profissional. Organize informações,
+                                    acompanhe imóveis de interesse e mantenha todo o histórico de cada cliente em um só
+                                    lugar.
+                                </p>
+                                <ul class="feature-list">
+                                    <li class="feature-item">
+                                        <div class="feature-icon"><i class="fa-solid fa-users"></i></div>
+                                        <div class="feature-content">
+                                            <h4>Gestão de Clientes</h4>
+                                            <p>Cadastre clientes com nome, email, telefone, CPF e observações
+                                                personalizadas.</p>
+                                        </div>
+                                    </li>
+                                    <li class="feature-item">
+                                        <div class="feature-icon"><i class="fa-solid fa-building"></i></div>
+                                        <div class="feature-content">
+                                            <h4>Imóveis por Cliente</h4>
+                                            <p>Vincule múltiplos imóveis a cada cliente e acompanhe o portfólio
+                                                completo.</p>
+                                        </div>
+                                    </li>
+                                    <li class="feature-item">
+                                        <div class="feature-icon"><i class="fa-solid fa-chart-pie"></i></div>
+                                        <div class="feature-content">
+                                            <h4>Dashboard Financeiro</h4>
+                                            <p>Visualize métricas como total investido, ROI médio e número de imóveis
+                                                ativos.</p>
+                                        </div>
+                                    </li>
+                                    <li class="feature-item">
+                                        <div class="feature-icon"><i class="fa-solid fa-tags"></i></div>
+                                        <div class="feature-content">
+                                            <h4>Status e Filtros</h4>
+                                            <p>Organize clientes por status (Ativo, Inativo, Lead) e filtre rapidamente.
+                                            </p>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                        </section>
+
+                        <!-- Calculadora -->
+                        <section id="calculadora" class="guide-section">
+                            <div class="guide-title">
+                                <div class="section-icon" style="background: #FF9500; color: white;">
+                                    <i class="fa-solid fa-calculator"></i>
+                                </div>
+                                Calculadora de Viabilidade
+                            </div>
+                            <div class="guide-card">
+                                <p class="guide-text">
+                                    Ferramenta essencial para análise de viabilidade de arremates. Calcule todos os
+                                    custos, projete lucros e tome decisões baseadas em dados reais.
+                                </p>
+                                <ul class="feature-list">
+                                    <li class="feature-item">
+                                        <div class="feature-icon"><i class="fa-solid fa-money-bill-wave"></i></div>
+                                        <div class="feature-content">
+                                            <h4>Cálculo Completo de Custos</h4>
+                                            <p>ITBI, reforma, cartório, débitos, desocupação, condomínio, IPTU e muito
+                                                mais.</p>
+                                        </div>
+                                    </li>
+                                    <li class="feature-item">
+                                        <div class="feature-icon"><i class="fa-solid fa-percent"></i></div>
+                                        <div class="feature-content">
+                                            <h4>Base de ITBI Configurável</h4>
+                                            <p>Escolha entre calcular ITBI sobre valor de arremate ou avaliação.</p>
+                                        </div>
+                                    </li>
+                                    <li class="feature-item">
+                                        <div class="feature-icon"><i class="fa-solid fa-chart-line"></i></div>
+                                        <div class="feature-content">
+                                            <h4>Projeção de ROI</h4>
+                                            <p>Calcule o retorno sobre investimento e lucro líquido esperado.</p>
+                                        </div>
+                                    </li>
+                                    <li class="feature-item">
+                                        <div class="feature-icon"><i class="fa-solid fa-save"></i></div>
+                                        <div class="feature-content">
+                                            <h4>Salvar Cálculos</h4>
+                                            <p>Salve simulações para reutilizar em propostas ou comparar cenários.</p>
+                                        </div>
+                                    </li>
+                                    <li class="feature-item">
+                                        <div class="feature-icon"><i class="fa-solid fa-edit"></i></div>
+                                        <div class="feature-content">
+                                            <h4>Editar Cálculos Salvos</h4>
+                                            <p>Abra um modal para editar valores de cálculos já salvos rapidamente.</p>
+                                        </div>
+                                    </li>
+                                    <li class="feature-item">
+                                        <div class="feature-icon"><i class="fa-solid fa-eye"></i></div>
+                                        <div class="feature-content">
+                                            <h4>Detalhar Resultados</h4>
+                                            <p>Visualize todos os detalhes de um cálculo em modal organizado e elegante.
+                                            </p>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                        </section>
+
+                        <!-- Gerador de Proposta -->
+                        <section id="proposta" class="guide-section">
+                            <div class="guide-title">
+                                <div class="section-icon" style="background: #34C759; color: white;">
+                                    <i class="fa-solid fa-file-pdf"></i>
+                                </div>
+                                Gerador de Proposta (Da Vinci)
+                            </div>
+                            <div class="guide-card">
+                                <p class="guide-text">
+                                    Crie propostas profissionais em PDF com design premium. Impressione seus clientes
+                                    com relatórios completos de oportunidades imobiliárias.
+                                </p>
+                                <ul class="feature-list">
+                                    <li class="feature-item">
+                                        <div class="feature-icon"><i class="fa-solid fa-palette"></i></div>
+                                        <div class="feature-content">
+                                            <h4>Design Premium</h4>
+                                            <p>Layout profissional com marca d'água personalizada e tipografia elegante.
+                                            </p>
+                                        </div>
+                                    </li>
+                                    <li class="feature-item">
+                                        <div class="feature-icon"><i class="fa-solid fa-images"></i></div>
+                                        <div class="feature-content">
+                                            <h4>Upload de Imagens</h4>
+                                            <p>Adicione fotos da fachada, mapa e análise de mercado (até 3 imagens).</p>
+                                        </div>
+                                    </li>
+                                    <li class="feature-item">
+                                        <div class="feature-icon"><i class="fa-solid fa-calculator"></i></div>
+                                        <div class="feature-content">
+                                            <h4>Importar Cálculos</h4>
+                                            <p>Carregue dados financeiros direto dos cálculos salvos na calculadora.</p>
+                                        </div>
+                                    </li>
+                                    <li class="feature-item">
+                                        <div class="feature-icon"><i class="fa-solid fa-building"></i></div>
+                                        <div class="feature-content">
+                                            <h4>Perfis de Empresa</h4>
+                                            <p>Salve informações da sua empresa (Instagram, CRECI, rodapé) para
+                                                reutilizar.</p>
+                                        </div>
+                                    </li>
+                                    <li class="feature-item">
+                                        <div class="feature-icon"><i class="fa-solid fa-file-pen"></i></div>
+                                        <div class="feature-content">
+                                            <h4>Sistema de Rascunhos</h4>
+                                            <p>Salve rascunhos no navegador e retome o trabalho de onde parou.</p>
+                                        </div>
+                                    </li>
+                                    <li class="feature-item">
+                                        <div class="feature-icon"><i class="fa-solid fa-print"></i></div>
+                                        <div class="feature-content">
+                                            <h4>Gerar PDF</h4>
+                                            <p>Exporte proposta completa em PDF com 5 páginas: capa, ficha técnica,
+                                                mercado, viabilidade e conclusão.</p>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                        </section>
+
+                        <!-- Perfil -->
+                        <section id="perfil" class="guide-section">
+                            <div class="guide-title">
+                                <div class="section-icon" style="background: #007AFF; color: white;">
+                                    <i class="fa-solid fa-user"></i>
+                                </div>
+                                Perfil do Usuário
+                            </div>
+                            <div class="guide-card">
+                                <p class="guide-text">
+                                    Gerencie suas informações pessoais e configurações da conta. Mantenha seus dados
+                                    sempre atualizados.
+                                </p>
+                                <ul class="feature-list">
+                                    <li class="feature-item">
+                                        <div class="feature-icon"><i class="fa-solid fa-id-card"></i></div>
+                                        <div class="feature-content">
+                                            <h4>Dados Pessoais</h4>
+                                            <p>Atualize nome, email, telefone e foto de perfil.</p>
+                                        </div>
+                                    </li>
+                                    <li class="feature-item">
+                                        <div class="feature-icon"><i class="fa-solid fa-lock"></i></div>
+                                        <div class="feature-content">
+                                            <h4>Segurança</h4>
+                                            <p>Altere sua senha e mantenha sua conta protegida.</p>
+                                        </div>
+                                    </li>
+                                    <li class="feature-item">
+                                        <div class="feature-icon"><i class="fa-solid fa-bell"></i></div>
+                                        <div class="feature-content">
+                                            <h4>Preferências</h4>
+                                            <p>Configure notificações e preferências de uso da plataforma.</p>
+                                        </div>
+                                    </li>
+                                    <li class="feature-item">
+                                        <div class="feature-icon"><i class="fa-solid fa-chart-simple"></i></div>
+                                        <div class="feature-content">
+                                            <h4>Estatísticas</h4>
+                                            <p>Visualize seu uso da plataforma e métricas de atividade.</p>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                        </section>
+
+                    </div>
+                </div>
+            </main>
+
+            <script>
+                // Navegação suave e highlight ativo
+                document.querySelectorAll('.guide-nav-item').forEach(link => {
+                    link.addEventListener('click', function (e) {
+                        e.preventDefault();
+
+                        // Remove active de todos
+                        document.querySelectorAll('.guide-nav-item').forEach(item => {
+                            item.classList.remove('active');
+                        });
+
+                        // Adiciona active no clicado
+                        this.classList.add('active');
+
+                        // Scroll suave para a seção
+                        const targetId = this.getAttribute('href').substring(1);
+                        const targetSection = document.getElementById(targetId);
+                        if (targetSection) {
+                            targetSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }
+                    });
+                });
+
+                // Intersection Observer para atualizar navegação ao scroll
+                const sections = document.querySelectorAll('.guide-section');
+                const navItems = document.querySelectorAll('.guide-nav-item');
+
+                const observerOptions = {
+                    root: null,
+                    rootMargin: '-100px 0px -66%',
+                    threshold: 0
+                };
+
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            const id = entry.target.getAttribute('id');
+                            navItems.forEach(item => {
+                                item.classList.remove('active');
+                                if (item.getAttribute('href') === `#${id}`) {
+                                    item.classList.add('active');
+                                }
+                            });
+                        }
+                    });
+                }, observerOptions);
+
+                sections.forEach(section => observer.observe(section));
+            </script>
+</body>
+
+</html>

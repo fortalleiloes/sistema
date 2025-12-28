@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <title>Meus Clientes - Fortal</title>
+    <%- include('partials/head') %>
+        <style>
+            /* Seleção de texto amarela */
+            ::selection {
+                background: rgba(255, 214, 10, 0.3);
+                color: inherit;
+            }
+
+            /* Hover na lista com tom amarelado sutil */
+            .macos-list-item:hover {
+                background: rgba(255, 214, 10, 0.05) !important;
+            }
+
+            .cliente-card {
+                cursor: pointer;
+                transition: all 0.2s ease;
+            }
+
+            .cliente-card:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+            }
+
+            .status-badge {
+                font-size: 11px;
+                padding: 4px 10px;
+                border-radius: 12px;
+                font-weight: 600;
+                text-transform: uppercase;
+            }
+
+            .status-ativo {
+                background: rgba(52, 199, 89, 0.1);
+                color: #34C759;
+            }
+
+            .status-inativo {
+                background: rgba(142, 142, 147, 0.1);
+                color: #8E8E93;
+            }
+
+            .status-prospecto {
+                background: rgba(255, 149, 0, 0.1);
+                color: #FF9500;
+            }
+        </style>
+</head>
+
+<body class="min-h-screen page-clientes">
+
+    <%- include('partials/header', { username: username, email: email, profile_pic_url: profile_pic_url,
+        title: 'Meus Clientes' , showTrafficLights: false,
+        titleStyle: 'font-size: 30px; font-weight: 700; letter-spacing: -0.5px;' }) %>
+        <%- include('partials/sidebar') %>
+
+            <!-- Main Content -->
+            <main class="macos-main-content">
+
+                <!-- Subtítulo -->
+                <div style="margin-bottom: 24px; padding-left: 4px;">
+                    <p style="font-size: 16px; color: var(--macos-text-secondary); font-weight: 500;">
+                        Gerencie as carteiras dos seus assessorados
+                    </p>
+                </div>
+
+                <!-- KPIs Consolidados -->
+                <div
+                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 32px;">
+
+                    <!-- Widget: Total Clientes -->
+                    <div class="macos-card" style="padding: 20px; position: relative; overflow: hidden;">
+                        <div
+                            style="position: absolute; top: 16px; right: 16px; width: 32px; height: 32px; background: rgba(0, 122, 255, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                            <i class="fa-solid fa-users" style="color: #007AFF; font-size: 14px;"></i>
+                        </div>
+                        <p
+                            style="font-size: 13px; font-weight: 600; color: var(--macos-text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">
+                            Total Clientes</p>
+                        <h3
+                            style="font-size: 28px; font-weight: 700; color: var(--macos-text-primary); letter-spacing: -0.5px;">
+                            <%= kpis.totalClientes %>
+                        </h3>
+                        <div style="margin-top: 8px; font-size: 12px; color: var(--macos-text-secondary);">
+                            <%= kpis.totalClientesAtivos %> ativos
+                        </div>
+                    </div>
+
+                    <!-- Widget: Total Imóveis -->
+                    <div class="macos-card" style="padding: 20px; position: relative; overflow: hidden;">
+                        <div
+                            style="position: absolute; top: 16px; right: 16px; width: 32px; height: 32px; background: rgba(255, 149, 0, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                            <i class="fa-solid fa-house" style="color: #FF9500; font-size: 14px;"></i>
+                        </div>
+                        <p
+                            style="font-size: 13px; font-weight: 600; color: var(--macos-text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">
+                            Total Imóveis</p>
+                        <h3
+                            style="font-size: 28px; font-weight: 700; color: var(--macos-text-primary); letter-spacing: -0.5px;">
+                            <%= kpis.totalImoveis %>
+                        </h3>
+                        <div style="margin-top: 8px; font-size: 12px; color: var(--macos-text-secondary);">
+                            Em todas as carteiras
+                        </div>
+                    </div>
+
+                    <!-- Widget: Clientes com Imóveis -->
+                    <div class="macos-card" style="padding: 20px; position: relative; overflow: hidden;">
+                        <div
+                            style="position: absolute; top: 16px; right: 16px; width: 32px; height: 32px; background: rgba(175, 82, 222, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                            <i class="fa-solid fa-chart-line" style="color: #AF52DE; font-size: 14px;"></i>
+                        </div>
+                        <p
+                            style="font-size: 13px; font-weight: 600; color: var(--macos-text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;">
+                            Investidores Ativos</p>
+                        <h3
+                            style="font-size: 28px; font-weight: 700; color: var(--macos-text-primary); letter-spacing: -0.5px;">
+                            <%= kpis.clientesComImoveis %>
+                        </h3>
+                        <div style="margin-top: 8px; font-size: 12px; color: var(--macos-text-secondary);">
+                            de <%= kpis.totalClientes %> total
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lista de Clientes -->
+                <div style="margin-bottom: 32px;">
+                    <div
+                        style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+                        <h2 style="font-size: 22px; font-weight: 600; color: var(--macos-text-primary);">
+                            Carteira de Clientes
+                        </h2>
+                        <button class="macos-btn-primary" onclick="abrirModalNovoCliente()">
+                            <i class="fa-solid fa-plus"></i> Novo Cliente
+                        </button>
+                    </div>
+
+                    <div
+                        style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px;">
+                        <% if (clientes && clientes.length> 0) { %>
+                            <% clientes.forEach((cliente)=> { %>
+                                <div class="macos-card cliente-card" style="padding: 20px;"
+                                    onclick="window.location.href='/cliente/<%= cliente.id %>'">
+                                    <div
+                                        style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
+                                        <div style="display: flex; align-items: center; gap: 12px; flex: 1;">
+                                            <div
+                                                style="width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, #007AFF 0%, #5856D6 100%); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                                <i class="fa-solid fa-user" style="color: white; font-size: 20px;"></i>
+                                            </div>
+                                            <div style="min-width: 0; flex: 1;">
+                                                <h3
+                                                    style="font-size: 16px; font-weight: 700; color: var(--macos-text-primary); margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                                    <%= cliente.nome %>
+                                                </h3>
+                                                <% if (cliente.email) { %>
+                                                    <p
+                                                        style="font-size: 12px; color: var(--macos-text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                                        <%= cliente.email %>
+                                                    </p>
+                                                    <% } %>
+                                            </div>
+                                        </div>
+                                        <span class="status-badge status-<%= cliente.status %>">
+                                            <%= cliente.status %>
+                                        </span>
+                                    </div>
+
+                                    <div
+                                        style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding-top: 16px; border-top: 1px solid var(--macos-divider);">
+                                        <!-- Total Imóveis -->
+                                        <div>
+                                            <p
+                                                style="font-size: 11px; color: var(--macos-text-secondary); text-transform: uppercase; font-weight: 600; margin-bottom: 4px;">
+                                                Imóveis
+                                            </p>
+                                            <p
+                                                style="font-size: 16px; font-weight: 700; color: var(--macos-text-primary);">
+                                                <%= cliente.total_imoveis || 0 %>
+                                            </p>
+                                        </div>
+
+                                        <!-- Total Investido -->
+                                        <div>
+                                            <p
+                                                style="font-size: 11px; color: var(--macos-text-secondary); text-transform: uppercase; font-weight: 600; margin-bottom: 4px;">
+                                                Investido
+                                            </p>
+                                            <p
+                                                style="font-size: 16px; font-weight: 700; color: var(--macos-text-primary);">
+                                                <%= (cliente.total_investido_real || cliente.total_investido ||
+                                                    0).toLocaleString('pt-BR', {style: 'currency' , currency: 'BRL' ,
+                                                    minimumFractionDigits: 0, maximumFractionDigits: 0}) %>
+                                            </p>
+                                        </div>
+
+                                        <!-- ROI Médio -->
+                                        <div>
+                                            <p
+                                                style="font-size: 11px; color: var(--macos-text-secondary); text-transform: uppercase; font-weight: 600; margin-bottom: 4px;">
+                                                ROI Médio
+                                            </p>
+                                            <p
+                                                style="font-size: 16px; font-weight: 700; color: <%= (cliente.roi_medio || 0) >= 0 ? '#34C759' : '#FF3B30' %>;">
+                                                <%= (cliente.roi_medio || 0).toFixed(1) %>%
+                                            </p>
+                                        </div>
+
+                                        <!-- Lucro Estimado -->
+                                        <div>
+                                            <p
+                                                style="font-size: 11px; color: var(--macos-text-secondary); text-transform: uppercase; font-weight: 600; margin-bottom: 4px;">
+                                                Lucro Est.
+                                            </p>
+                                            <p
+                                                style="font-size: 16px; font-weight: 700; color: <%= (cliente.lucro_estimado || 0) >= 0 ? '#34C759' : '#FF3B30' %>;">
+                                                <%= (cliente.lucro_estimado || 0).toLocaleString('pt-BR',
+                                                    {style: 'currency' , currency: 'BRL' , minimumFractionDigits: 0,
+                                                    maximumFractionDigits: 0}) %>
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <% if (cliente.data_inicio) { %>
+                                        <div
+                                            style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--macos-divider);">
+                                            <p style="font-size: 11px; color: var(--macos-text-tertiary);">
+                                                <i class="fa-solid fa-calendar" style="margin-right: 4px;"></i>
+                                                Cliente desde <%= new
+                                                    Date(cliente.data_inicio).toLocaleDateString('pt-BR') %>
+                                            </p>
+                                        </div>
+                                        <% } %>
+                                </div>
+                                <% }); %>
+                                    <% } else { %>
+                                        <div class="macos-card"
+                                            style="padding: 48px; text-align: center; grid-column: 1 / -1;">
+                                            <i class="fa-solid fa-users"
+                                                style="font-size: 64px; color: var(--macos-text-tertiary); margin-bottom: 16px;"></i>
+                                            <h3
+                                                style="font-size: 18px; font-weight: 600; color: var(--macos-text-primary); margin-bottom: 8px;">
+                                                Nenhum cliente cadastrado
+                                            </h3>
+                                            <p
+                                                style="font-size: 14px; color: var(--macos-text-secondary); margin-bottom: 24px;">
+                                                Comece adicionando seu primeiro cliente assessorado
+                                            </p>
+                                            <button class="macos-btn-primary" onclick="abrirModalNovoCliente()">
+                                                <i class="fa-solid fa-plus"></i> Adicionar Primeiro Cliente
+                                            </button>
+                                        </div>
+                                        <% } %>
+                    </div>
+                </div>
+
+            </main>
+
+            <!-- Modal: Novo Cliente -->
+            <div id="modal-novo-cliente" class="hidden"
+                style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 1000; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s; padding: 20px;">
+                <div class="macos-window"
+                    style="width: 600px; max-width: 100%; background: var(--macos-bg-secondary); border-radius: 16px; box-shadow: 0 25px 50px rgba(0,0,0,0.4); transform: scale(0.95); transition: transform 0.3s; max-height: 90vh; display: flex; flex-direction: column;">
+
+                    <!-- Header do Modal -->
+                    <div style="padding: 24px 28px; border-bottom: 1px solid var(--macos-divider); flex-shrink: 0;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <h3
+                                    style="font-size: 22px; font-weight: 700; color: var(--macos-text-primary); margin-bottom: 4px;">
+                                    Novo Cliente
+                                </h3>
+                                <p style="font-size: 14px; color: var(--macos-text-secondary);">
+                                    Adicione um novo cliente à sua carteira
+                                </p>
+                            </div>
+                            <button onclick="fecharModalNovoCliente()"
+                                style="width: 32px; height: 32px; border-radius: 50%; background: var(--macos-bg-tertiary); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;"
+                                onmouseover="this.style.background='rgba(255,59,48,0.1)'; this.querySelector('i').style.color='#FF3B30';"
+                                onmouseout="this.style.background='var(--macos-bg-tertiary)'; this.querySelector('i').style.color='var(--macos-text-secondary)';">
+                                <i class="fa-solid fa-xmark"
+                                    style="color: var(--macos-text-secondary); font-size: 16px; transition: color 0.2s;"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Conteúdo do Modal (Scrollable) -->
+                    <div style="padding: 28px; overflow-y: auto; flex: 1;">
+                        <form id="form-novo-cliente">
+                            <div style="display: grid; gap: 20px;">
+                                <div>
+                                    <label class="macos-label">Nome Completo *</label>
+                                    <input type="text" name="nome" class="macos-input"
+                                        placeholder="Nome completo do cliente" required>
+                                </div>
+
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                                    <div>
+                                        <label class="macos-label">CPF</label>
+                                        <input type="text" name="cpf" class="macos-input" placeholder="000.000.000-00">
+                                    </div>
+                                    <div>
+                                        <label class="macos-label">Telefone</label>
+                                        <input type="tel" name="telefone" class="macos-input"
+                                            placeholder="(00) 00000-0000">
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label class="macos-label">E-mail</label>
+                                    <input type="email" name="email" class="macos-input"
+                                        placeholder="cliente@email.com">
+                                </div>
+
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                                    <div>
+                                        <label class="macos-label">Status</label>
+                                        <select name="status" class="macos-input">
+                                            <option value="ativo">Ativo</option>
+                                            <option value="prospecto">Prospecto</option>
+                                            <option value="inativo">Inativo</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="macos-label">Data de Início</label>
+                                        <input type="date" name="data_inicio" class="macos-input"
+                                            value="<%= new Date().toISOString().split('T')[0] %>">
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label class="macos-label">Observações</label>
+                                    <textarea name="observacoes" class="macos-input" rows="4"
+                                        placeholder="Informações adicionais sobre o cliente"
+                                        style="resize: vertical; min-height: 100px;"></textarea>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Footer com Ações -->
+                    <div
+                        style="padding: 20px 28px; border-top: 1px solid var(--macos-divider); background: var(--macos-bg-tertiary); border-radius: 0 0 16px 16px; flex-shrink: 0;">
+                        <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                            <button type="button" class="macos-btn-secondary" onclick="fecharModalNovoCliente()">
+                                <i class="fa-solid fa-times" style="margin-right: 6px;"></i>
+                                Cancelar
+                            </button>
+                            <button type="submit" form="form-novo-cliente" class="macos-btn-primary">
+                                <i class="fa-solid fa-check" style="margin-right: 6px;"></i>
+                                Criar Cliente
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <script>
+                // Variável para salvar posição do scroll
+                let scrollPositionNovoCliente = 0;
+
+                function abrirModalNovoCliente() {
+                    // Salvar posição atual do scroll
+                    scrollPositionNovoCliente = window.pageYOffset || document.documentElement.scrollTop;
+
+                    const modal = document.getElementById('modal-novo-cliente');
+                    modal.classList.remove('hidden');
+                    setTimeout(() => {
+                        modal.style.opacity = '1';
+                        modal.style.pointerEvents = 'auto';
+                        modal.querySelector('.macos-window').style.transform = 'scale(1)';
+                    }, 10);
+                }
+
+                function fecharModalNovoCliente() {
+                    const modal = document.getElementById('modal-novo-cliente');
+                    modal.style.opacity = '0';
+                    modal.style.pointerEvents = 'none';
+                    modal.querySelector('.macos-window').style.transform = 'scale(0.95)';
+                    setTimeout(() => {
+                        modal.classList.add('hidden');
+                        document.getElementById('form-novo-cliente').reset();
+
+                        // Restaurar posição do scroll
+                        window.scrollTo(0, scrollPositionNovoCliente);
+                    }, 300);
+                }
+
+                // Fechar modal ao clicar fora
+                document.getElementById('modal-novo-cliente')?.addEventListener('click', (e) => {
+                    if (e.target.id === 'modal-novo-cliente') {
+                        fecharModalNovoCliente();
+                    }
+                });
+
+                // Submeter formulário de novo cliente
+                document.getElementById('form-novo-cliente').addEventListener('submit', async (e) => {
+                    e.preventDefault();
+
+                    const formData = new FormData(e.target);
+                    const data = Object.fromEntries(formData.entries());
+
+                    try {
+                        const response = await fetch('/api/clientes', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(data)
+                        });
+
+                        const result = await response.json();
+
+                        if (result.success) {
+                            // Redirecionar para a página do cliente criado
+                            window.location.href = `/cliente/${result.clienteId}`;
+                        } else {
+                            alert('Erro ao criar cliente: ' + result.error);
+                        }
+                    } catch (error) {
+                        console.error('Erro ao criar cliente:', error);
+                        alert('Erro ao criar cliente. Tente novamente.');
+                    }
+                });
+
+                // Fechar modal ao clicar fora
+                document.getElementById('modal-novo-cliente').addEventListener('click', (e) => {
+                    if (e.target.id === 'modal-novo-cliente') {
+                        fecharModalNovoCliente();
+                    }
+                });
+            </script>
+
+            <script src="/js/app.js"></script>
+</body>
+
+</html>

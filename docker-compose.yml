@@ -1,0 +1,15 @@
+services:
+  app:
+    build: .
+    container_name: arremata_app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+    env_file:
+      - .env
+    volumes:
+      - ./db:/app/db
+      - ./public/uploads:/app/public/uploads

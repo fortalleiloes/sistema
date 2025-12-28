@@ -1,0 +1,126 @@
+<!-- ============================================
+     🍎 macOS Sidebar (Estilo Finder)
+     ============================================ -->
+<aside class="macos-sidebar">
+    <style>
+        .macos-sidebar-item-text {
+            font-size: 16px !important;
+            /* Ajustado para 16px (Intermediário) */
+            font-weight: 500 !important;
+        }
+
+        .macos-sidebar-section-title {
+            font-size: 13px !important;
+            /* Ajustado para 13px */
+            font-weight: 700 !important;
+            margin-bottom: 8px !important;
+            color: var(--macos-text-secondary);
+            opacity: 0.9;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .macos-sidebar-item-icon {
+            font-size: 20px !important;
+            /* Ajustado para 20px */
+            width: 24px !important;
+            text-align: center;
+        }
+
+        /* Estado Ativo em Amarelo */
+        .macos-sidebar-item.active {
+            background-color: #FFD60A !important;
+            color: #000000 !important;
+        }
+
+        /* Forçar cor preta nos ícones e texto quando ativo para contraste */
+        .macos-sidebar-item.active .macos-sidebar-item-icon,
+        .macos-sidebar-item.active .macos-sidebar-item-text,
+        .macos-sidebar-item.active i {
+            color: #000000 !important;
+        }
+
+        /* Ajustar padding dos itens */
+        .macos-sidebar-item {
+            padding: 8px 12px !important;
+            margin-bottom: 2px !important;
+        }
+    </style>
+    <!-- Header da Sidebar -->
+    <div class="macos-sidebar-header"
+        style="padding: 10px; height: 140px; display: flex; align-items: center; justify-content: center;">
+        <div
+            style="border-radius: 20px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); height: 120px; width: 120px; background: rgba(0, 0, 0, 0.08); padding: 6px; display: flex; align-items: center; justify-content: center;">
+            <img src="/images/logo-fortal.png" alt="Fortal"
+                style="height: 100%; width: 100%; object-fit: contain; transform: scale(1.15);">
+        </div>
+    </div>
+
+    <!-- Navegação Principal -->
+    <nav style="padding: 12px 8px;">
+        <!-- Favoritos -->
+        <!-- Ferramentas -->
+        <div class="macos-sidebar-section">
+            <div class="macos-sidebar-section-title">Ferramentas</div>
+
+            <a href="/carteira" class="macos-sidebar-item">
+                <span class="macos-sidebar-item-icon">
+                    <i class="fa-solid fa-wallet"></i>
+                </span>
+                <span class="macos-sidebar-item-text">Carteira</span>
+            </a>
+
+            <a href="/calculadora" class="macos-sidebar-item">
+                <span class="macos-sidebar-item-icon">
+                    <i class="fa-solid fa-calculator"></i>
+                </span>
+                <span class="macos-sidebar-item-text">Calculadora</span>
+            </a>
+
+            <a href="/da-vinci" class="macos-sidebar-item">
+                <span class="macos-sidebar-item-icon">
+                    <i class="fa-solid fa-file-pdf"></i>
+                </span>
+                <span class="macos-sidebar-item-text">Gerador de Proposta</span>
+            </a>
+        </div>
+
+
+
+        <!-- Guia do Site -->
+        <div class="macos-sidebar-section">
+            <div class="macos-sidebar-section-title">Guia do Site</div>
+
+            <a href="/guia" class="macos-sidebar-item">
+                <span class="macos-sidebar-item-icon">
+                    <i class="fa-solid fa-book-open"></i>
+                </span>
+                <span class="macos-sidebar-item-text">Guia Completo</span>
+            </a>
+        </div>
+    </nav>
+</aside>
+
+<script>
+    // Marcar item ativo baseado na URL atual
+    document.addEventListener('DOMContentLoaded', () => {
+        const currentPath = window.location.pathname;
+        const currentHash = window.location.hash;
+        const sidebarItems = document.querySelectorAll('.macos-sidebar-item');
+
+        sidebarItems.forEach(item => {
+            const href = item.getAttribute('href');
+
+            // Verificar se é a página atual
+            if (href === currentPath || (href.includes('#') && href === currentPath + currentHash)) {
+                item.classList.add('active');
+            }
+
+            // Adicionar listener para marcar como ativo ao clicar
+            item.addEventListener('click', () => {
+                sidebarItems.forEach(i => i.classList.remove('active'));
+                item.classList.add('active');
+            });
+        });
+    });
+</script>

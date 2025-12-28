@@ -1,0 +1,35 @@
+<%- include('partials/head') %>
+<%- include('partials/header') %>
+
+<div class="container mx-auto p-6">
+  <h1 class="text-2xl font-bold mb-4">Convites</h1>
+
+  <a href="/invite/new" class="inline-block mb-4 px-4 py-2 bg-green-600 text-white rounded">Criar novo convite</a>
+
+  <table class="w-full table-auto border-collapse">
+    <thead>
+      <tr>
+        <th class="text-left p-2">Email</th>
+        <th class="text-left p-2">Token</th>
+        <th class="text-left p-2">Usado</th>
+        <th class="text-left p-2">Expira em</th>
+        <th class="text-left p-2">Criado em</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% invites.forEach(inv => { %>
+        <tr class="border-t">
+          <td class="p-2"><%= inv.email %></td>
+          <td class="p-2 font-mono text-sm"><%= inv.token %></td>
+          <td class="p-2"><%= inv.used ? 'Sim' : 'Não' %></td>
+          <td class="p-2"><%= inv.expires_at ? new Date(inv.expires_at).toLocaleString() : '' %></td>
+          <td class="p-2"><%= new Date(inv.created_at).toLocaleString() %></td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+</div>
+
+<%- include('partials/theme-script') %>
+</body>
+</html>

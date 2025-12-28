@@ -1,0 +1,150 @@
+<!-- ============================================
+🍎 macOS Sidebar (Estilo Finder)
+============================================ -->
+<aside class="macos-sidebar">
+    <!-- Header da Sidebar -->
+    <div class="macos-sidebar-header">
+        <div class="macos-sidebar-logo"
+            style="display: flex; justify-content: center; align-items: center; padding: 20px 0;">
+            <div
+                style="background: rgba(0, 0, 0, 0.08); border-radius: 16px; padding: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                <img src="/images/logo-fortal.png" alt="Fortal"
+                    style="height: 100px; width: 100px; object-fit: contain; transform: scale(1.15);">
+            </div>
+        </div>
+    </div>
+
+    <!-- Navegação Principal -->
+    <nav style="padding: 12px 8px;">
+        <!-- Favoritos -->
+        <div class="macos-sidebar-section">
+            <div class="macos-sidebar-section-title">Favoritos</div>
+
+            <a href="/#agenteia" class="macos-sidebar-item" data-section="comunidade" data-filter="agenteia">
+                <span class="macos-sidebar-item-icon">
+                    <i class="fa-solid fa-robot"></i>
+                </span>
+                <span class="macos-sidebar-item-text">Agente IA</span>
+            </a>
+
+            <a href="/carteira" class="macos-sidebar-item">
+                <span class="macos-sidebar-item-icon">
+                    <i class="fa-solid fa-wallet"></i>
+                </span>
+                <span class="macos-sidebar-item-text">Carteira</span>
+            </a>
+        </div>
+
+        <!-- Comunidades -->
+        <div class="macos-sidebar-section">
+            <div class="macos-sidebar-section-title">Comunidades</div>
+
+            <a href="/#geral" class="macos-sidebar-item" data-section="comunidade" data-filter="geral">
+                <span class="macos-sidebar-item-icon">
+                    <i class="fa-solid fa-comments"></i>
+                </span>
+                <span class="macos-sidebar-item-text">Comunidade</span>
+            </a>
+
+            <a href="/#arrematacoes" class="macos-sidebar-item" data-section="comunidade" data-filter="arrematacoes">
+                <span class="macos-sidebar-item-icon">
+                    <i class="fa-solid fa-gavel"></i>
+                </span>
+                <span class="macos-sidebar-item-text">Arrematações</span>
+            </a>
+
+            <a href="/#casas" class="macos-sidebar-item" data-section="comunidade" data-filter="casas">
+                <span class="macos-sidebar-item-icon">
+                    <i class="fa-solid fa-house"></i>
+                </span>
+                <span class="macos-sidebar-item-text">Casas</span>
+            </a>
+
+            <a href="/#apartamentos" class="macos-sidebar-item" data-section="comunidade" data-filter="apartamentos">
+                <span class="macos-sidebar-item-icon">
+                    <i class="fa-solid fa-building"></i>
+                </span>
+                <span class="macos-sidebar-item-text">Apartamentos</span>
+            </a>
+
+            <a href="/#materiais" class="macos-sidebar-item" data-section="comunidade" data-filter="materiais">
+                <span class="macos-sidebar-item-icon">
+                    <i class="fa-solid fa-tools"></i>
+                </span>
+                <span class="macos-sidebar-item-text">Materiais</span>
+            </a>
+        </div>
+
+        <!-- Ferramentas -->
+        <div class="macos-sidebar-section">
+            <div class="macos-sidebar-section-title">Ferramentas</div>
+
+            <a href="/calculadora" class="macos-sidebar-item">
+                <span class="macos-sidebar-item-icon">
+                    <i class="fa-solid fa-calculator"></i>
+                </span>
+                <span class="macos-sidebar-item-text">Calculadora</span>
+            </a>
+        </div>
+
+        <!-- Da Vinci -->
+        <div class="macos-sidebar-section">
+            <div class="macos-sidebar-section-title">Da Vinci</div>
+
+            <a href="/da-vinci" class="macos-sidebar-item">
+                <span class="macos-sidebar-item-icon">
+                    <i class="fa-solid fa-scroll"></i>
+                </span>
+                <span class="macos-sidebar-item-text">Relatório</span>
+            </a>
+        </div>
+
+        <!-- Histórico -->
+        <div class="macos-sidebar-section">
+            <div class="macos-sidebar-section-title">Meu Histórico</div>
+
+            <a href="/historico" class="macos-sidebar-item">
+                <span class="macos-sidebar-item-icon">
+                    <i class="fa-solid fa-hourglass-half"></i>
+                </span>
+                <span class="macos-sidebar-item-text">Histórico</span>
+            </a>
+        </div>
+
+        <!-- Vídeo Aulas -->
+        <div class="macos-sidebar-section">
+            <div class="macos-sidebar-section-title">Vídeo Aulas</div>
+
+            <a href="/#videos" class="macos-sidebar-item" data-section="videos">
+                <span class="macos-sidebar-item-icon">
+                    <i class="fa-solid fa-play"></i>
+                </span>
+                <span class="macos-sidebar-item-text">Todas as Aulas</span>
+            </a>
+        </div>
+    </nav>
+</aside>
+
+<script>
+    // Marcar item ativo baseado na URL atual
+    document.addEventListener('DOMContentLoaded', () => {
+        const currentPath = window.location.pathname;
+        const currentHash = window.location.hash;
+        const sidebarItems = document.querySelectorAll('.macos-sidebar-item');
+
+        sidebarItems.forEach(item => {
+            const href = item.getAttribute('href');
+
+            // Verificar se é a página atual
+            if (href === currentPath || (href.includes('#') && href === currentPath + currentHash)) {
+                item.classList.add('active');
+            }
+
+            // Adicionar listener para marcar como ativo ao clicar
+            item.addEventListener('click', () => {
+                sidebarItems.forEach(i => i.classList.remove('active'));
+                item.classList.add('active');
+            });
+        });
+    });
+</script>

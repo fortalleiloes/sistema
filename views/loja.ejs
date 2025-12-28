@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <title>Loja - Fortal</title>
+    <%- include('partials/head') %>
+</head>
+
+<body class="min-h-screen">
+    <%- include('partials/header', { title: '' , showTrafficLights: false }) %>
+        <%- include('partials/sidebar') %>
+
+            <main class="macos-main-content">
+                <div class="animate-fade-in"
+                    style="max-width: 1200px; margin: 0 auto; text-align: center; padding-top: 100px; display: flex; flex-direction: column; align-items: center;">
+                    <div
+                        style="width: 100px; height: 100px; background: var(--macos-bg-tertiary); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 24px;">
+                        <i class="fa-solid fa-cart-shopping"
+                            style="font-size: 40px; color: var(--macos-text-secondary);"></i>
+                    </div>
+                    <h2 style="margin-bottom: 12px; font-size: 24px; color: var(--macos-text-primary);">Loja Fortal
+                    </h2>
+                    <p
+                        style="color: var(--macos-text-secondary); max-width: 400px; margin: 0 auto; font-size: 15px; line-height: 1.6;">
+                        Em breve você encontrará aqui mentorias, planilhas avançadas e serviços exclusivos para acelerar
+                        seus resultados nos leilões.
+                    </p>
+                    <div style="margin-top: 32px;">
+                        <button class="macos-btn-secondary" onclick="window.history.back()">Voltar</button>
+                    </div>
+                </div>
+            </main>
+</body>
+
+</html>

@@ -1,0 +1,223 @@
+<!-- Modal: Adicionar Imóvel - Redesenhado -->
+<div id="modal-adicionar-imovel" class="hidden"
+    style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 1000; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s; padding: 20px;">
+    <div class="macos-window"
+        style="width: 900px; max-width: 100%; background: var(--macos-bg-secondary); border-radius: 16px; box-shadow: 0 25px 50px rgba(0,0,0,0.4); transform: scale(0.95); transition: transform 0.3s; max-height: 90vh; display: flex; flex-direction: column;">
+
+        <!-- Header do Modal -->
+        <div style="padding: 24px 28px; border-bottom: 1px solid var(--macos-divider); flex-shrink: 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <div>
+                    <h3
+                        style="font-size: 22px; font-weight: 700; color: var(--macos-text-primary); margin-bottom: 4px;">
+                        Adicionar Imóvel
+                    </h3>
+                    <p style="font-size: 14px; color: var(--macos-text-secondary);">
+                        Adicione um novo imóvel à carteira de <%= cliente.nome %>
+                    </p>
+                </div>
+                <button onclick="fecharModalImovel()"
+                    style="width: 32px; height: 32px; border-radius: 50%; background: var(--macos-bg-tertiary); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;"
+                    onmouseover="this.style.background='rgba(255,59,48,0.1)'; this.querySelector('i').style.color='#FF3B30';"
+                    onmouseout="this.style.background='var(--macos-bg-tertiary)'; this.querySelector('i').style.color='var(--macos-text-secondary)';">
+                    <i class="fa-solid fa-xmark"
+                        style="color: var(--macos-text-secondary); font-size: 16px; transition: color 0.2s;"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Conteúdo do Modal (Scrollable) -->
+        <div style="padding: 28px; overflow-y: auto; flex: 1;">
+            <form id="form-adicionar-imovel">
+                <input type="hidden" name="cliente_id" value="<%= cliente.id %>">
+
+                <!-- Seção: Informações Básicas -->
+                <div style="margin-bottom: 32px;">
+                    <h4
+                        style="font-size: 15px; font-weight: 600; color: var(--macos-text-primary); margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+                        <i class="fa-solid fa-info-circle" style="color: #007AFF;"></i>
+                        Informações Básicas
+                    </h4>
+
+                    <div style="display: grid; gap: 16px;">
+                        <div>
+                            <label class="macos-label">Descrição do Imóvel *</label>
+                            <input type="text" name="descricao_imovel" class="macos-input"
+                                placeholder="Ex: Apartamento 2 quartos em Copacabana" required>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 16px;">
+                            <div>
+                                <label class="macos-label">Endereço</label>
+                                <input type="text" name="endereco" class="macos-input"
+                                    placeholder="Rua, Número, Bairro, Cidade">
+                            </div>
+                            <div>
+                                <label class="macos-label">Data de Aquisição *</label>
+                                <input type="date" name="data_arremate" class="macos-input" required>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Seção: Valores e Origem -->
+                <div style="margin-bottom: 32px;">
+                    <h4
+                        style="font-size: 15px; font-weight: 600; color: var(--macos-text-primary); margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+                        <i class="fa-solid fa-dollar-sign" style="color: #34C759;"></i>
+                        Valores e Origem
+                    </h4>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                        <div>
+                            <label class="macos-label">Valor de Compra (R$) *</label>
+                            <input type="number" step="0.01" name="valor_arremate" class="macos-input"
+                                placeholder="0,00" required>
+                        </div>
+                        <div>
+                            <label class="macos-label">Valor de Venda Estimado (R$)</label>
+                            <input type="number" step="0.01" name="calc_valor_venda" class="macos-input"
+                                placeholder="0,00">
+                        </div>
+                        <div>
+                            <label class="macos-label">Leiloeiro / Vendedor</label>
+                            <input type="text" name="leiloeiro" class="macos-input" placeholder="Ex: Zukerman Leilões">
+                        </div>
+                        <div>
+                            <label class="macos-label">Nº do Edital / Processo</label>
+                            <input type="text" name="edital" class="macos-input" placeholder="Identificação do leilão">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Seção: Custos Mensais -->
+                <div style="margin-bottom: 32px;">
+                    <h4
+                        style="font-size: 15px; font-weight: 600; color: var(--macos-text-primary); margin-bottom: 16px; display: flex; align-items: center; gap: 8px;">
+                        <i class="fa-solid fa-calendar-days" style="color: #FF9500;"></i>
+                        Custos Mensais Recorrentes
+                    </h4>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                        <div>
+                            <label class="macos-label">Condomínio Mensal (R$)</label>
+                            <input type="number" step="0.01" name="condominioMensal" class="macos-input"
+                                placeholder="0,00">
+                        </div>
+                        <div>
+                            <label class="macos-label">IPTU Mensal (R$)</label>
+                            <input type="number" step="0.01" name="iptuMensal" class="macos-input" placeholder="0,00">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Info box mostrando cálculo carregado -->
+                <div id="loaded-calc-info" class="hidden"
+                    style="padding: 20px; background: linear-gradient(135deg, rgba(52, 199, 89, 0.1) 0%, rgba(52, 199, 89, 0.05) 100%); border-radius: 12px; border: 1px solid rgba(52, 199, 89, 0.2); margin-bottom: 24px;">
+                    <div style="display: flex; gap: 16px; align-items: start;">
+                        <div
+                            style="width: 48px; height: 48px; background: #34C759; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 4px 12px rgba(52, 199, 89, 0.3);">
+                            <i class="fa-solid fa-calculator" style="color: white; font-size: 20px;"></i>
+                        </div>
+                        <div style="flex: 1;">
+                            <p
+                                style="font-size: 13px; font-weight: 600; color: #34C759; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">
+                                ✓ Cálculo Vinculado
+                            </p>
+                            <p id="calc-name-display"
+                                style="font-size: 16px; font-weight: 600; color: var(--macos-text-primary); margin-bottom: 12px;">
+                            </p>
+                            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+                                <div style="background: var(--macos-bg-secondary); padding: 10px; border-radius: 8px;">
+                                    <span
+                                        style="font-size: 11px; color: var(--macos-text-secondary); text-transform: uppercase; font-weight: 600;">Arremate</span>
+                                    <p id="calc-arremate-display"
+                                        style="font-size: 14px; font-weight: 600; color: var(--macos-text-primary); margin-top: 4px;">
+                                    </p>
+                                </div>
+                                <div style="background: var(--macos-bg-secondary); padding: 10px; border-radius: 8px;">
+                                    <span
+                                        style="font-size: 11px; color: var(--macos-text-secondary); text-transform: uppercase; font-weight: 600;">Venda
+                                        Est.</span>
+                                    <p id="calc-venda-display"
+                                        style="font-size: 14px; font-weight: 600; color: var(--macos-text-primary); margin-top: 4px;">
+                                    </p>
+                                </div>
+                                <div style="background: var(--macos-bg-secondary); padding: 10px; border-radius: 8px;">
+                                    <span
+                                        style="font-size: 11px; color: var(--macos-text-secondary); text-transform: uppercase; font-weight: 600;">Reforma</span>
+                                    <p id="calc-reforma-display"
+                                        style="font-size: 14px; font-weight: 600; color: var(--macos-text-primary); margin-top: 4px;">
+                                    </p>
+                                </div>
+                                <div style="background: var(--macos-bg-secondary); padding: 10px; border-radius: 8px;">
+                                    <span
+                                        style="font-size: 11px; color: var(--macos-text-secondary); text-transform: uppercase; font-weight: 600;">ITBI</span>
+                                    <p id="calc-itbi-display"
+                                        style="font-size: 14px; font-weight: 600; color: var(--macos-text-primary); margin-top: 4px;">
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Footer com Ações -->
+        <div
+            style="padding: 20px 28px; border-top: 1px solid var(--macos-divider); background: var(--macos-bg-tertiary); border-radius: 0 0 16px 16px; flex-shrink: 0;">
+            <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                <button type="button" class="macos-btn-secondary" onclick="fecharModalImovel()">
+                    <i class="fa-solid fa-times" style="margin-right: 6px;"></i>
+                    Cancelar
+                </button>
+                <button type="button" id="carregar-calculo-btn" class="macos-btn-secondary" style="position: relative;">
+                    <i class="fa-solid fa-calculator" style="margin-right: 6px;"></i>
+                    Carregar Cálculo
+                    <div id="calc-loaded-indicator"
+                        style="display: none; position: absolute; top: -6px; right: -6px; width: 16px; height: 16px; background-color: #34C759; border-radius: 50%; border: 2px solid var(--macos-bg-secondary); box-shadow: 0 2px 8px rgba(52, 199, 89, 0.4);">
+                    </div>
+                </button>
+                <button type="submit" form="form-adicionar-imovel" class="macos-btn-primary">
+                    <i class="fa-solid fa-check" style="margin-right: 6px;"></i>
+                    Adicionar Imóvel
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Prevenir scroll ao topo quando modal abre/fecha
+    let scrollPosition = 0;
+
+    function abrirModalImovel() {
+        // Salvar posição atual do scroll
+        scrollPosition = window.pageYOffset || document.documentElement.scrollTop;
+
+        const modal = document.getElementById('modal-adicionar-imovel');
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            modal.style.opacity = '1';
+            modal.style.pointerEvents = 'auto';
+            modal.querySelector('.macos-window').style.transform = 'scale(1)';
+        }, 10);
+    }
+
+    function fecharModalImovel() {
+        const modal = document.getElementById('modal-adicionar-imovel');
+        modal.style.opacity = '0';
+        modal.style.pointerEvents = 'none';
+        modal.querySelector('.macos-window').style.transform = 'scale(0.95)';
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            document.getElementById('form-adicionar-imovel').reset();
+            document.getElementById('loaded-calc-info').classList.add('hidden');
+            document.getElementById('calc-loaded-indicator').style.display = 'none';
+
+            // Restaurar posição do scroll
+            window.scrollTo(0, scrollPosition);
+        }, 300);
+    }
+</script>

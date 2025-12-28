@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <title>Fortal - Dashboard</title>
+    <%- include('partials/head') %>
+</head>
+
+<body class="min-h-screen page-home">
+
+    <%- include('partials/header', { username: username, email: email, profile_pic_url: profile_pic_url,
+        title: 'Dashboard' , showTrafficLights: false }) %>
+        <%- include('partials/sidebar') %>
+
+            <main class="macos-main-content">
+                <!-- ============================================
+             AGENTE IA - DESATIVADO
+             ============================================
+                <div id="comunidadeSection" class="fade-in"
+                    style="position: fixed; top: 52px; left: 240px; right: 0; bottom: 0; display: flex; flex-direction: column;">
+                    ... (conteúdo comentado)
+                </div>
+                -->
+
+                </div>
+                </div>
+
+                <!-- Videos Catalog Section -->
+                <div id="videosSection" class="hidden fade-in">
+                    <div class="max-w-6xl mx-auto">
+                        <div class="flex justify-between items-center mb-6">
+                            <h2 class="text-2xl md:text-3xl font-bold text-[var(--text-accent)]">Vídeo Aulas</h2>
+                        </div>
+
+                        <!-- Videos Grid -->
+                        <div id="videosContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <!-- Videos will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Video Detail Section -->
+                <div id="videoDetailSection" class="hidden fade-in">
+                    <div class="max-w-5xl mx-auto">
+                        <button id="backToVideos"
+                            class="mb-6 flex items-center gap-2 text-[var(--text-accent)] hover:opacity-80">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                            </svg>
+                            Voltar para Aulas
+                        </button>
+
+                        <div class="card rounded-xl p-6 mb-6">
+                            <h2 id="videoDetailTitle"
+                                class="text-2xl md:text-3xl font-bold text-[var(--text-accent)] mb-4"></h2>
+                            <div id="videoPlayer" class="video-container rounded-lg overflow-hidden mb-4"></div>
+                            <p id="videoDetailDescription" class="text-[var(--text-secondary)] leading-relaxed"></p>
+                        </div>
+
+                        <!-- Comments Section -->
+                        <div class="card rounded-xl p-6">
+                            <h3 class="text-xl font-semibold text-[var(--text-accent)] mb-4">Comentários</h3>
+
+                            <!-- Add Comment Form -->
+                            <div class="mb-6">
+                                <form id="commentForm" class="space-y-3">
+                                    <div>
+                                        <input type="text" id="commentAuthor" required
+                                            class="w-full px-4 py-2 rounded-lg bg-[var(--bg-interactive)] border border-[var(--border-color)] focus:border-[var(--text-accent)] focus:outline-none"
+                                            placeholder="Seu nome">
+                                    </div>
+                                    <div>
+                                        <textarea id="commentText" required rows="3"
+                                            class="w-full px-4 py-2 rounded-lg bg-[var(--bg-interactive)] border border-[var(--border-color)] focus:border-[var(--text-accent)] focus:outline-none"
+                                            placeholder="Escreva seu comentário..."></textarea>
+                                    </div>
+                                    <button type="submit"
+                                        class="px-6 py-2 rounded-lg btn-primary text-blue-950 font-semibold">Enviar
+                                        Comentário</button>
+                                </form>
+                            </div>
+
+                            <!-- Comments List -->
+                            <div id="commentsContainer" class="space-y-4">
+                                <!-- Comments will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+
+            <!-- Firebase SDK -->
+            <script type="module" id="app-script" data-username="<%= username %>" src="/js/app.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <title>Histórico de Arremates - Fortal</title>
+    <%- include('partials/head') %>
+</head>
+
+<body class="min-h-screen">
+
+    <%- include('partials/header', { title: 'Histórico' , showTrafficLights: false,
+        titleStyle: 'font-size: 30px; font-weight: 700; letter-spacing: -0.5px;' }) %>
+        <%- include('partials/sidebar') %>
+
+            <main class="macos-main-content">
+                <div class="animate-fade-in" style="padding-bottom: 40px; max-width: 1200px; margin: 0 auto;">
+
+                    <!-- Subtítulo e Ações -->
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-left: 4px;">
+                        <p style="font-size: 16px; color: var(--macos-text-secondary); font-weight: 500;">Gerencie todos
+                            os seus imóveis arrematados</p>
+
+                        <div style="display: flex; gap: 12px;">
+                            <% if (arremates.length> 0) { %>
+                                <a href="/historico/relatorio" target="_blank" class="macos-btn-secondary"
+                                    style="text-decoration: none; display: flex; align-items: center; gap: 8px;">
+                                    <i class="fa-solid fa-file-pdf"></i> Relatório
+                                </a>
+                                <% } %>
+                                    <button id="toggle-form-btn" class="macos-btn-primary"
+                                        style="display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(255, 214, 10, 0.3);">
+                                        <i class="fa-solid fa-plus"></i> Adicionar Imóvel
+                                    </button>
+                        </div>
+                    </div>
+
+                    <!-- Formulário para Adicionar Novo Arremate (Oculto inicialmente) -->
+                    <!-- Formulário para Adicionar Novo Arremate (Oculto inicialmente) -->
+                    <!-- Formulário para Adicionar Novo Arremate (Oculto inicialmente) -->
+                    <div class="macos-card hidden" style="padding: 24px; margin-bottom: 32px;" id="add-auction-form">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                            <h2 style="font-size: 22px; font-weight: 600; color: var(--macos-text-primary);">Novo Imóvel
+                                Arrematado</h2>
+                            <button id="close-form-btn"
+                                style="background: none; border: none; color: var(--macos-text-secondary); cursor: pointer; font-size: 18px;">
+                                <i class="fa-solid fa-times"></i>
+                            </button>
+                        </div>
+                        <form action="/historico/add" method="POST">
+                            <div class="macos-form-group">
+                                <label class="macos-form-label">Descrição do Imóvel</label>
+                                <input type="text" id="descricao_imovel" name="descricao_imovel" required
+                                    class="macos-input" placeholder="Ex: Apartamento 2 quartos em Copacabana">
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                                <div class="macos-form-group">
+                                    <label class="macos-form-label">Endereço</label>
+                                    <input type="text" id="endereco" name="endereco" class="macos-input"
+                                        placeholder="Rua, Número, Bairro, Cidade - UF">
+                                </div>
+                                <div class="macos-form-group">
+                                    <label class="macos-form-label">Data do Arremate</label>
+                                    <input type="date" id="data_arremate" name="data_arremate" required
+                                        class="macos-input">
+                                </div>
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                                <div class="macos-form-group">
+                                    <label class="macos-form-label">Valor do Arremate (R$)</label>
+                                    <input type="number" step="0.01" id="valor_arremate" name="valor_arremate" required
+                                        class="macos-input" placeholder="0,00">
+                                </div>
+                                <div class="macos-form-group">
+                                    <label class="macos-form-label">Leiloeiro / Vendedor</label>
+                                    <input type="text" id="leiloeiro" name="leiloeiro" class="macos-input"
+                                        placeholder="Ex: Zukerman Leilões">
+                                </div>
+                            </div>
+
+                            <div class="macos-form-group">
+                                <label class="macos-form-label">Nº do Edital / Processo</label>
+                                <input type="text" id="edital" name="edital" class="macos-input"
+                                    placeholder="Identificação do leilão">
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px;">
+                                <div class="macos-form-group">
+                                    <label class="macos-form-label">Valor de Venda Estimado (R$)</label>
+                                    <input type="number" step="0.01" id="calc_valor_venda" name="calc_valor_venda"
+                                        class="macos-input" placeholder="0,00">
+                                </div>
+                                <div class="macos-form-group">
+                                    <label class="macos-form-label">Condomínio Mensal (R$)</label>
+                                    <input type="number" step="0.01" id="condominioMensal" name="condominioMensal"
+                                        class="macos-input" placeholder="0,00">
+                                </div>
+                            </div>
+
+                            <div class="macos-form-group">
+                                <label class="macos-form-label">IPTU Mensal (R$)</label>
+                                <input type="number" step="0.01" id="iptuMensal" name="iptuMensal" class="macos-input"
+                                    placeholder="0,00">
+                            </div>
+
+                            <div style="display: flex; gap: 12px; margin-top: 24px;">
+                                <button type="submit" class="macos-btn-primary">
+                                    <i class="fa-solid fa-save" style="margin-right: 8px;"></i> Salvar Imóvel
+                                </button>
+                                <button type="button" id="load-calculation-btn" class="macos-btn-secondary"
+                                    style="position: relative;">
+                                    <i class="fa-solid fa-calculator" style="margin-right: 8px;"></i> Carregar Cálculo
+                                    <div id="calc-loaded-indicator"
+                                        style="display: none; position: absolute; top: -6px; right: -6px; width: 14px; height: 14px; background-color: #34C759; border-radius: 50%; border: 2px solid #ffffff; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                    </div>
+                                </button>
+                            </div>
+
+                            <!-- Info box showing loaded calculation -->
+                            <div id="loaded-calc-info" class="hidden"
+                                style="margin-top: 16px; padding: 16px; background: var(--macos-bg-tertiary); border-radius: 8px;">
+                                <div style="display: flex; gap: 12px;">
+                                    <div
+                                        style="width: 32px; height: 32px; background: var(--macos-accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white;">
+                                        <i class="fa-solid fa-calculator"></i>
+                                    </div>
+                                    <div style="flex: 1;">
+                                        <p
+                                            style="font-size: 13px; font-weight: 600; color: var(--macos-text-primary); margin-bottom: 4px;">
+                                            Cálculo Vinculado:</p>
+                                        <p id="calc-name-display"
+                                            style="font-size: 14px; color: var(--macos-text-primary); margin-bottom: 8px;">
+                                        </p>
+                                        <div
+                                            style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 12px; color: var(--macos-text-secondary);">
+                                            <div><span style="font-weight: 500;">Arremate:</span> <span
+                                                    id="calc-arremate-display"></span></div>
+                                            <div><span style="font-weight: 500;">Venda Est.:</span> <span
+                                                    id="calc-venda-display"></span></div>
+                                            <div><span style="font-weight: 500;">Reforma:</span> <span
+                                                    id="calc-reforma-display"></span></div>
+                                            <div><span style="font-weight: 500;">ITBI:</span> <span
+                                                    id="calc-itbi-display"></span></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Lista de Arremates em Cards -->
+                    <div>
+                        <!-- Lista de Arremates (Estilo Finder) -->
+                        <div>
+                            <h2
+                                style="font-size: 22px; font-weight: 600; color: var(--macos-text-primary); margin-bottom: 16px;">
+                                Meus Imóveis</h2>
+
+                            <% if (arremates.length===0) { %>
+                                <div class="macos-card"
+                                    style="padding: 40px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                                    <div
+                                        style="width: 64px; height: 64px; background: var(--macos-bg-tertiary); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 16px;">
+                                        <i class="fa-solid fa-house-circle-exclamation"
+                                            style="font-size: 24px; color: var(--macos-text-secondary);"></i>
+                                    </div>
+                                    <h3
+                                        style="font-size: 16px; font-weight: 600; color: var(--macos-text-primary); margin-bottom: 8px;">
+                                        Nenhum imóvel arrematado</h3>
+                                    <p
+                                        style="font-size: 14px; color: var(--macos-text-secondary); margin-bottom: 24px;">
+                                        Comece adicionando seu primeiro imóvel.</p>
+                                    <button onclick="document.getElementById('toggle-form-btn').click()"
+                                        class="macos-btn-primary">
+                                        <i class="fa-solid fa-plus" style="margin-right: 8px;"></i> Adicionar Imóvel
+                                    </button>
+                                </div>
+                                <% } else { %>
+                                    <div class="macos-card" style="padding: 0; overflow: hidden;">
+                                        <div style="display: grid; grid-template-columns: 1fr;">
+                                            <% arremates.forEach(item=> { %>
+                                                <div class="macos-list-item"
+                                                    style="border-bottom: 1px solid var(--macos-divider); padding: 16px 20px; cursor: default; display: flex; align-items: center; gap: 16px;">
+
+                                                    <!-- Ícone -->
+                                                    <div
+                                                        style="width: 40px; height: 40px; background: var(--macos-accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; flex-shrink: 0;">
+                                                        <i class="fa-solid fa-building"></i>
+                                                    </div>
+
+                                                    <!-- Conteúdo -->
+                                                    <div style="flex: 1;">
+                                                        <div
+                                                            style="display: flex; justify-content: space-between; align-items: flex-start;">
+                                                            <div>
+                                                                <h4
+                                                                    style="font-size: 16px; font-weight: 600; color: var(--macos-text-primary); margin-bottom: 4px;">
+                                                                    <%= item.descricao_imovel %>
+                                                                </h4>
+                                                                <p
+                                                                    style="font-size: 14px; color: var(--macos-text-secondary);">
+                                                                    <i class="fa-solid fa-calendar-days"
+                                                                        style="margin-right: 4px; font-size: 11px;"></i>
+                                                                    <%= new
+                                                                        Date(item.data_arremate).toLocaleDateString('pt-BR',
+                                                                        {timeZone: 'UTC' }) %>
+                                                                        <span style="margin: 0 8px;">•</span>
+                                                                        <%= item.leiloeiro || 'Leiloeiro não informado'
+                                                                            %>
+                                                                </p>
+                                                            </div>
+                                                            <div style="text-align: right;">
+                                                                <p
+                                                                    style="font-size: 16px; font-weight: 600; color: var(--macos-text-primary);">
+                                                                    <%= item.valor_formatado %>
+                                                                </p>
+                                                                <span
+                                                                    style="font-size: 11px; font-weight: 600; color: #34C759; background: rgba(52, 199, 89, 0.1); padding: 2px 6px; border-radius: 4px;">Arrematado</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Ações -->
+                                                    <div style="display: flex; gap: 8px;">
+                                                        <a href="/historico/edit/<%= item.id %>"
+                                                            class="macos-btn-secondary"
+                                                            style="padding: 6px 10px; font-size: 13px;">
+                                                            <i class="fa-solid fa-pen-to-square"></i>
+                                                        </a>
+
+                                                    </div>
+                                                </div>
+                                                <% }); %>
+                                        </div>
+                                    </div>
+                                    <% } %>
+                        </div>
+                    </div>
+                </div>
+            </main>
+
+            <!-- Modal para Carregar Cálculos -->
+            <!-- Modal para Carregar Cálculos (macOS Sonoma Style) -->
+            <div id="calculations-modal" class="macos-modal-overlay" style="display: none;">
+                <div class="macos-modal" style="width: 600px; max-width: 95%;">
+                    <div class="macos-modal-header">
+                        <h3 class="macos-modal-title">Carregar Cálculo</h3>
+                        <button id="close-modal-btn" class="macos-modal-close">
+                            <i class="fa-solid fa-xmark" style="color: black; font-size: 14px;"></i>
+                        </button>
+                    </div>
+                    <div class="macos-modal-body" style="padding: 0;">
+                        <div id="calculations-list" style="display: flex; flex-direction: column;">
+                            <!-- A lista de cálculos será inserida aqui pelo JavaScript -->
+                            <div style="padding: 20px; text-align: center; color: var(--macos-text-secondary);">
+                                Carregando...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- app.js removido para evitar conflitos -->
+            <script>
+                document.addEventListener('DOMContentLoaded', () => {
+                    // Toggle do formulário
+                    const form = document.getElementById('add-auction-form');
+                    const toggleBtn = document.getElementById('toggle-form-btn');
+                    const closeBtn = document.getElementById('close-form-btn');
+
+                    toggleBtn.addEventListener('click', () => {
+                        form.classList.toggle('hidden');
+                        if (!form.classList.contains('hidden')) {
+                            form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }
+                    });
+
+                    closeBtn.addEventListener('click', () => {
+                        form.classList.add('hidden');
+                    });
+
+                    // Modal de cálculos
+                    const modal = document.getElementById('calculations-modal');
+                    const openModalBtn = document.getElementById('load-calculation-btn');
+                    const closeModalBtn = document.getElementById('close-modal-btn');
+                    const calcListDiv = document.getElementById('calculations-list');
+
+                    openModalBtn.addEventListener('click', async () => {
+                        modal.style.display = 'flex';
+                        calcListDiv.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--macos-text-secondary);">Carregando...</div>';
+
+                        try {
+                            const response = await fetch('/api/saved-calculations');
+                            const calculations = await response.json();
+
+                            if (calculations.length === 0) {
+                                calcListDiv.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--macos-text-secondary);">Nenhum cálculo salvo encontrado.</div>';
+                                return;
+                            }
+
+                            calcListDiv.innerHTML = calculations.map(calc => {
+                                const data = JSON.parse(calc.data);
+                                const valor = (data.valorArrematado || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+                                return `
+                            <div class="macos-list-item" style="cursor: pointer; padding: 16px 20px;" data-calc='${calc.data}' data-calc-name='${calc.name}'>
+                                <div class="macos-list-item-icon" style="background: var(--macos-accent); color: white;">
+                                    <i class="fa-solid fa-calculator"></i>
+                                </div>
+                                <div class="macos-list-item-content">
+                                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                                        <h4 class="macos-list-item-title" style="font-size: 15px; margin-bottom: 2px;">${calc.name}</h4>
+                                        <span style="font-size: 13px; font-weight: 600; color: var(--macos-text-primary);">${valor}</span>
+                                    </div>
+                                    <p class="macos-list-item-subtitle" style="font-size: 13px;">Clique para importar este cálculo</p>
+                                </div>
+                                <div class="macos-list-item-action">
+                                    <i class="fa-solid fa-chevron-right" style="font-size: 12px;"></i>
+                                </div>
+                            </div>
+                        `;
+                            }).join('');
+
+                        } catch (error) {
+                            calcListDiv.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--macos-red);">Erro ao carregar cálculos.</div>';
+                        }
+                    });
+
+                    closeModalBtn.addEventListener('click', () => {
+                        modal.style.display = 'none';
+                    });
+
+                    // Fechar ao clicar fora
+                    modal.addEventListener('click', (e) => {
+                        if (e.target === modal) {
+                            modal.style.display = 'none';
+                        }
+                    });
+
+                    calcListDiv.addEventListener('click', (e) => {
+                        const calcDiv = e.target.closest('[data-calc]');
+                        if (!calcDiv) return;
+
+                        // 1. Visual Feedback no Card Clicado
+                        const originalContent = calcDiv.innerHTML;
+                        const originalStyle = calcDiv.getAttribute('style');
+
+                        calcDiv.style.background = 'rgba(52, 199, 89, 0.2)';
+                        calcDiv.style.borderColor = '#34C759';
+                        calcDiv.innerHTML = `
+                            <div style="display: flex; align-items: center; justify-content: center; height: 100%; gap: 12px; color: #34C759;">
+                                <i class="fa-solid fa-check-circle" style="font-size: 24px;"></i>
+                                <span style="font-weight: 600; font-size: 16px;">Carregado!</span>
+                            </div>
+                        `;
+
+                        const calcData = JSON.parse(calcDiv.dataset.calc);
+                        const calcName = calcDiv.dataset.calcName || 'Cálculo Selecionado';
+
+                        setTimeout(() => {
+                            // 2. Preenche campos visíveis
+                            const valorInput = document.getElementById('valor_arremate');
+                            const descInput = document.getElementById('descricao_imovel');
+
+                            valorInput.value = calcData.valorArrematado || '';
+                            descInput.value = `Imóvel de ${(calcData.valorArrematado || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`;
+
+                            // 2b. Preenche NOVOS campos visíveis (Financeiro)
+                            const vendaInput = document.getElementById('calc_valor_venda');
+                            const iptuInput = document.getElementById('iptuMensal');
+
+                            // Helper para formatar valores para input number (preserva floats e strings)
+                            const formatVal = (v) => {
+                                if (v === undefined || v === null || v === '') return '';
+                                // Se for número, ok
+                                if (typeof v === 'number') return v;
+                                // Se for string, tenta converter tratando vírgula
+                                let str = String(v).replace(',', '.');
+                                let num = parseFloat(str);
+                                return isNaN(num) ? '' : num;
+                            };
+
+                            if (vendaInput) vendaInput.value = formatVal(calcData.valorVendaFinal);
+                            if (condInput) condInput.value = formatVal(calcData.condominioMensal);
+
+                            // IPTU Logic: Prefer Monthly, fallback to Annual/12
+                            let iptuVal = calcData.iptuMensal || 0;
+                            if (iptuVal === 0 && calcData.iptuAnual) {
+                                let anual = typeof calcData.iptuAnual === 'number' ? calcData.iptuAnual : parseFloat(String(calcData.iptuAnual).replace(',', '.'));
+                                if (!isNaN(anual)) iptuVal = anual / 12;
+                            }
+                            if (iptuInput) iptuInput.value = formatVal(iptuVal);
+
+
+                            // 3. Cria APENAS campos hidden estritamente necessários (CUSTOS EXTRAS não visíveis)
+                            const form = document.querySelector('#add-auction-form form');
+                            form.querySelectorAll('input[type="hidden"][name^="calc_"]').forEach(input => input.remove());
+
+                            // Calculate Assessoria based on saved parameters (replicating ViabilityCalculator logic)
+                            let valorAssessoria = 0;
+                            const valorArrematado = calcData.valorArrematado || 0;
+                            const assessoriaThreshold = calcData.assessoriaThreshold || 120000;
+                            const assessoriaFeeBelow = calcData.assessoriaFeeBelow || 6000;
+                            const assessoriaFeeAbovePercent = calcData.assessoriaFeeAbovePercent || 5;
+
+                            if (valorArrematado <= assessoriaThreshold) {
+                                valorAssessoria = assessoriaFeeBelow;
+                            } else {
+                                valorAssessoria = (valorArrematado * assessoriaFeeAbovePercent) / 100;
+                            }
+
+                            const hiddenFields = {
+                                // calc_valor_venda: JA ESTA VISIVEL
+                                calc_custo_reforma: calcData.reforma || 0,
+                                calc_custo_itbi: (calcData.valorArrematado * (calcData.itbi || 0)) / 100,
+                                calc_custo_registro: calcData.custosCartorarios || 0,
+                                calc_custo_leiloeiro: calcData.incluirLeiloeiro ? (calcData.valorArrematado * 0.05) : 0,
+                                calc_custo_assessoria: valorAssessoria,
+                                calc_debitos_pendentes: calcData.debitosPendentes || 0,
+                                calc_outros_custos: calcData.custosAdicionais || 0,
+                                calc_custo_desocupacao: calcData.custoDesocupacao || 0,
+                                calc_custo_seguro: calcData.taxaSeguroCaixa || 0,
+                                // condominioMensal: JA ESTA VISIVEL
+                                // iptu: JA ESTA VISIVEL
+                            };
+
+                            Object.entries(hiddenFields).forEach(([name, value]) => {
+                                const input = document.createElement('input');
+                                input.type = 'hidden';
+                                input.name = name;
+                                input.value = value;
+                                form.appendChild(input);
+                            });
+
+                            // 4. Visual Feedback: Green Dot Indicator
+                            const indicator = document.getElementById('calc-loaded-indicator');
+                            if (indicator) {
+                                indicator.style.display = 'block';
+                                // Add a subtle pop animation
+                                indicator.style.transform = 'scale(0)';
+                                indicator.style.transition = 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+                                setTimeout(() => {
+                                    indicator.style.transform = 'scale(1)';
+                                }, 50);
+                            }
+
+                            // Show calculation info box
+                            const infoBox = document.getElementById('loaded-calc-info');
+
+                            document.getElementById('calc-name-display').textContent = calcName;
+                            document.getElementById('calc-arremate-display').textContent = (calcData.valorArrematado || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+                            document.getElementById('calc-venda-display').textContent = (calcData.valorVendaFinal || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+                            document.getElementById('calc-reforma-display').textContent = (calcData.reforma || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+                            document.getElementById('calc-itbi-display').textContent = ((calcData.valorArrematado * (calcData.itbi || 0)) / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+                            infoBox.classList.remove('hidden');
+
+                            // 5. Fecha Modal e Scroll
+                            modal.style.display = 'none';
+                            document.getElementById('add-auction-form').scrollIntoView({ behavior: 'smooth' });
+
+                            // 6. Highlight nos campos preenchidos (Flash Effect)
+                            [valorInput, descInput].forEach(input => {
+                                const originalTransition = input.style.transition;
+                                const originalBg = input.style.backgroundColor;
+                                const originalBorder = input.style.borderColor;
+
+                                input.style.transition = 'all 0.3s';
+                                input.style.backgroundColor = 'rgba(52, 199, 89, 0.1)';
+                                input.style.borderColor = '#34C759';
+
+                                setTimeout(() => {
+                                    input.style.backgroundColor = originalBg;
+                                    input.style.borderColor = originalBorder;
+                                    setTimeout(() => {
+                                        input.style.transition = originalTransition;
+                                    }, 300);
+                                }, 1500);
+                            });
+
+                            // Restaura o card (caso o usuário reabra o modal sem recarregar a página)
+                            setTimeout(() => {
+                                calcDiv.innerHTML = originalContent;
+                                calcDiv.setAttribute('style', originalStyle);
+                            }, 500);
+
+                        }, 600); // Espera 600ms para o usuário ver o "Carregado!"
+                    });
+                });
+            </script>
+
+</html>

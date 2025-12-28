@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <title>Navegador Caixa - Fortal</title>
+    <%- include('partials/head') %>
+        <style>
+            body {
+                margin: 0;
+                overflow: hidden;
+                background: var(--macos-bg-secondary);
+            }
+
+            .browser-toolbar {
+                height: 52px;
+                background: var(--macos-bg-toolbar);
+                border-bottom: 1px solid var(--macos-divider);
+                display: flex;
+                align-items: center;
+                padding: 0 12px;
+                gap: 12px;
+                -webkit-app-region: drag;
+                /* Allow dragging the window */
+            }
+
+            .browser-controls {
+                display: flex;
+                gap: 8px;
+                -webkit-app-region: no-drag;
+            }
+
+            .url-bar {
+                flex: 1;
+                background: var(--macos-bg-tertiary);
+                border-radius: 8px;
+                height: 32px;
+                display: flex;
+                align-items: center;
+                padding: 0 12px;
+                font-size: 13px;
+                color: var(--macos-text-primary);
+                border: 1px solid var(--macos-border);
+                -webkit-app-region: no-drag;
+            }
+
+            .url-bar i {
+                margin-right: 8px;
+                color: var(--macos-green);
+            }
+
+            .browser-content {
+                height: calc(100vh - 52px);
+                background: #fff;
+                position: relative;
+            }
+
+            iframe {
+                width: 100%;
+                height: 100%;
+                border: none;
+            }
+        </style>
+</head>
+
+<body>
+    <div class="browser-toolbar">
+        <!-- Traffic Lights (Visual only, since it's a browser popup) -->
+        <div class="macos-traffic-lights" style="margin-right: 8px;">
+            <div class="macos-traffic-light close" onclick="window.close()"></div>
+            <div class="macos-traffic-light minimize"></div>
+            <div class="macos-traffic-light maximize"></div>
+        </div>
+
+        <div class="browser-controls">
+            <button class="macos-btn-secondary" onclick="historyBack()" title="Voltar">
+                <i class="fa-solid fa-arrow-left"></i>
+            </button>
+            <button class="macos-btn-secondary" onclick="historyForward()" title="Avançar">
+                <i class="fa-solid fa-arrow-right"></i>
+            </button>
+            <button class="macos-btn-secondary" onclick="reloadPage()" title="Recarregar">
+                <i class="fa-solid fa-rotate-right"></i>
+            </button>
+        </div>
+
+        <div class="url-bar">
+            <i class="fa-solid fa-lock"></i>
+            <span>venda-imoveis.caixa.gov.br</span>
+        </div>
+
+        <div style="-webkit-app-region: no-drag;">
+            <button class="macos-btn-primary"
+                onclick="window.open('https://venda-imoveis.caixa.gov.br/sistema/busca-imovel.asp?sltTipoBusca=imoveis', '_blank')"
+                style="font-size: 11px; padding: 4px 8px;">
+                <i class="fa-solid fa-external-link-alt" style="margin-right: 4px;"></i> Abrir Externo
+            </button>
+        </div>
+    </div>
+
+    <div class="browser-content">
+        <iframe id="caixaFrame" src="/sistema/busca-imovel.asp?sltTipoBusca=imoveis"></iframe>
+    </div>
+
+    <script>
+        const frame = document.getElementById('caixaFrame');
+
+        function historyBack() {
+            try { frame.contentWindow.history.back(); } catch (e) { console.log('Nav error', e); }
+        }
+
+        function historyForward() {
+            try { frame.contentWindow.history.forward(); } catch (e) { console.log('Nav error', e); }
+        }
+
+        function reloadPage() {
+            try { frame.contentWindow.location.reload(); } catch (e) { frame.src = frame.src; }
+        }
+    </script>
+</body>
+
+</html>

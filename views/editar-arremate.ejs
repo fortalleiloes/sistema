@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <title>Editar Arremate - Fortal</title>
+    <%- include('partials/head') %>
+</head>
+
+<body class="min-h-screen">
+
+    <%- include('partials/header', { title: 'Editar Arremate' , showTrafficLights: false,
+        titleStyle: 'font-size: 30px; font-weight: 700; letter-spacing: -0.5px;' }) %>
+        <%- include('partials/sidebar') %>
+
+            <main class="macos-main-content">
+                <div class="animate-fade-in" style="padding-bottom: 40px; max-width: 800px; margin: 0 auto;">
+
+                    <div style="margin-bottom: 24px; padding-left: 4px;">
+                        <p style="font-size: 16px; color: var(--macos-text-secondary); font-weight: 500;">Atualize as
+                            informações do seu imóvel</p>
+                    </div>
+
+                    <div class="macos-card" style="padding: 32px;">
+                        <form action="/historico/edit/<%= arremate.id %>" method="POST">
+
+                            <div class="macos-form-group">
+                                <label class="macos-form-label">Descrição do Imóvel</label>
+                                <input type="text" id="descricao_imovel" name="descricao_imovel"
+                                    value="<%= arremate.descricao_imovel %>" required class="macos-input">
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                                <div class="macos-form-group">
+                                    <label class="macos-form-label">Endereço</label>
+                                    <input type="text" id="endereco" name="endereco" value="<%= arremate.endereco %>"
+                                        class="macos-input">
+                                </div>
+                                <div class="macos-form-group">
+                                    <label class="macos-form-label">Data do Arremate</label>
+                                    <input type="date" id="data_arremate" name="data_arremate"
+                                        value="<%= arremate.data_arremate %>" required class="macos-input">
+                                </div>
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                                <div class="macos-form-group">
+                                    <label class="macos-form-label">Valor do Arremate (R$)</label>
+                                    <input type="number" step="0.01" id="valor_arremate" name="valor_arremate"
+                                        value="<%= arremate.valor_arremate %>" required class="macos-input">
+                                </div>
+                                <div class="macos-form-group">
+                                    <label class="macos-form-label">Leiloeiro / Vendedor</label>
+                                    <input type="text" id="leiloeiro" name="leiloeiro" value="<%= arremate.leiloeiro %>"
+                                        class="macos-input">
+                                </div>
+                            </div>
+
+                            <div class="macos-form-group">
+                                <label class="macos-form-label">Nº do Edital / Processo</label>
+                                <input type="text" id="edital" name="edital" value="<%= arremate.edital %>"
+                                    class="macos-input">
+                            </div>
+
+                            <!-- Seção de Resultados do Cálculo (Apenas Leitura) -->
+                            <% if (arremate.calc_roi_liquido || arremate.calc_lucro_liquido) { %>
+                                <div
+                                    style="margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--macos-divider);">
+                                    <h3
+                                        style="font-size: 18px; font-weight: 600; color: var(--macos-text-primary); margin-bottom: 16px;">
+                                        Dados da Análise (Calculadora)</h3>
+
+                                    <div
+                                        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px;">
+                                        <div
+                                            style="background: var(--macos-bg-tertiary); padding: 12px; border-radius: 8px;">
+                                            <p
+                                                style="font-size: 12px; color: var(--macos-text-secondary); margin-bottom: 4px;">
+                                                ROI Líquido</p>
+                                            <p
+                                                style="font-size: 18px; font-weight: 700; color: <%= (arremate.calc_roi_liquido > 0) ? '#34C759' : '#FF3B30' %>;">
+                                                <%= arremate.calc_roi_liquido ? arremate.calc_roi_liquido.toFixed(2)
+                                                    + '%' : '-' %>
+                                            </p>
+                                        </div>
+                                        <div
+                                            style="background: var(--macos-bg-tertiary); padding: 12px; border-radius: 8px;">
+                                            <p
+                                                style="font-size: 12px; color: var(--macos-text-secondary); margin-bottom: 4px;">
+                                                Lucro Líquido</p>
+                                            <p
+                                                style="font-size: 18px; font-weight: 700; color: var(--macos-text-primary);">
+                                                <%= arremate.calc_lucro_liquido ?
+                                                    arremate.calc_lucro_liquido.toLocaleString('pt-BR',
+                                                    {style: 'currency' , currency: 'BRL' }) : '-' %>
+                                            </p>
+                                        </div>
+                                        <div
+                                            style="background: var(--macos-bg-tertiary); padding: 12px; border-radius: 8px;">
+                                            <p
+                                                style="font-size: 12px; color: var(--macos-text-secondary); margin-bottom: 4px;">
+                                                Venda Estimada</p>
+                                            <p
+                                                style="font-size: 18px; font-weight: 600; color: var(--macos-text-primary);">
+                                                <%= arremate.calc_valor_venda ?
+                                                    arremate.calc_valor_venda.toLocaleString('pt-BR', {style: 'currency'
+                                                    , currency: 'BRL' }) : '-' %>
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <p style="font-size: 12px; color: var(--macos-text-tertiary); margin-top: 12px;">
+                                        * Estes valores são baseados na simulação original e não são recalculados
+                                        automaticamente ao editar o valor do arremate aqui.
+                                    </p>
+                                </div>
+                                <% } %>
+
+                                    <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 32px;">
+                                        <a href="/historico" class="macos-btn-secondary"
+                                            style="text-decoration: none; display: flex; align-items: center; justify-content: center;">Cancelar</a>
+                                        <button type="submit" class="macos-btn-primary">Salvar Alterações</button>
+                                    </div>
+                        </form>
+                    </div>
+                </div>
+            </main>
+
+</body>
+
+</html>

@@ -1,0 +1,743 @@
+/* ============================================
+   🍎 macOS Design System - Arremata!
+   Inspirado no macOS Big Sur / Monterey / Sonoma
+   ============================================ */
+
+/* ============================================
+   1. RESET & BASE
+   ============================================ */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* ============================================
+   2. VARIÁVEIS DO TEMA macOS
+   ============================================ */
+:root {
+    /* === Cores de Fundo === */
+    --macos-bg-primary: #1e1e1e;
+    --macos-bg-secondary: #2d2d2d;
+    --macos-bg-tertiary: #3a3a3a;
+    --macos-bg-window: rgba(40, 40, 40, 0.95);
+    --macos-bg-sidebar: rgba(30, 30, 30, 0.98);
+    --macos-bg-toolbar: rgba(50, 50, 50, 0.95);
+
+    /* === Cores de Texto === */
+    --macos-text-primary: #ffffff;
+    --macos-text-secondary: #a0a0a0;
+    --macos-text-tertiary: #6e6e6e;
+
+    /* === Cor de Destaque (Amarelo/Laranja Brand) === */
+    --macos-accent: #FF9F0A;
+    --macos-accent-hover: #E68A00;
+    --macos-accent-light: rgba(255, 159, 10, 0.15);
+
+    /* === Cores de Status === */
+    --macos-red: #FF3B30;
+    --macos-orange: #FF9500;
+    --macos-yellow: #FFCC00;
+    --macos-green: #34C759;
+    --macos-blue: #007AFF;
+    --macos-purple: #AF52DE;
+
+    /* === Bordas e Separadores === */
+    --macos-border: rgba(255, 255, 255, 0.08);
+    --macos-divider: rgba(255, 255, 255, 0.05);
+
+    /* === Sombras === */
+    --macos-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.15);
+    --macos-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.25);
+    --macos-shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.35);
+    --macos-shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.45);
+
+    /* === Glassmorphism === */
+    --macos-glass-bg: rgba(40, 40, 40, 0.7);
+    --macos-glass-border: rgba(255, 255, 255, 0.1);
+
+    /* === Tipografia === */
+    --macos-font-system: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
+    --macos-font-heading: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+    --macos-font-mono: 'SF Mono', 'Monaco', 'Menlo', monospace;
+
+    /* === Raios de Borda === */
+    --macos-radius-sm: 6px;
+    --macos-radius-md: 10px;
+    --macos-radius-lg: 14px;
+    --macos-radius-xl: 20px;
+
+    /* === Transições === */
+    --macos-transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    --macos-transition-normal: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    --macos-transition-slow: 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* === Tema Claro === */
+html.light {
+    --macos-bg-primary: #f5f5f7;
+    --macos-bg-secondary: #ffffff;
+    --macos-bg-tertiary: #e8e8ed;
+    --macos-bg-window: rgba(255, 255, 255, 0.95);
+    --macos-bg-sidebar: rgba(245, 245, 247, 0.98);
+    --macos-bg-toolbar: rgba(250, 250, 252, 0.95);
+
+    --macos-text-primary: #1d1d1f;
+    --macos-text-secondary: #6e6e73;
+    --macos-text-tertiary: #86868b;
+
+    --macos-border: rgba(0, 0, 0, 0.08);
+    --macos-divider: rgba(0, 0, 0, 0.05);
+
+    --macos-glass-bg: rgba(255, 255, 255, 0.7);
+    --macos-glass-border: rgba(0, 0, 0, 0.1);
+
+    --macos-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+    --macos-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.12);
+    --macos-shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.16);
+    --macos-shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.20);
+}
+
+/* ============================================
+   3. TIPOGRAFIA
+   ============================================ */
+body {
+    font-family: var(--macos-font-system);
+    font-size: 14px;
+    line-height: 1.5;
+    background: var(--macos-bg-primary);
+    color: var(--macos-text-primary);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-family: var(--macos-font-heading);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+}
+
+h1 {
+    font-size: 32px;
+    font-weight: 700;
+}
+
+h2 {
+    font-size: 24px;
+    font-weight: 600;
+}
+
+h3 {
+    font-size: 20px;
+    font-weight: 600;
+}
+
+h4 {
+    font-size: 17px;
+    font-weight: 600;
+}
+
+h5 {
+    font-size: 15px;
+    font-weight: 600;
+}
+
+h6 {
+    font-size: 13px;
+    font-weight: 600;
+}
+
+/* ============================================
+   4. JANELAS macOS
+   ============================================ */
+.macos-window {
+    background: var(--macos-bg-window);
+    backdrop-filter: blur(40px) saturate(180%);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    border-radius: var(--macos-radius-lg);
+    border: 1px solid var(--macos-border);
+    box-shadow: var(--macos-shadow-lg);
+    overflow: hidden;
+    transition: all var(--macos-transition-normal);
+}
+
+.macos-window:hover {
+    box-shadow: var(--macos-shadow-xl);
+}
+
+/* === Barra de Título === */
+.macos-titlebar {
+    height: 52px;
+    background: var(--macos-bg-toolbar);
+    border-bottom: 1px solid var(--macos-divider);
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    -webkit-app-region: drag;
+    user-select: none;
+}
+
+/* === Botões de Controle (Vermelho, Amarelo, Verde) === */
+.macos-traffic-lights {
+    display: flex;
+    gap: 8px;
+    margin-right: 12px;
+}
+
+.macos-traffic-light {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    transition: all var(--macos-transition-fast);
+    cursor: pointer;
+    position: relative;
+}
+
+.macos-traffic-light::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    opacity: 0;
+    transition: opacity var(--macos-transition-fast);
+}
+
+.macos-traffic-light:hover::before {
+    opacity: 1;
+}
+
+.macos-traffic-light.close {
+    background: #FF5F57;
+}
+
+.macos-traffic-light.close:hover::before {
+    content: '×';
+    color: #8B0000;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.macos-traffic-light.minimize {
+    background: #FEBC2E;
+}
+
+.macos-traffic-light.minimize:hover::before {
+    content: '−';
+    color: #8B6914;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.macos-traffic-light.maximize {
+    background: #28C840;
+}
+
+.macos-traffic-light.maximize:hover::before {
+    content: '+';
+    color: #0F5132;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+/* === Título da Janela === */
+.macos-window-title {
+    flex: 1;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--macos-text-primary);
+    letter-spacing: -0.01em;
+}
+
+/* ============================================
+   5. SIDEBAR macOS (Estilo Finder)
+   ============================================ */
+.macos-sidebar {
+    width: 240px;
+    background: var(--macos-bg-sidebar);
+    backdrop-filter: blur(40px) saturate(180%);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    border-right: 1px solid var(--macos-border);
+    height: 100vh;
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 1000;
+    overflow-y: auto;
+    transition: transform var(--macos-transition-normal);
+}
+
+.macos-sidebar::-webkit-scrollbar {
+    width: 8px;
+}
+
+.macos-sidebar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.macos-sidebar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+}
+
+.macos-sidebar::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* === Logo/Header da Sidebar === */
+.macos-sidebar-header {
+    padding: 20px 16px;
+    border-bottom: 1px solid var(--macos-divider);
+}
+
+.macos-sidebar-logo {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--macos-text-primary);
+    letter-spacing: -0.02em;
+}
+
+/* === Seções da Sidebar === */
+.macos-sidebar-section {
+    padding: 12px 8px;
+}
+
+.macos-sidebar-section-title {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--macos-text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0 8px 8px 8px;
+}
+
+/* === Itens do Menu === */
+.macos-sidebar-item {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    margin: 2px 0;
+    border-radius: var(--macos-radius-sm);
+    color: var(--macos-text-primary);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all var(--macos-transition-fast);
+    cursor: pointer;
+    user-select: none;
+}
+
+.macos-sidebar-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.macos-sidebar-item.active {
+    background: var(--macos-accent);
+    color: #ffffff;
+}
+
+.macos-sidebar-item-icon {
+    width: 20px;
+    height: 20px;
+    margin-right: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+}
+
+.macos-sidebar-item-text {
+    flex: 1;
+}
+
+.macos-sidebar-item-badge {
+    background: var(--macos-red);
+    color: #ffffff;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 10px;
+    min-width: 18px;
+    text-align: center;
+}
+
+/* ============================================
+   6. TOOLBAR / HEADER
+   ============================================ */
+.macos-toolbar {
+    height: 52px;
+    background: var(--macos-bg-toolbar);
+    backdrop-filter: blur(40px) saturate(180%);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    border-bottom: 1px solid var(--macos-divider);
+    position: fixed;
+    top: 0;
+    left: 240px;
+    right: 0;
+    z-index: 999;
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    transition: left var(--macos-transition-normal);
+}
+
+.macos-toolbar-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.macos-toolbar-center {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+}
+
+.macos-toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* ============================================
+   7. BOTÕES macOS
+   ============================================ */
+.macos-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 16px;
+    border-radius: var(--macos-radius-sm);
+    font-size: 13px;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    transition: all var(--macos-transition-fast);
+    user-select: none;
+    outline: none;
+}
+
+.macos-btn:active {
+    transform: scale(0.98);
+}
+
+/* === Botão Primário (Azul) === */
+.macos-btn-primary {
+    background: var(--macos-accent);
+    color: #ffffff;
+}
+
+.macos-btn-primary:hover {
+    background: var(--macos-accent-hover);
+}
+
+/* === Botão Secundário === */
+.macos-btn-secondary {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--macos-text-primary);
+    border: 1px solid var(--macos-border);
+}
+
+.macos-btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+/* === Botão de Perigo === */
+.macos-btn-danger {
+    background: var(--macos-red);
+    color: #ffffff;
+}
+
+.macos-btn-danger:hover {
+    background: #E02020;
+}
+
+/* === Botão de Sucesso === */
+.macos-btn-success {
+    background: var(--macos-green);
+    color: #ffffff;
+}
+
+.macos-btn-success:hover {
+    background: #2AB04A;
+}
+
+/* ============================================
+   8. CARDS macOS
+   ============================================ */
+.macos-card {
+    background: var(--macos-glass-bg);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border-radius: var(--macos-radius-lg);
+    border: 1px solid var(--macos-glass-border);
+    padding: 20px;
+    transition: all var(--macos-transition-normal);
+}
+
+.macos-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--macos-shadow-md);
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+.macos-card-header {
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--macos-divider);
+}
+
+.macos-card-title {
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--macos-text-primary);
+}
+
+.macos-card-subtitle {
+    font-size: 13px;
+    color: var(--macos-text-secondary);
+    margin-top: 4px;
+}
+
+.macos-card-body {
+    color: var(--macos-text-primary);
+}
+
+/* ============================================
+   9. INPUTS macOS
+   ============================================ */
+.macos-input {
+    width: 100%;
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--macos-border);
+    border-radius: var(--macos-radius-sm);
+    color: var(--macos-text-primary);
+    font-size: 13px;
+    font-family: var(--macos-font-system);
+    outline: none;
+    transition: all var(--macos-transition-fast);
+}
+
+.macos-input:focus {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: var(--macos-accent);
+    box-shadow: 0 0 0 3px var(--macos-accent-light);
+}
+
+.macos-input::placeholder {
+    color: var(--macos-text-tertiary);
+}
+
+/* === Textarea === */
+.macos-textarea {
+    width: 100%;
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--macos-border);
+    border-radius: var(--macos-radius-sm);
+    color: var(--macos-text-primary);
+    font-size: 13px;
+    font-family: var(--macos-font-system);
+    outline: none;
+    resize: vertical;
+    min-height: 80px;
+    transition: all var(--macos-transition-fast);
+}
+
+.macos-textarea:focus {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: var(--macos-accent);
+    box-shadow: 0 0 0 3px var(--macos-accent-light);
+}
+
+/* === Select === */
+.macos-select {
+    width: 100%;
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--macos-border);
+    border-radius: var(--macos-radius-sm);
+    color: var(--macos-text-primary);
+    font-size: 13px;
+    font-family: var(--macos-font-system);
+    outline: none;
+    cursor: pointer;
+    transition: all var(--macos-transition-fast);
+}
+
+.macos-select:focus {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: var(--macos-accent);
+    box-shadow: 0 0 0 3px var(--macos-accent-light);
+}
+
+/* ============================================
+   10. SCROLLBARS macOS
+   ============================================ */
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 5px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+    background-clip: padding-box;
+}
+
+/* ============================================
+   11. ANIMAÇÕES
+   ============================================ */
+@keyframes macos-fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes macos-scale-in {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes macos-slide-in-left {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.macos-fade-in {
+    animation: macos-fade-in var(--macos-transition-normal);
+}
+
+.macos-scale-in {
+    animation: macos-scale-in var(--macos-transition-normal);
+}
+
+.macos-slide-in-left {
+    animation: macos-slide-in-left var(--macos-transition-normal);
+}
+
+/* ============================================
+   12. UTILITÁRIOS
+   ============================================ */
+.macos-divider {
+    height: 1px;
+    background: var(--macos-divider);
+    margin: 16px 0;
+}
+
+.macos-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--macos-text-primary);
+}
+
+.macos-badge-primary {
+    background: var(--macos-accent);
+    color: #ffffff;
+}
+
+.macos-badge-success {
+    background: var(--macos-green);
+    color: #ffffff;
+}
+
+.macos-badge-warning {
+    background: var(--macos-orange);
+    color: #ffffff;
+}
+
+.macos-badge-danger {
+    background: var(--macos-red);
+    color: #ffffff;
+}
+
+/* ============================================
+   13. RESPONSIVIDADE
+   ============================================ */
+@media (max-width: 768px) {
+    .macos-sidebar {
+        transform: translateX(-100%);
+    }
+
+    .macos-sidebar.active {
+        transform: translateX(0);
+    }
+
+    .macos-toolbar {
+        left: 0;
+    }
+}
+
+/* ============================================
+   14. TEMA CLARO - AJUSTES ESPECÍFICOS
+   ============================================ */
+html.light .macos-traffic-light.close {
+    background: #FF5F57;
+}
+
+html.light .macos-traffic-light.minimize {
+    background: #FEBC2E;
+}
+
+html.light .macos-traffic-light.maximize {
+    background: #28C840;
+}
+
+html.light .macos-sidebar::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+html.light .macos-sidebar::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.3);
+}
+
+html.light ::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+html.light ::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.3);
+}

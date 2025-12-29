@@ -117,12 +117,12 @@
           <form action="/admin/invites" method="POST" class="p-0">
             <div class="macos-modal-body">
               <p class="text-sm text-[var(--macos-text-secondary)] mb-4">
-                O usuário receberá acesso para criar uma conta. O link expira em 7 dias.
+                Gere um link de convite para enviar manualmente ao assessor. O link expira em 7 dias.
               </p>
 
               <div class="macos-form-group">
-                <label class="macos-form-label">E-mail do Convidado</label>
-                <input type="email" name="email" required placeholder="exemplo@email.com" class="macos-input" autofocus>
+                <label class="macos-form-label">Nome ou E-mail (Identificação)</label>
+                <input type="text" name="email" required placeholder="Ex: Assessor João" class="macos-input" autofocus>
               </div>
             </div>
 
@@ -130,7 +130,7 @@
               <button type="button" onclick="document.getElementById('modalNovoConvite').style.display = 'none'"
                 class="macos-btn macos-btn-secondary">Cancelar</button>
               <button type="submit" class="macos-btn macos-btn-primary">
-                <i class="fa-solid fa-paper-plane mr-2"></i> Enviar Convite
+                <i class="fa-solid fa-link mr-2"></i> Gerar Link
               </button>
             </div>
           </form>

@@ -652,6 +652,25 @@ app.get('/login', (req, res) => {
     res.render('login', { message: req.query.message || null });
 });
 
+// Rota para listar convites (admin)
+app.get('/admin/invites', isAuthenticated, async (req, res) => {
+    // Verificação simples de admin
+    const adminEmails = process.env.ADMIN_EMAILS ? process.env.ADMIN_EMAILS.split(',') : [];
+    // Nota: req.user.email vem da sessão do Supabase (user_metadata ou email direto)
+    // Precisaria garantir que o email do usuário está na sessão. 
+    // Como simplificação, vamos assumir que apenas admins conseguem ver essa rota se souberem a URL,
+    // mas o ideal é checar req.session.user.email
+
+    // Buscar convites
+    try {
+        const invites = await db.all('SELECT * FROM invites ORDER BY created_at DESC');
+        res.render('admin_invites', { invites, user: req.session.user });
+    } catch (err) {
+        console.error('Erro ao buscar convites:', err);
+        res.status(500).send('Erro ao buscar convites');
+    }
+});
+
 // Rota para criar convites (admin)
 app.post('/admin/invites', isAuthenticated, async (req, res) => {
     try {

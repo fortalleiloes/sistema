@@ -29,6 +29,8 @@ import { createProxyMiddleware } from 'http-proxy-middleware';
 // ========================================
 
 const app = express();
+app.enable('trust proxy'); // CRUCIAL para EasyPanel/Traefik para reconhecer HTTPS, corrige loop de login
+console.log('✅ Trust Proxy habilitado para EasyPanel');
 const PORT = process.env.PORT || 3000;
 
 // --- Proxy para Caixa (Bypass X-Frame-Options) ---

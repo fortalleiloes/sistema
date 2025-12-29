@@ -728,11 +728,32 @@ app.get('/invite/accept', async (req, res) => {
     // Garantir que não há espaços extras
     const cleanToken = token.trim();
 
+    console.log(`🔍 Tentativa de acesso com token: "${cleanToken}"`);
+
     try {
         const invite = await db.get('SELECT * FROM invites WHERE token = ?', [cleanToken]);
-        if (!invite) return res.status(400).send('Convite inválido (não encontrado)');
-        if (invite.used) return res.status(400).send('Convite já utilizado');
-        if (invite.expires_at && new Date(invite.expires_at) < new Date()) return res.status(400).send('Convite expirado');
+
+        if (!invite) {
+            console.error(`❌ Token não encontrado: "${cleanToken}"`);
+
+            // DEBUG: Listar tokens se estivermos em debug (ou temporariamente para corrigir)
+            const allInvites = await db.all('SELECT id, token, email FROM invites LIMIT 5');
+            console.log('📋 Últimos 5 convites no banco:', JSON.stringify(allInvites));
+
+            return res.status(400).send(`Convite não encontrado. Verifique se o link está completo. (Token recebido: ${cleanToken.substring(0, 5)}...)`);
+        }
+
+        if (invite.used) {
+            console.warn(`⚠️ Token já utilizado: "${cleanToken}" por ${invite.email}`);
+            return res.status(400).send('Este convite já foi utilizado.');
+        }
+
+        if (invite.expires_at && new Date(invite.expires_at) < new Date()) {
+            console.warn(`⚠️ Token expirado: "${cleanToken}"`);
+            return res.status(400).send('Este convite expirou (validade de 7 dias).');
+        }
+
+        console.log(`✅ Convite válido encontrado para: ${invite.email}`);
 
         // renderiza página pedindo username e senha
         res.render('invite_accept', { token: token, email: invite.email, error: null });

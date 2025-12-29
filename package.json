@@ -1,6 +1,6 @@
 {
   "name": "arremata-app",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Aplicação Arremata! com Node.js",
   "main": "server.js",
   "type": "module",

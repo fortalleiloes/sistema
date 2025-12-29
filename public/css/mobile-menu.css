@@ -1,76 +1,122 @@
 /* ============================================
-   📱 MOBILE MENU - Hamburger e Sidebar Responsiva
+   📱 MOBILE EXPERIENCE PREMIUM (iOS/macOS Style)
    ============================================ */
 
-/* Botão Hamburguer (só aparece no mobile) */
-.mobile-menu-toggle {
+/* --- 1. Top Bar Mobile (App Header) --- */
+.mobile-app-header {
     display: none;
-    /* Escondido no desktop */
+    /* Desktop hidden */
     position: fixed;
-    top: 12px;
-    left: 12px;
-    z-index: 10001;
-    width: 44px;
-    height: 44px;
-    background: var(--macos-glass-bg);
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 60px;
+    /* Altura padrão mobile */
+    background: var(--macos-bg-toolbar);
+    /* Mesma do desktop */
     backdrop-filter: blur(20px) saturate(180%);
     -webkit-backdrop-filter: blur(20px) saturate(180%);
-    border: 1px solid var(--macos-glass-border);
-    border-radius: 12px;
-    cursor: pointer;
+    border-bottom: 1px solid var(--macos-divider);
+    z-index: 10001;
+    /* Acima de tudo */
+    padding: 0 16px;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.mobile-header-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.mobile-header-title {
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--macos-text-primary);
+    letter-spacing: -0.01em;
+}
+
+/* --- 2. Botão Menu (Hamurger Integrado) --- */
+.mobile-menu-trigger {
+    background: transparent;
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    /* Circular touch target */
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: var(--macos-shadow-md);
-    transition: all 0.3s ease;
-}
-
-.mobile-menu-toggle:active {
-    transform: scale(0.95);
-}
-
-.mobile-menu-toggle i {
-    font-size: 20px;
     color: var(--macos-text-primary);
+    font-size: 20px;
+    cursor: pointer;
+    transition: background 0.2s;
+    margin-left: -8px;
+    /* Alinhamento visual */
 }
 
-/* Sidebar Mobile - Escondida por padrão */
+.mobile-menu-trigger:active {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* --- 3. Ajustes Globais Mobile (Scaling) --- */
 @media (max-width: 768px) {
-    .mobile-menu-toggle {
+    .mobile-app-header {
         display: flex !important;
-        /* Mostrar no mobile */
     }
 
+    /* Reset do botão antigo se existir */
+    .mobile-menu-toggle {
+        display: none !important;
+    }
+
+    /* Conteúdo Principal */
+    .macos-main-content {
+        margin-left: 0 !important;
+        margin-top: 0 !important;
+        padding-top: 80px !important;
+        /* Header (60) + space (20) */
+        padding-left: 16px !important;
+        padding-right: 16px !important;
+        min-height: 100vh;
+    }
+
+    /* --- Sidebar Off-Canvas --- */
     .macos-sidebar {
         position: fixed;
-        left: -100%;
-        /* Escondida à esquerda */
         top: 0;
+        left: 0;
         height: 100vh;
         width: 280px;
-        z-index: 10000;
-        transition: left 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
-        overflow-y: auto;
-        box-shadow: var(--macos-shadow-xl);
+        /* Largura confortável */
+        transform: translateX(-100%);
+        /* Escondido por padrão */
+        transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+        /* iOS Slide easing */
+        z-index: 10002;
+        /* Acima do header */
+        box-shadow: 20px 0 50px rgba(0, 0, 0, 0.3);
+        /* Sombra suave */
+        border-right: none;
+        /* Remover borda interna no mobile */
     }
 
-    /* Sidebar aberta */
     .macos-sidebar.mobile-open {
-        left: 0;
+        transform: translateX(0);
     }
 
-    /* Overlay escuro quando sidebar está aberta */
+    /* --- Overlay --- */
     .mobile-sidebar-overlay {
         display: none;
         position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0, 0, 0, 0.5);
+        inset: 0;
+        background: rgba(0, 0, 0, 0.4);
         backdrop-filter: blur(4px);
         -webkit-backdrop-filter: blur(4px);
-        z-index: 9999;
+        z-index: 10001;
+        /* Logo abaixo da sidebar */
         opacity: 0;
         transition: opacity 0.3s ease;
     }
@@ -80,31 +126,51 @@
         opacity: 1;
     }
 
-    /* Ajustar conteúdo principal */
-    .macos-main-content {
-        margin-left: 0 !important;
-        padding-top: 70px;
-        /* Espaço para o botão hamburguer */
+    /* --- Scaling de Elementos (Resolver 'Grande Demais') --- */
+
+    /* 1. Cards menores */
+    .macos-card {
+        padding: 16px !important;
+        /* Menos padding */
+        border-radius: 12px !important;
     }
 
-    /* Ajustar topbar se existir */
-    .macos-topbar {
-        padding-left: 60px;
-        /* Espaço para o botão hamburguer */
-    }
-}
-
-/* Animação suave */
-@keyframes slideInLeft {
-    from {
-        transform: translateX(-100%);
+    /* 2. Fontes ajustadas */
+    h1 {
+        font-size: 24px !important;
     }
 
-    to {
-        transform: translateX(0);
+    h2 {
+        font-size: 20px !important;
     }
-}
 
-.macos-sidebar.mobile-open {
-    animation: slideInLeft 0.3s ease;
+    h3 {
+        font-size: 18px !important;
+    }
+
+    .macos-stat-value {
+        font-size: 24px !important;
+        /* Números menores */
+    }
+
+    /* 3. Inputs mais compactos */
+    .macos-input,
+    .macos-select,
+    .macos-btn {
+        height: 44px;
+        /* Touch target padrão mobile */
+        font-size: 16px;
+        /* Evita zoom no iOS inputs */
+    }
+
+    /* 4. Tabelas/Listas */
+    .macos-list-item {
+        padding: 12px 0 !important;
+    }
+
+    .macos-list-item-icon {
+        width: 36px !important;
+        height: 36px !important;
+        font-size: 16px !important;
+    }
 }

@@ -666,7 +666,22 @@ app.get('/admin/invites', isAuthenticated, async (req, res) => {
     // Buscar convites
     try {
         const invites = await db.all('SELECT * FROM invites ORDER BY created_at DESC');
-        res.render('admin_invites', { invites, user: req.session.user });
+
+        // Dados do usuário da sessão
+        const user = req.session.user || {};
+        const username = user.user_metadata?.full_name || user.email?.split('@')[0] || 'Admin';
+        const email = user.email || '';
+        const profile_pic_url = user.user_metadata?.avatar_url || null;
+
+        res.render('admin_invites', {
+            invites,
+            user,
+            username,
+            email,
+            profile_pic_url,
+            supabaseUrl: process.env.SUPABASE_URL,
+            supabaseAnonKey: process.env.SUPABASE_ANON_KEY
+        });
     } catch (err) {
         console.error('Erro ao buscar convites:', err);
         res.status(500).send('Erro ao buscar convites');

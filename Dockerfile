@@ -1,42 +1,40 @@
 # Build stage
-FROM node:20 AS builder
+FROM node:20-slim AS builder
 
 WORKDIR /app
 
 # Copy package files first to cache dependencies
 COPY package*.json ./
 
-# Clean install of dependencies (including dev deps if needed for build, but usually production is better)
-# Using npm ci --omit=dev to keep it clean, unless you have build scripts that need dev deps
-RUN npm ci
+# Clean install of production dependencies only
+RUN npm ci --only=production
 
-# Copy output files
+# Copy application files
 COPY . .
 
-# Runtime stage - using full node image to ensure all runtime dependencies (curl, libs) are present
-FROM node:20
+# Runtime stage
+FROM node:20-slim
 
 WORKDIR /app
 
-# Install curl for healthcheck if not present (node:20 usually has it, but good to be sure)
+# Install curl for healthcheck
 RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 
 # Copy application and node_modules from builder
 COPY --from=builder /app ./
 
-# Create directories for persistence
+# Create directories for persistence with correct permissions
 RUN mkdir -p db public/uploads && chown -R node:node /app
-
-# Define volumes for EasyPanel auto-discovery of persistence needs
-VOLUME ["/app/db", "/app/public/uploads"]
 
 # Use non-root user for security
 USER node
 
-# Healthcheck to ensure container is running correctly
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+# Healthcheck - aumentado start-period para 30s (SQLite precisa de tempo para inicializar)
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
     CMD curl -f http://localhost:3000/login || exit 1
 
+# Expose port
 EXPOSE 3000
 
+# Start application
 CMD ["node", "server.js"]

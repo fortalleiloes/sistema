@@ -290,7 +290,7 @@ app.use(session({
         dir: path.join(__dirname, 'db'),
         table: 'sessions'
     }),
-    secret: process.env.SESSION_SECRET,
+    secret: process.env.SESSION_SECRET || 'dev-secret-change-in-production',
     resave: false,
     saveUninitialized: false,
     name: 'arremata.sid', // Nome customizado do cookie (dificulta ataques)

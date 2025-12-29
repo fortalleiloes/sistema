@@ -11,6 +11,7 @@ import sqlite3 from 'sqlite3';
 import ViabilityCalculator from './ViabilityCalculator.js'; // Force restart
 import { body, validationResult } from 'express-validator';
 import { createClient } from '@supabase/supabase-js';
+import nodemailer from 'nodemailer';
 
 // ========================================
 // OTIMIZAÇÕES FASE 1 - Imports
@@ -707,11 +708,50 @@ app.post('/admin/invites', isAuthenticated, async (req, res) => {
 
         const inviteUrl = `${req.protocol}://${req.get('host')}/invite/accept?token=${token}`;
 
+        // Envio de Email via Nodemailer
+        if (process.env.SMTP_HOST && process.env.SMTP_USER) {
+            try {
+                const transporter = nodemailer.createTransport({
+                    host: process.env.SMTP_HOST,
+                    port: process.env.SMTP_PORT || 587,
+                    secure: process.env.SMTP_SECURE === 'true',
+                    auth: {
+                        user: process.env.SMTP_USER,
+                        pass: process.env.SMTP_PASS,
+                    },
+                });
 
-
-
-        // (Integração n8n removida)
-
+                await transporter.sendMail({
+                    from: process.env.SMTP_FROM || '"Arremata! System" <noreply@arremata.app>',
+                    to: email,
+                    subject: 'Convite para Acessar o Arremata!',
+                    html: `
+                        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
+                            <h2 style="color: #2563EB;">Você foi convidado!</h2>
+                            <p>Olá,</p>
+                            <p>Um administrador convidou você para acessar o sistema <strong>Arremata!</strong>.</p>
+                            <p>Para configurar sua senha e acessar sua conta, clique no botão abaixo:</p>
+                            <div style="margin: 30px 0;">
+                                <a href="${inviteUrl}" style="background-color: #2563EB; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">
+                                    Criar Minha Conta
+                                </a>
+                            </div>
+                            <p style="font-size: 14px; color: #666;">
+                                Ou cole este link no seu navegador: <br>
+                                <a href="${inviteUrl}" style="color: #2563EB;">${inviteUrl}</a>
+                            </p>
+                            <p style="margin-top: 30px; font-size: 12px; color: #999;">Este link é válido por 7 dias.</p>
+                        </div>
+                    `
+                });
+                console.log(`✅ Email de convite enviado para ${email}`);
+            } catch (emailErr) {
+                console.error('❌ Erro ao enviar email:', emailErr);
+                // Não falhamos a requisição, apenas logamos, pois o token foi criado
+            }
+        } else {
+            console.warn('⚠️ SMTP não configurado (adicione SMTP_HOST, SMTP_USER, SMTP_PASS). Email não enviado.');
+        }
 
         res.redirect('/admin/invites');
     } catch (err) {

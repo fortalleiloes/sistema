@@ -135,6 +135,14 @@ SUPABASE_URL=https://seu-projeto.supabase.co
 SUPABASE_ANON_KEY=sua-chave-anon
 SUPABASE_SERVICE_KEY=sua-chave-service
 ADMIN_EMAILS=seu-email@exemplo.com
+
+# Configuração de Email (Nodemailer)
+SMTP_HOST=smtp.resend.com
+SMTP_PORT=587
+SMTP_USER=resend
+SMTP_PASS=sua_api_key_resend_ou_senha_smtp
+SMTP_FROM=Arremata <onboarding@resend.dev>
+SMTP_SECURE=false
 ```
 
 **💡 Gerar SESSION_SECRET seguro:**

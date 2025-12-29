@@ -1,27 +1,80 @@
-<%- include('partials/head') %>
-<%- include('partials/header') %>
+<!DOCTYPE html>
+<html lang="pt-BR" class="light">
 
-<div class="container mx-auto p-6">
-  <h1 class="text-2xl font-bold mb-4">Criar acesso</h1>
-  <p>Você está criando acesso para: <strong><%= email %></strong></p>
+<head>
+  <%- include('partials/head') %>
+    <title>Criar Acesso | Arremata!</title>
+</head>
 
-  <% if (error) { %>
-    <div class="text-red-600"><%= error %></div>
-  <% } %>
+<body class="macos-bg-secondary flex items-center justify-center min-h-screen">
 
-  <form method="POST" action="/invite/accept" class="mt-4 max-w-md">
-    <input type="hidden" name="token" value="<%= token %>" />
+  <div class="w-full max-w-md p-6">
 
-    <label class="block mb-2">Nome de usuário</label>
-    <input name="username" class="w-full p-2 border rounded mb-3" required />
+    <!-- Logo/Header area -->
+    <div class="text-center mb-8">
+      <h1 class="text-3xl font-bold text-[var(--macos-text-primary)] mb-2">Bem-vindo(a)</h1>
+      <p class="text-[var(--macos-text-secondary)]">Complete seu cadastro para acessar o sistema.</p>
+    </div>
 
-    <label class="block mb-2">Senha</label>
-    <input name="password" type="password" class="w-full p-2 border rounded mb-3" required minlength="8" />
+    <div class="macos-card bg-[var(--macos-bg-primary)] shadow-2xl border border-[var(--macos-border)] rounded-xl p-8">
 
-    <button class="px-4 py-2 bg-blue-600 text-white rounded">Criar minha conta</button>
-  </form>
-</div>
+      <div
+        class="mb-6 py-3 px-4 bg-[var(--macos-bg-tertiary)] rounded-lg text-sm text-[var(--macos-text-secondary)] border border-[var(--macos-border)] text-center">
+        Convite para: <strong class="text-[var(--macos-text-primary)]">
+          <%= email %>
+        </strong>
+      </div>
 
-<%- include('partials/theme-script') %>
+      <% if (error) { %>
+        <div class="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-lg flex items-center gap-3">
+          <i class="fa-solid fa-triangle-exclamation text-red-500"></i>
+          <p class="text-sm text-red-500 font-medium">
+            <%= error %>
+          </p>
+        </div>
+        <% } %>
+
+          <form method="POST" action="/invite/accept" class="space-y-5">
+            <input type="hidden" name="token" value="<%= token %>" />
+
+            <!-- Username -->
+            <div class="space-y-2">
+              <label class="block text-sm font-medium text-[var(--macos-text-secondary)]">Como gostaria de ser
+                chamado?</label>
+              <div class="relative">
+                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--macos-text-tertiary)]">
+                  <i class="fa-regular fa-user"></i>
+                </span>
+                <input name="username" type="text" required class="macos-input w-full pl-10"
+                  placeholder="Seu nome completo" autofocus />
+              </div>
+            </div>
+
+            <!-- Password -->
+            <div class="space-y-2">
+              <label class="block text-sm font-medium text-[var(--macos-text-secondary)]">Crie sua senha</label>
+              <div class="relative">
+                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--macos-text-tertiary)]">
+                  <i class="fa-solid fa-lock"></i>
+                </span>
+                <input name="password" type="password" required minlength="6" class="macos-input w-full pl-10"
+                  placeholder="Mínimo 6 caracteres" />
+              </div>
+            </div>
+
+            <button type="submit" class="macos-btn macos-btn-primary w-full justify-center py-3 text-base">
+              <span>Criar Minha Conta</span>
+              <i class="fa-solid fa-arrow-right ml-2"></i>
+            </button>
+          </form>
+    </div>
+
+    <p class="text-center mt-8 text-xs text-[var(--macos-text-tertiary)]">
+      &copy; <%= new Date().getFullYear() %> Arremata! Sistema de Gestão.
+    </p>
+  </div>
+
+  <%- include('partials/theme-script') %>
 </body>
+
 </html>

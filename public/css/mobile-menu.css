@@ -1,0 +1,110 @@
+/* ============================================
+   📱 MOBILE MENU - Hamburger e Sidebar Responsiva
+   ============================================ */
+
+/* Botão Hamburguer (só aparece no mobile) */
+.mobile-menu-toggle {
+    display: none;
+    /* Escondido no desktop */
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    z-index: 10001;
+    width: 44px;
+    height: 44px;
+    background: var(--macos-glass-bg);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid var(--macos-glass-border);
+    border-radius: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--macos-shadow-md);
+    transition: all 0.3s ease;
+}
+
+.mobile-menu-toggle:active {
+    transform: scale(0.95);
+}
+
+.mobile-menu-toggle i {
+    font-size: 20px;
+    color: var(--macos-text-primary);
+}
+
+/* Sidebar Mobile - Escondida por padrão */
+@media (max-width: 768px) {
+    .mobile-menu-toggle {
+        display: flex !important;
+        /* Mostrar no mobile */
+    }
+
+    .macos-sidebar {
+        position: fixed;
+        left: -100%;
+        /* Escondida à esquerda */
+        top: 0;
+        height: 100vh;
+        width: 280px;
+        z-index: 10000;
+        transition: left 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+        overflow-y: auto;
+        box-shadow: var(--macos-shadow-xl);
+    }
+
+    /* Sidebar aberta */
+    .macos-sidebar.mobile-open {
+        left: 0;
+    }
+
+    /* Overlay escuro quando sidebar está aberta */
+    .mobile-sidebar-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        z-index: 9999;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .mobile-sidebar-overlay.active {
+        display: block;
+        opacity: 1;
+    }
+
+    /* Ajustar conteúdo principal */
+    .macos-main-content {
+        margin-left: 0 !important;
+        padding-top: 70px;
+        /* Espaço para o botão hamburguer */
+    }
+
+    /* Ajustar topbar se existir */
+    .macos-topbar {
+        padding-left: 60px;
+        /* Espaço para o botão hamburguer */
+    }
+}
+
+/* Animação suave */
+@keyframes slideInLeft {
+    from {
+        transform: translateX(-100%);
+    }
+
+    to {
+        transform: translateX(0);
+    }
+}
+
+.macos-sidebar.mobile-open {
+    animation: slideInLeft 0.3s ease;
+}

@@ -673,7 +673,7 @@ app.get('/admin/invites', isAuthenticated, async (req, res) => {
         const email = user.email || '';
         const profile_pic_url = user.user_metadata?.avatar_url || null;
 
-        res.render('admin_invites', {
+        res.render('admin_invites_v2', {
             invites,
             user,
             username,

@@ -280,10 +280,8 @@
 </head>
 
 <body class="bg-gray-50 dark:bg-gray-900 min-h-screen transition-colors duration-200">
-    <%- include('partials/header', { title: 'Gerador de Proposta' , showTrafficLights: false,
-        titleStyle: 'font-size: 30px; font-weight: 700; letter-spacing: -0.5px;' , profile_pic_url: user.profile_pic_url
-        }) %>
-        <%- include('partials/sidebar') %>
+    <%- include('partials/macos-toolbar', { title: 'Gerador de Proposta' , profile_pic_url: user.profile_pic_url }) %>
+        <%- include('partials/macos-sidebar') %>
 
             <!-- MAIN CONTENT WRAPPER -->
             <main class="macos-main-content">

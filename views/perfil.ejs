@@ -8,8 +8,9 @@
 
 <body class="min-h-screen bg-[var(--bg-primary)] text-[var(--text-primary)]">
 
-    <%- include('partials/header', { title: '' , showTrafficLights: false }) %>
-        <%- include('partials/sidebar') %>
+    <%- include('partials/macos-toolbar', { title: 'Ajustes de Perfil' , username: user.username, profile_pic_url:
+        user.profile_pic_url }) %>
+        <%- include('partials/macos-sidebar') %>
 
             <div class="p-4 md:p-8 ml-0 md:ml-64 mt-16 min-h-screen transition-all duration-300">
                 <div class="max-w-3xl mx-auto">

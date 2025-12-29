@@ -843,12 +843,27 @@ app.post('/session', authLimiter, async (req, res) => {
 });
 
 // Rota principal da aplicação (protegida)
-app.get('/', isAuthenticated, (req, res) => {
-    res.render('index', {
-        username: req.session.username, // Placeholder
-        email: req.session.email || 'Acesso de Lead',
-        profile_pic_url: req.session.profile_pic_url
-    });
+app.get('/', isAuthenticated, async (req, res) => {
+    try {
+        const data = await getPortfolioData(req.session.userId);
+        res.render('index', {
+            username: req.session.username,
+            email: req.session.email || 'Acesso de Lead',
+            profile_pic_url: req.session.profile_pic_url,
+            stats: data.kpis,
+            growth: data.growthData,
+            recentProperties: data.imoveis ? data.imoveis.slice(0, 5) : []
+        });
+    } catch (error) {
+        console.error('Erro ao carregar dashboard:', error);
+        res.render('index', {
+            username: req.session.username,
+            email: req.session.email || 'Acesso de Lead',
+            profile_pic_url: req.session.profile_pic_url,
+            stats: null,
+            recentProperties: []
+        });
+    }
 });
 
 // Rota para a página de perfil
@@ -1599,7 +1614,36 @@ async function getPortfolioData(userId) {
         ORDER BY mes ASC
     `, [userId]);
 
-    return { imoveis, kpis, custosPorMes };
+    // 6. Calculate Monthly Growth Data (Last 6 Months) for Advisor Performance
+    const months = {};
+    const today = new Date();
+    for (let i = 5; i >= 0; i--) {
+        const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
+        const key = d.toISOString().slice(0, 7); // YYYY-MM
+        months[key] = {
+            label: d.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '').toUpperCase(),
+            profit: 0,
+            volume: 0
+        };
+    }
+
+    imoveis.forEach(imovel => {
+        if (imovel.data_aquisicao && imovel.lucro_liquido_estimado) {
+            const dateKey = new Date(imovel.data_aquisicao).toISOString().slice(0, 7);
+            if (months[dateKey]) {
+                months[dateKey].profit += parseFloat(imovel.lucro_liquido_estimado);
+                months[dateKey].volume += 1;
+            }
+        }
+    });
+
+    const growthData = {
+        labels: Object.values(months).map(m => m.label),
+        profitData: Object.values(months).map(m => m.profit),
+        volumeData: Object.values(months).map(m => m.volume)
+    };
+
+    return { imoveis, kpis, custosPorMes, growthData };
 }
 
 // ========================================

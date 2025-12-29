@@ -53,10 +53,8 @@
 
 <body class="min-h-screen page-clientes">
 
-    <%- include('partials/header', { username: username, email: email, profile_pic_url: profile_pic_url,
-        title: 'Meus Clientes' , showTrafficLights: false,
-        titleStyle: 'font-size: 30px; font-weight: 700; letter-spacing: -0.5px;' }) %>
-        <%- include('partials/sidebar') %>
+    <%- include('partials/macos-toolbar', { title: 'Meus Clientes' }) %>
+        <%- include('partials/macos-sidebar') %>
 
             <!-- Main Content -->
             <main class="macos-main-content">

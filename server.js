@@ -736,11 +736,35 @@ app.get('/invite/accept', async (req, res) => {
         if (!invite) {
             console.error(`❌ Token não encontrado: "${cleanToken}"`);
 
-            // DEBUG: Listar tokens se estivermos em debug (ou temporariamente para corrigir)
-            const allInvites = await db.all('SELECT id, token, email FROM invites LIMIT 5');
-            console.log('📋 Últimos 5 convites no banco:', JSON.stringify(allInvites));
+            // DEBUG EXTREMO: Mostrar na tela o que tem no banco para o usuário entender se está persistindo
+            const allInvites = await db.all('SELECT token, email, created_at FROM invites ORDER BY id DESC LIMIT 5');
 
-            return res.status(400).send(`Convite não encontrado. Verifique se o link está completo. (Token recebido: ${cleanToken.substring(0, 5)}...)`);
+            let debugHtml = `
+                <div style="font-family: sans-serif; padding: 20px; max-width: 800px; margin: 0 auto;">
+                    <h1 style="color: #DC2626;">Convite não encontrado</h1>
+                    <p>O token <strong>${cleanToken}</strong> não existe no banco de dados.</p>
+                    
+                    <div style="background: #f3f4f6; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                        <h3 style="margin-top: 0;">Diagnóstico do Banco de Dados:</h3>
+            `;
+
+            if (allInvites.length === 0) {
+                debugHtml += `<p style="color: #DC2626;"><strong>O BANCO DE DADOS ESTÁ VAZIO!</strong></p>
+                <p>Isso geralmente significa que o <strong>Volume</strong> não foi configurado corretamente no EasyPanel.</p>
+                <p>Toda vez que o sistema reinicia, ele apaga tudo. Verifique o arquivo DEPLOY-GUIDE.md passo 10.</p>`;
+            } else {
+                debugHtml += `<p>Existem ${allInvites.length} convites recentes no banco:</p><ul>`;
+                allInvites.forEach(i => {
+                    debugHtml += `<li>Token: <code>${i.token}</code> (Email: ${i.email}) - Criado em: ${i.created_at}</li>`;
+                });
+                debugHtml += `</ul>`;
+            }
+
+            debugHtml += `</div>
+                <a href="/admin/invites" style="text-decoration: underline;">Voltar para Admin</a>
+            </div>`;
+
+            return res.status(404).send(debugHtml);
         }
 
         if (invite.used) {

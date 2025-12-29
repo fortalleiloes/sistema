@@ -1,35 +1,92 @@
-<%- include('partials/head') %>
-<%- include('partials/header') %>
+<!DOCTYPE html>
+<html lang="pt-BR" class="light">
 
-<div class="container mx-auto p-6">
-  <h1 class="text-2xl font-bold mb-4">Convites</h1>
+<head>
+  <%- include('partials/head') %>
+    <title>Gerenciar Convites | Arremata!</title>
+</head>
 
-  <a href="/invite/new" class="inline-block mb-4 px-4 py-2 bg-green-600 text-white rounded">Criar novo convite</a>
+<body class="macos-bg-primary">
 
-  <table class="w-full table-auto border-collapse">
-    <thead>
-      <tr>
-        <th class="text-left p-2">Email</th>
-        <th class="text-left p-2">Token</th>
-        <th class="text-left p-2">Usado</th>
-        <th class="text-left p-2">Expira em</th>
-        <th class="text-left p-2">Criado em</th>
-      </tr>
-    </thead>
-    <tbody>
-      <% invites.forEach(inv => { %>
-        <tr class="border-t">
-          <td class="p-2"><%= inv.email %></td>
-          <td class="p-2 font-mono text-sm"><%= inv.token %></td>
-          <td class="p-2"><%= inv.used ? 'Sim' : 'Não' %></td>
-          <td class="p-2"><%= inv.expires_at ? new Date(inv.expires_at).toLocaleString() : '' %></td>
-          <td class="p-2"><%= new Date(inv.created_at).toLocaleString() %></td>
-        </tr>
-      <% }) %>
-    </tbody>
-  </table>
-</div>
+  <!-- Sidebar -->
+  <%- include('partials/macos-sidebar') %>
 
-<%- include('partials/theme-script') %>
+    <!-- Toolbar -->
+    <%- include('partials/macos-toolbar', { title: 'Gerenciar Convites' }) %>
+
+      <!-- Main Content -->
+      <main class="macos-main-content">
+        <div class="container mx-auto max-w-6xl">
+
+          <!-- Header da Página -->
+          <div class="flex items-center justify-between mb-8">
+            <div>
+              <h1 class="text-3xl font-bold mb-2 text-[var(--macos-text-primary)]">Convites do Sistema</h1>
+              <p class="text-[var(--macos-text-secondary)]">Gerencie o acesso de novos usuários ao sistema.</p>
+            </div>
+            <a href="/invite/new" class="macos-btn macos-btn-primary">
+              <i class="fa-solid fa-plus mr-2"></i> Novo Convite
+            </a>
+          </div>
+
+          <!-- Tabela de Convites -->
+          <div class="macos-card overflow-hidden p-0">
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse">
+                <thead>
+                  <tr class="border-b border-[var(--macos-divider)] bg-[var(--macos-bg-tertiary)]">
+                    <th class="p-4 text-xs font-semibold uppercase text-[var(--macos-text-secondary)]">Email</th>
+                    <th class="p-4 text-xs font-semibold uppercase text-[var(--macos-text-secondary)]">Token</th>
+                    <th class="p-4 text-xs font-semibold uppercase text-[var(--macos-text-secondary)]">Status</th>
+                    <th class="p-4 text-xs font-semibold uppercase text-[var(--macos-text-secondary)]">Expira em</th>
+                    <th class="p-4 text-xs font-semibold uppercase text-[var(--macos-text-secondary)]">Criado em</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-[var(--macos-divider)]">
+                  <% if (invites && invites.length> 0) { %>
+                    <% invites.forEach(inv=> { %>
+                      <tr class="hover:bg-[var(--macos-bg-tertiary)] transition-colors">
+                        <td class="p-4 font-medium text-[var(--macos-text-primary)]">
+                          <%= inv.email %>
+                        </td>
+                        <td class="p-4">
+                          <span
+                            class="font-mono text-xs text-[var(--macos-text-secondary)] bg-[var(--macos-bg-tertiary)] px-2 py-1 rounded">
+                            <%= inv.token.substring(0, 8) %>...
+                          </span>
+                        </td>
+                        <td class="p-4">
+                          <% if (inv.used) { %>
+                            <span class="macos-badge macos-badge-success">Utilizado</span>
+                            <% } else { %>
+                              <span class="macos-badge macos-badge-warning">Pendente</span>
+                              <% } %>
+                        </td>
+                        <td class="p-4 text-sm text-[var(--macos-text-secondary)]">
+                          <%= inv.expires_at ? new Date(inv.expires_at).toLocaleDateString() : '-' %>
+                        </td>
+                        <td class="p-4 text-sm text-[var(--macos-text-secondary)]">
+                          <%= new Date(inv.created_at).toLocaleDateString() %>
+                        </td>
+                      </tr>
+                      <% }) %>
+                        <% } else { %>
+                          <tr>
+                            <td colspan="5" class="p-8 text-center text-[var(--macos-text-secondary)]">
+                              <i class="fa-regular fa-folder-open text-4xl mb-3 block opacity-50"></i>
+                              Nenhum convite encontrado.
+                            </td>
+                          </tr>
+                          <% } %>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+      </main>
+
+      <%- include('partials/theme-script') %>
 </body>
+
 </html>

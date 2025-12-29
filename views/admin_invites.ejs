@@ -54,16 +54,14 @@
                         </td>
                         <td class="p-4">
                           <div class="flex items-center gap-2">
-                            <code
-                              class="text-xs bg-[var(--macos-bg-tertiary)] px-2 py-1 rounded select-all border border-[var(--macos-border)] text-[var(--macos-text-secondary)]">
-                                                    <%= `https://${typeof req !== 'undefined' ? req.get('host') : 'sistema-sistema.pziawe.easypanel.host'}/invite/accept?token=${inv.token}` %>
-                                                </code>
-                            <button
-                              onclick="navigator.clipboard.writeText(this.previousElementSibling.innerText); alert('Link copiado!')"
-                              class="text-[var(--macos-text-secondary)] hover:text-[var(--macos-accent)] transition-colors"
-                              title="Copiar Link">
-                              <i class="fa-regular fa-copy"></i>
-                            </button>
+                            <%= `${baseUrl}/invite/accept?token=${inv.token}` %>
+                              </code>
+                              <button
+                                onclick="navigator.clipboard.writeText(this.previousElementSibling.innerText); alert('Link copiado!')"
+                                class="text-[var(--macos-text-secondary)] hover:text-[var(--macos-accent)] transition-colors"
+                                title="Copiar Link">
+                                <i class="fa-regular fa-copy"></i>
+                              </button>
                           </div>
                         </td>
                         <td class="p-4">

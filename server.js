@@ -680,8 +680,10 @@ app.get('/admin/invites', isAuthenticated, async (req, res) => {
             username,
             email,
             profile_pic_url,
+            profile_pic_url,
             supabaseUrl: process.env.SUPABASE_URL,
-            supabaseAnonKey: process.env.SUPABASE_ANON_KEY
+            supabaseAnonKey: process.env.SUPABASE_ANON_KEY,
+            baseUrl: `${req.protocol}://${req.get('host')}`
         });
     } catch (err) {
         console.error('Erro ao buscar convites:', err);
@@ -721,10 +723,14 @@ app.post('/admin/invites', isAuthenticated, async (req, res) => {
 // Página pública para aceitar convite (lead)
 app.get('/invite/accept', async (req, res) => {
     const { token } = req.query;
-    if (!token) return res.status(400).send('Token inválido');
+    if (!token) return res.status(400).send('Token inválido (vazio)');
+
+    // Garantir que não há espaços extras
+    const cleanToken = token.trim();
+
     try {
-        const invite = await db.get('SELECT * FROM invites WHERE token = ?', [token]);
-        if (!invite) return res.status(400).send('Convite inválido');
+        const invite = await db.get('SELECT * FROM invites WHERE token = ?', [cleanToken]);
+        if (!invite) return res.status(400).send('Convite inválido (não encontrado)');
         if (invite.used) return res.status(400).send('Convite já utilizado');
         if (invite.expires_at && new Date(invite.expires_at) < new Date()) return res.status(400).send('Convite expirado');
 

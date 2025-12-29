@@ -673,7 +673,7 @@ app.get('/admin/invites', isAuthenticated, async (req, res) => {
         const email = user.email || '';
         const profile_pic_url = user.user_metadata?.avatar_url || null;
 
-        res.render('admin_invites_v2', {
+        res.render('admin_invites', {
             invites,
             user,
             username,
@@ -686,6 +686,11 @@ app.get('/admin/invites', isAuthenticated, async (req, res) => {
         console.error('Erro ao buscar convites:', err);
         res.status(500).send('Erro ao buscar convites');
     }
+});
+
+// Rota de Diagnóstico de Versão
+app.get('/version', (req, res) => {
+    res.json({ version: '1.0.2', timestamp: new Date().toISOString() });
 });
 
 // Rota para criar convites (admin)

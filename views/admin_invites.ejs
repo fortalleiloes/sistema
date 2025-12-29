@@ -24,9 +24,11 @@
               <h1 class="text-3xl font-bold mb-2 text-[var(--macos-text-primary)]">Convites do Sistema</h1>
               <p class="text-[var(--macos-text-secondary)]">Gerencie o acesso de novos usuários ao sistema.</p>
             </div>
-            <a href="/invite/new" class="macos-btn macos-btn-primary">
+            <!-- Botão que abre o Modal -->
+            <button onclick="document.getElementById('modalNovoConvite').style.display = 'flex'"
+              class="macos-btn macos-btn-primary">
               <i class="fa-solid fa-plus mr-2"></i> Novo Convite
-            </a>
+            </button>
           </div>
 
           <!-- Tabela de Convites -->
@@ -36,7 +38,8 @@
                 <thead>
                   <tr class="border-b border-[var(--macos-divider)] bg-[var(--macos-bg-tertiary)]">
                     <th class="p-4 text-xs font-semibold uppercase text-[var(--macos-text-secondary)]">Email</th>
-                    <th class="p-4 text-xs font-semibold uppercase text-[var(--macos-text-secondary)]">Token</th>
+                    <th class="p-4 text-xs font-semibold uppercase text-[var(--macos-text-secondary)]">Link de Convite
+                    </th>
                     <th class="p-4 text-xs font-semibold uppercase text-[var(--macos-text-secondary)]">Status</th>
                     <th class="p-4 text-xs font-semibold uppercase text-[var(--macos-text-secondary)]">Expira em</th>
                     <th class="p-4 text-xs font-semibold uppercase text-[var(--macos-text-secondary)]">Criado em</th>
@@ -50,10 +53,18 @@
                           <%= inv.email %>
                         </td>
                         <td class="p-4">
-                          <span
-                            class="font-mono text-xs text-[var(--macos-text-secondary)] bg-[var(--macos-bg-tertiary)] px-2 py-1 rounded">
-                            <%= inv.token.substring(0, 8) %>...
-                          </span>
+                          <div class="flex items-center gap-2">
+                            <code
+                              class="text-xs bg-[var(--macos-bg-tertiary)] px-2 py-1 rounded select-all border border-[var(--macos-border)] text-[var(--macos-text-secondary)]">
+                                                    <%= `https://${typeof req !== 'undefined' ? req.get('host') : 'sistema-sistema.pziawe.easypanel.host'}/invite/accept?token=${inv.token}` %>
+                                                </code>
+                            <button
+                              onclick="navigator.clipboard.writeText(this.previousElementSibling.innerText); alert('Link copiado!')"
+                              class="text-[var(--macos-text-secondary)] hover:text-[var(--macos-accent)] transition-colors"
+                              title="Copiar Link">
+                              <i class="fa-regular fa-copy"></i>
+                            </button>
+                          </div>
                         </td>
                         <td class="p-4">
                           <% if (inv.used) { %>
@@ -72,9 +83,15 @@
                       <% }) %>
                         <% } else { %>
                           <tr>
-                            <td colspan="5" class="p-8 text-center text-[var(--macos-text-secondary)]">
-                              <i class="fa-regular fa-folder-open text-4xl mb-3 block opacity-50"></i>
-                              Nenhum convite encontrado.
+                            <td colspan="5" class="p-12 text-center text-[var(--macos-text-secondary)]">
+                              <div class="flex flex-col items-center justify-center">
+                                <div
+                                  class="w-16 h-16 bg-[var(--macos-bg-tertiary)] rounded-full flex items-center justify-center mb-4">
+                                  <i class="fa-regular fa-paper-plane text-2xl opacity-50"></i>
+                                </div>
+                                <p class="font-medium">Nenhum convite encontrado</p>
+                                <p class="text-sm opacity-70 mt-1">Clique em "Novo Convite" para começar.</p>
+                              </div>
                             </td>
                           </tr>
                           <% } %>
@@ -85,6 +102,49 @@
 
         </div>
       </main>
+
+      <!-- Modal Novo Convite -->
+      <div id="modalNovoConvite" class="macos-modal-overlay" style="display: none;">
+        <div class="macos-modal w-[400px]">
+          <div class="macos-modal-header">
+            <h3 class="macos-modal-title">Novo Convite</h3>
+            <button onclick="document.getElementById('modalNovoConvite').style.display = 'none'"
+              class="macos-modal-close">
+              <i class="fa-solid fa-times text-sm text-[var(--macos-text-secondary)]"></i>
+            </button>
+          </div>
+
+          <form action="/admin/invites" method="POST" class="p-0">
+            <div class="macos-modal-body">
+              <p class="text-sm text-[var(--macos-text-secondary)] mb-4">
+                O usuário receberá acesso para criar uma conta. O link expira em 7 dias.
+              </p>
+
+              <div class="macos-form-group">
+                <label class="macos-form-label">E-mail do Convidado</label>
+                <input type="email" name="email" required placeholder="exemplo@email.com" class="macos-input" autofocus>
+              </div>
+            </div>
+
+            <div class="macos-modal-footer bg-[var(--macos-bg-tertiary)] bg-opacity-30">
+              <button type="button" onclick="document.getElementById('modalNovoConvite').style.display = 'none'"
+                class="macos-btn macos-btn-secondary">Cancelar</button>
+              <button type="submit" class="macos-btn macos-btn-primary">
+                <i class="fa-solid fa-paper-plane mr-2"></i> Enviar Convite
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Script para fechar modal com ESC -->
+      <script>
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') {
+            document.getElementById('modalNovoConvite').style.display = 'none';
+          }
+        });
+      </script>
 
       <%- include('partials/theme-script') %>
 </body>

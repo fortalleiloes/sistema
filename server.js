@@ -736,35 +736,32 @@ app.get('/invite/accept', async (req, res) => {
         if (!invite) {
             console.error(`❌ Token não encontrado: "${cleanToken}"`);
 
-            // DEBUG EXTREMO: Mostrar na tela o que tem no banco para o usuário entender se está persistindo
-            const allInvites = await db.all('SELECT token, email, created_at FROM invites ORDER BY id DESC LIMIT 5');
-
-            let debugHtml = `
-                <div style="font-family: sans-serif; padding: 20px; max-width: 800px; margin: 0 auto;">
-                    <h1 style="color: #DC2626;">Convite não encontrado</h1>
-                    <p>O token <strong>${cleanToken}</strong> não existe no banco de dados.</p>
-                    
-                    <div style="background: #f3f4f6; padding: 15px; border-radius: 8px; margin: 20px 0;">
-                        <h3 style="margin-top: 0;">Diagnóstico do Banco de Dados:</h3>
-            `;
-
-            if (allInvites.length === 0) {
-                debugHtml += `<p style="color: #DC2626;"><strong>O BANCO DE DADOS ESTÁ VAZIO!</strong></p>
-                <p>Isso geralmente significa que o <strong>Volume</strong> não foi configurado corretamente no EasyPanel.</p>
-                <p>Toda vez que o sistema reinicia, ele apaga tudo. Verifique o arquivo DEPLOY-GUIDE.md passo 10.</p>`;
-            } else {
-                debugHtml += `<p>Existem ${allInvites.length} convites recentes no banco:</p><ul>`;
-                allInvites.forEach(i => {
-                    debugHtml += `<li>Token: <code>${i.token}</code> (Email: ${i.email}) - Criado em: ${i.created_at}</li>`;
-                });
-                debugHtml += `</ul>`;
-            }
-
-            debugHtml += `</div>
-                <a href="/admin/invites" style="text-decoration: underline;">Voltar para Admin</a>
-            </div>`;
-
-            return res.status(404).send(debugHtml);
+            return res.status(404).send(`
+                <!DOCTYPE html>
+                <html lang="pt-BR">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>Link Inválido | Arremata!</title>
+                    <script src="https://cdn.tailwindcss.com"></script>
+                </head>
+                <body class="bg-gray-100 h-screen flex items-center justify-center">
+                    <div class="bg-white p-8 rounded-xl shadow-lg max-w-md w-full text-center">
+                        <div class="w-16 h-16 bg-red-100 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-8 h-8">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                            </svg>
+                        </div>
+                        <h1 class="text-2xl font-bold text-gray-800 mb-2">Link Inválido ou Expirado</h1>
+                        <p class="text-gray-600 mb-6">Não encontramos este convite. Ele pode ter sido cancelado, expirado ou o link está incorreto.</p>
+                        <p class="text-sm text-gray-500 mb-6 bg-gray-50 p-3 rounded border border-gray-200">
+                            Dica: Peça ao administrador para gerar um novo link atualizado na tabela de convites.
+                        </p>
+                        <a href="/login" class="inline-block bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium">Voltar ao Login</a>
+                    </div>
+                </body>
+                </html>
+            `);
         }
 
         if (invite.used) {

@@ -659,6 +659,16 @@ const isAuthenticated = (req, res, next) => {
     res.redirect('/login');
 };
 
+// Helper para criar contexto de usuário consistente
+const getUserContext = (session) => {
+    return {
+        username: session.username || 'Usuário',
+        email: session.email || 'Sem email',
+        profile_pic_url: session.profile_pic_url || null,
+        isAdmin: session.isAdmin || false
+    };
+};
+
 // ========================================
 // RATE LIMITING - Proteção contra abuso
 // ========================================
@@ -2226,10 +2236,7 @@ app.get('/carteira', isAuthenticated, async (req, res) => {
         };
 
         res.render('carteira', {
-            user: {
-                username: req.session.username,
-                profile_pic_url: req.session.profile_pic_url
-            },
+            user: getUserContext(req.session),
             clientes: clientes,
             kpis: kpisGerais
         });

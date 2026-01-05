@@ -11,7 +11,7 @@
 
 <body class="min-h-screen">
     <%- include('partials/macos-toolbar', { title: 'Detalhes do Imóvel' }) %>
-        <%- include('partials/macos-sidebar') %>
+        <%- include('partials/macos-sidebar', { user: user }) %>
 
             <main class="macos-main-content">
                 <div class="animate-fade-in" style="padding-bottom: 40px; max-width: 1200px; margin: 0 auto;">

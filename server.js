@@ -1588,10 +1588,7 @@ app.get('/da-vinci', isAuthenticated, async (req, res) => {
         const savedCalculations = await db.all('SELECT * FROM saved_calculations WHERE user_id = ? ORDER BY id DESC', [req.session.userId]);
 
         res.render('da-vinci', {
-            user: {
-                username: req.session.username,
-                profile_pic_url: req.session.profile_pic_url
-            },
+            user: getUserContext(req.session),
             savedCalculations: savedCalculations
         });
     } catch (error) {

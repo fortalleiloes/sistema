@@ -1158,7 +1158,7 @@ app.get('/historico', isAuthenticated, async (req, res) => {
                 valor_formatado: item.valor_arremate.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
             };
         });
-        res.render('historico', { arremates: arrematesFormatados, username: req.session.username, email: req.session.email || 'Acesso de Lead', profile_pic_url: req.session.profile_pic_url });
+        res.render('historico', { arremates: arrematesFormatados, user: getUserContext(req.session), username: req.session.username, email: req.session.email || 'Acesso de Lead', profile_pic_url: req.session.profile_pic_url });
     } catch (error) {
         console.error('Erro ao buscar histórico:', error);
         res.status(500).send("Erro ao carregar o histórico.");
@@ -1427,10 +1427,7 @@ app.get('/calculadora', isAuthenticated, async (req, res) => {
         const savedCalculations = await db.all('SELECT * FROM saved_calculations WHERE user_id = ? ORDER BY id DESC', [req.session.userId]);
 
         res.render('calculadora', {
-            user: {
-                username: req.session.username,
-                profile_pic_url: req.session.profile_pic_url
-            },
+            user: getUserContext(req.session),
             results: null, // Nenhum resultado no carregamento inicial
             inputData: {},
             savedCalculations: savedCalculations,
@@ -1673,11 +1670,7 @@ app.post('/calculadora/salvar', isAuthenticated, [
 
 app.get('/guia', isAuthenticated, (req, res) => {
     res.render('guia', {
-        user: {
-            username: req.session.username,
-            profile_pic_url: req.session.profile_pic_url,
-            email: req.session.email
-        }
+        user: getUserContext(req.session)
     });
 });
 

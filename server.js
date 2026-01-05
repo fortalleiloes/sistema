@@ -696,34 +696,41 @@ app.post('/login', authLimiter, async (req, res) => {
     }
 });
 
-// Rota para listar convites (admin)
-app.get('/admin/invites', isAuthenticated, async (req, res) => {
-    // Verificação simples de admin
-    const adminEmails = process.env.ADMIN_EMAILS ? process.env.ADMIN_EMAILS.split(',') : [];
-    // Nota: req.user.email vem da sessão do Supabase (user_metadata ou email direto)
-    // Precisaria garantir que o email do usuário está na sessão. 
-    // Como simplificação, vamos assumir que apenas admins conseguem ver essa rota se souberem a URL,
-    // mas o ideal é checar req.session.user.email
+// Middleware de Verificação de Admin Estrita
+const requireAdmin = (req, res, next) => {
+    if (!req.session.userId) return res.redirect('/login');
 
-    // Buscar convites
+    // Lista hardcoded de admins permitidos (Camada extra de segurança)
+    const ALLOWED_ADMINS = ['fortalestrutura@gmail.com'];
+    const isAdminEmail = req.session.email && ALLOWED_ADMINS.includes(req.session.email.toLowerCase());
+
+    // Verifica flag do banco E lista de email
+    if (req.session.isAdmin || isAdminEmail) {
+        return next();
+    }
+
+    console.warn(`Tentativa de acesso não autorizado ao admin por: ${req.session.email}`);
+    res.status(403).send('Acesso Negado: Apenas administradores podem acessar esta página.');
+};
+
+// Rota para listar convites (admin)
+app.get('/admin/invites', requireAdmin, async (req, res) => {
     try {
         const invites = await db.all('SELECT * FROM invites ORDER BY created_at DESC');
 
         // Dados do usuário da sessão
-        const user = req.session.user || {};
-        const username = user.user_metadata?.full_name || user.email?.split('@')[0] || 'Admin';
-        const email = user.email || '';
-        const profile_pic_url = user.user_metadata?.avatar_url || null;
+        const username = req.session.username || 'Admin';
+        const email = req.session.email || '';
+        const profile_pic_url = req.session.profile_pic_url || null;
 
         res.render('admin_invites', {
             invites,
-            user,
+            user: { username, email, profile_pic_url }, // Pass as object expected by layout
             username,
             email,
             profile_pic_url,
-            profile_pic_url,
-            supabaseUrl: process.env.SUPABASE_URL,
-            supabaseAnonKey: process.env.SUPABASE_ANON_KEY,
+            supabaseUrl: '',
+            supabaseAnonKey: '',
             baseUrl: `${req.protocol}://${req.get('host')}`,
             message: req.query.message || null,
             previewUrl: req.query.previewUrl || null
@@ -740,7 +747,7 @@ app.get('/version', (req, res) => {
 });
 
 // Rota para criar convites (admin)
-app.post('/admin/invites', isAuthenticated, async (req, res) => {
+app.post('/admin/invites', requireAdmin, async (req, res) => {
     try {
         const { email } = req.body;
         if (!email) return res.status(400).send('E-mail é obrigatório');

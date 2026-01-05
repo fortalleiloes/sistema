@@ -10,7 +10,7 @@
 
     <%- include('partials/macos-toolbar', { title: 'Dashboard' , username: username, profile_pic_url: profile_pic_url })
         %>
-        <%- include('partials/macos-sidebar') %>
+        <%- include('partials/macos-sidebar', { user: user }) %>
 
             <main class="macos-main-content">
                 <div class="animate-fade-in" style="padding-bottom: 40px; max-width: 1200px; margin: 0 auto;">
@@ -310,10 +310,10 @@
                         new Chart(ctx, {
                             type: 'line',
                             data: {
-                                labels: <% - JSON.stringify(growth.labels) %>,
+                                labels: <%- JSON.stringify(growth.labels) %>,
                                 datasets: [{
                                     label: 'Potencial de Lucro (R$)',
-                                    data: <% - JSON.stringify(growth.profitData) %>,
+                                    data: <%- JSON.stringify(growth.profitData) %>,
                                     borderColor: '#10b981', // green-500
                                     backgroundColor: gradient,
                                     borderWidth: 3,

@@ -725,7 +725,8 @@ app.post('/login', authLimiter, async (req, res) => {
         res.redirect('/');
     } catch (err) {
         console.error('Login Error:', err);
-        res.render('login', { message: null, error: 'Erro interno no servidor' });
+        // Debug: Mostrando erro real para o usuário
+        res.render('login', { message: null, error: 'Erro: ' + err.message });
     }
 });
 
@@ -1000,24 +1001,50 @@ app.post('/invite/accept', async (req, res) => {
 
 // Rota principal da aplicação (protegida)
 app.get('/', isAuthenticated, async (req, res) => {
+    const baseContext = {
+        username: req.session.username || 'Usuário',
+        email: req.session.email || 'Sem email',
+        profile_pic_url: req.session.profile_pic_url || null,
+        user: {
+            username: req.session.username || 'Usuário',
+            email: req.session.email || 'Sem email',
+            profile_pic_url: req.session.profile_pic_url || null,
+            isAdmin: req.session.isAdmin || false
+        }
+    };
+
     try {
+        console.log('🔍 Dashboard: Iniciando carregamento para userId:', req.session.userId);
+
+        if (!req.session.userId) {
+            console.warn('⚠️ UserId não encontrado na sessão');
+            return res.render('index', {
+                ...baseContext,
+                stats: null,
+                recentProperties: [],
+                growth: null
+            });
+        }
+
         const data = await getPortfolioData(req.session.userId);
+        console.log('✅ Dashboard: Dados carregados com sucesso');
+
         res.render('index', {
-            username: req.session.username,
-            email: req.session.email || 'Acesso de Lead',
-            profile_pic_url: req.session.profile_pic_url,
-            stats: data.kpis,
-            growth: data.growthData,
-            recentProperties: data.imoveis ? data.imoveis.slice(0, 5) : []
+            ...baseContext,
+            stats: data.kpis || null,
+            growth: data.growthData || null,
+            recentProperties: (data.imoveis && Array.isArray(data.imoveis)) ? data.imoveis.slice(0, 5) : []
         });
     } catch (error) {
-        console.error('Erro ao carregar dashboard:', error);
+        console.error('❌ ERRO CRÍTICO NO DASHBOARD:', error.message);
+        console.error('Stack trace:', error.stack);
+
+        // Renderizar versão simplificada sem dados
         res.render('index', {
-            username: req.session.username,
-            email: req.session.email || 'Acesso de Lead',
-            profile_pic_url: req.session.profile_pic_url,
+            ...baseContext,
             stats: null,
-            recentProperties: []
+            recentProperties: [],
+            growth: null
         });
     }
 });
@@ -1802,10 +1829,17 @@ async function getPortfolioData(userId) {
 
     imoveis.forEach(imovel => {
         if (imovel.data_aquisicao && imovel.lucro_liquido_estimado) {
-            const dateKey = new Date(imovel.data_aquisicao).toISOString().slice(0, 7);
-            if (months[dateKey]) {
-                months[dateKey].profit += parseFloat(imovel.lucro_liquido_estimado);
-                months[dateKey].volume += 1;
+            try {
+                const dateVal = new Date(imovel.data_aquisicao);
+                if (!isNaN(dateVal.getTime())) {
+                    const dateKey = dateVal.toISOString().slice(0, 7);
+                    if (months[dateKey]) {
+                        months[dateKey].profit += parseFloat(imovel.lucro_liquido_estimado);
+                        months[dateKey].volume += 1;
+                    }
+                }
+            } catch (e) {
+                console.warn(`Data inválida para imóvel ${imovel.id}:`, imovel.data_aquisicao);
             }
         }
     });

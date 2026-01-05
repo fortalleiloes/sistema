@@ -49,134 +49,153 @@
                                             Dados zerados com sucesso.
                                         </div>
                                         <% } %>
+                                            <% if (typeof success !=='undefined' && success==='password_changed' ) { %>
+                                                <div
+                                                    class="bg-green-500/10 border border-green-500/20 text-green-500 p-4 rounded-xl mb-6 flex items-center gap-3">
+                                                    <i class="fa-solid fa-check-circle"></i>
+                                                    Senha alterada com sucesso!
+                                                </div>
+                                                <% } %>
 
-                                            <!-- Foto de Perfil -->
-                                            <div class="macos-card mb-6 animate-fade-in-up"
-                                                style="animation-delay: 0.1s;">
-                                                <h2
-                                                    class="text-lg font-semibold mb-4 flex items-center gap-2 border-b border-[var(--macos-border)] pb-3">
-                                                    <i class="fa-solid fa-camera text-[var(--macos-accent)]"></i> Foto
-                                                    de Perfil
-                                                </h2>
-                                                <form action="/perfil/update-photo" method="POST"
-                                                    enctype="multipart/form-data" class="flex items-center gap-6">
-                                                    <div class="relative group">
-                                                        <% if (user.profile_pic_url) { %>
-                                                            <img src="<%= user.profile_pic_url %>" alt="Foto de Perfil"
-                                                                class="w-24 h-24 rounded-full object-cover shadow-md ring-4 ring-[var(--bg-secondary)]">
-                                                            <% } else { %>
-                                                                <div
-                                                                    class="w-24 h-24 rounded-full bg-[var(--bg-tertiary)] flex items-center justify-center shadow-md ring-4 ring-[var(--bg-secondary)]">
-                                                                    <i
-                                                                        class="fa-solid fa-user text-4xl text-[var(--text-secondary)]"></i>
-                                                                </div>
-                                                                <% } %>
-                                                                    <div
-                                                                        class="absolute inset-0 bg-black/30 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer pointer-events-none">
-                                                                        <i class="fa-solid fa-pen text-white"></i>
-                                                                    </div>
-                                                    </div>
+                                                    <!-- Foto de Perfil -->
+                                                    <div class="macos-card mb-6 animate-fade-in-up"
+                                                        style="animation-delay: 0.1s;">
+                                                        <h2
+                                                            class="text-lg font-semibold mb-4 flex items-center gap-2 border-b border-[var(--macos-border)] pb-3">
+                                                            <i
+                                                                class="fa-solid fa-camera text-[var(--macos-accent)]"></i>
+                                                            Foto
+                                                            de Perfil
+                                                        </h2>
+                                                        <form action="/perfil/update-photo" method="POST"
+                                                            enctype="multipart/form-data"
+                                                            class="flex items-center gap-6">
+                                                            <div class="relative group">
+                                                                <% if (user.profile_pic_url) { %>
+                                                                    <img src="<%= user.profile_pic_url %>"
+                                                                        alt="Foto de Perfil"
+                                                                        class="w-24 h-24 rounded-full object-cover shadow-md ring-4 ring-[var(--bg-secondary)]">
+                                                                    <% } else { %>
+                                                                        <div
+                                                                            class="w-24 h-24 rounded-full bg-[var(--bg-tertiary)] flex items-center justify-center shadow-md ring-4 ring-[var(--bg-secondary)]">
+                                                                            <i
+                                                                                class="fa-solid fa-user text-4xl text-[var(--text-secondary)]"></i>
+                                                                        </div>
+                                                                        <% } %>
+                                                                            <div
+                                                                                class="absolute inset-0 bg-black/30 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer pointer-events-none">
+                                                                                <i
+                                                                                    class="fa-solid fa-pen text-white"></i>
+                                                                            </div>
+                                                            </div>
 
-                                                    <div class="flex-grow">
-                                                        <label class="macos-form-label">Alterar Foto</label>
-                                                        <div class="flex gap-3 items-center">
-                                                            <input type="file" id="profilePhoto" name="profilePhoto"
-                                                                accept="image/*" required class="block w-full text-sm text-[var(--text-secondary)]
+                                                            <div class="flex-grow">
+                                                                <label class="macos-form-label">Alterar Foto</label>
+                                                                <div class="flex gap-3 items-center">
+                                                                    <input type="file" id="profilePhoto"
+                                                                        name="profilePhoto" accept="image/*" required
+                                                                        class="block w-full text-sm text-[var(--text-secondary)]
                                 file:mr-4 file:py-2 file:px-4
                                 file:rounded-full file:border-0
                                 file:text-sm file:font-semibold
                                 file:bg-[var(--macos-accent)] file:text-white
                                 hover:file:bg-[var(--macos-accent)]/90
                                 cursor-pointer">
+                                                                </div>
+                                                                <p class="text-xs text-[var(--text-secondary)] mt-2">
+                                                                    Recomendado: JPG ou PNG, max 5MB.</p>
+                                                                <div class="mt-4 flex justify-end">
+                                                                    <button type="submit"
+                                                                        class="macos-btn-primary">Salvar
+                                                                        Foto</button>
+                                                                </div>
+                                                            </div>
+                                                        </form>
+                                                    </div>
+
+                                                    <!-- Informações Pessoais -->
+                                                    <div class="macos-card mb-6 animate-fade-in-up"
+                                                        style="animation-delay: 0.2s;">
+                                                        <h2
+                                                            class="text-lg font-semibold mb-4 flex items-center gap-2 border-b border-[var(--macos-border)] pb-3">
+                                                            <i
+                                                                class="fa-solid fa-id-card text-[var(--macos-accent)]"></i>
+                                                            Informações Pessoais
+                                                        </h2>
+                                                        <form action="/perfil/update-info" method="POST">
+                                                            <div class="macos-form-group">
+                                                                <label for="username" class="macos-form-label">Nome de
+                                                                    Usuário</label>
+                                                                <input type="text" id="username" name="username"
+                                                                    value="<%= user.username %>" required
+                                                                    class="macos-input">
+                                                            </div>
+                                                            <div class="macos-form-group">
+                                                                <label class="macos-form-label">Email</label>
+                                                                <input type="email" value="<%= user.email %>" disabled
+                                                                    class="macos-input opacity-60 cursor-not-allowed">
+                                                                <p class="text-xs text-[var(--text-secondary)] mt-1">O
+                                                                    email não
+                                                                    pode ser alterado.</p>
+                                                            </div>
+                                                            <div class="flex justify-end mt-4">
+                                                                <button type="submit" class="macos-btn-primary">Salvar
+                                                                    Alterações</button>
+                                                            </div>
+                                                        </form>
+                                                    </div>
+
+                                                    <!-- Segurança -->
+                                                    <div class="macos-card mb-6 animate-fade-in-up"
+                                                        style="animation-delay: 0.3s;">
+                                                        <h2
+                                                            class="text-lg font-semibold mb-4 flex items-center gap-2 border-b border-[var(--macos-border)] pb-3">
+                                                            <i class="fa-solid fa-lock text-[var(--macos-accent)]"></i>
+                                                            Segurança
+                                                        </h2>
+                                                        <form id="change-password-form" action="/perfil/change-password"
+                                                            method="POST">
+                                                            <div class="macos-form-group">
+                                                                <label for="newPassword" class="macos-form-label">Nova
+                                                                    Senha</label>
+                                                                <input type="password" id="newPassword"
+                                                                    name="newPassword" required minlength="6"
+                                                                    class="macos-input" placeholder="••••••••">
+                                                            </div>
+                                                            <div class="flex justify-end mt-4">
+                                                                <button type="submit"
+                                                                    class="macos-btn-secondary">Alterar
+                                                                    Senha</button>
+                                                            </div>
+                                                        </form>
+                                                    </div>
+
+                                                    <!-- Zona de Perigo -->
+                                                    <div class="macos-card border-red-500/30 bg-red-500/5 animate-fade-in-up"
+                                                        style="animation-delay: 0.4s;">
+                                                        <h2
+                                                            class="text-lg font-semibold text-red-500 mb-4 flex items-center gap-2 border-b border-red-500/20 pb-3">
+                                                            <i class="fa-solid fa-triangle-exclamation"></i> Zona de
+                                                            Perigo
+                                                        </h2>
+                                                        <div
+                                                            class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                                            <div>
+                                                                <h3 class="font-semibold text-[var(--text-primary)]">
+                                                                    Zerar Todos
+                                                                    os Dados</h3>
+                                                                <p class="text-sm text-[var(--text-secondary)] mt-1">
+                                                                    Esta ação remove permanentemente todos os seus
+                                                                    cálculos,
+                                                                    arremates, imóveis e custos. Não pode ser desfeita.
+                                                                </p>
+                                                            </div>
+                                                            <button id="reset-all-data-btn"
+                                                                class="px-4 py-2 rounded-lg bg-red-500 hover:bg-red-600 text-white font-medium transition-colors shadow-sm whitespace-nowrap">
+                                                                Zerar Dados...
+                                                            </button>
                                                         </div>
-                                                        <p class="text-xs text-[var(--text-secondary)] mt-2">
-                                                            Recomendado: JPG ou PNG, max 5MB.</p>
-                                                        <div class="mt-4 flex justify-end">
-                                                            <button type="submit" class="macos-btn-primary">Salvar
-                                                                Foto</button>
-                                                        </div>
                                                     </div>
-                                                </form>
-                                            </div>
-
-                                            <!-- Informações Pessoais -->
-                                            <div class="macos-card mb-6 animate-fade-in-up"
-                                                style="animation-delay: 0.2s;">
-                                                <h2
-                                                    class="text-lg font-semibold mb-4 flex items-center gap-2 border-b border-[var(--macos-border)] pb-3">
-                                                    <i class="fa-solid fa-id-card text-[var(--macos-accent)]"></i>
-                                                    Informações Pessoais
-                                                </h2>
-                                                <form action="/perfil/update-info" method="POST">
-                                                    <div class="macos-form-group">
-                                                        <label for="username" class="macos-form-label">Nome de
-                                                            Usuário</label>
-                                                        <input type="text" id="username" name="username"
-                                                            value="<%= user.username %>" required class="macos-input">
-                                                    </div>
-                                                    <div class="macos-form-group">
-                                                        <label class="macos-form-label">Email</label>
-                                                        <input type="email" value="<%= user.email %>" disabled
-                                                            class="macos-input opacity-60 cursor-not-allowed">
-                                                        <p class="text-xs text-[var(--text-secondary)] mt-1">O email não
-                                                            pode ser alterado.</p>
-                                                    </div>
-                                                    <div class="flex justify-end mt-4">
-                                                        <button type="submit" class="macos-btn-primary">Salvar
-                                                            Alterações</button>
-                                                    </div>
-                                                </form>
-                                            </div>
-
-                                            <!-- Segurança -->
-                                            <div class="macos-card mb-6 animate-fade-in-up"
-                                                style="animation-delay: 0.3s;">
-                                                <h2
-                                                    class="text-lg font-semibold mb-4 flex items-center gap-2 border-b border-[var(--macos-border)] pb-3">
-                                                    <i class="fa-solid fa-lock text-[var(--macos-accent)]"></i>
-                                                    Segurança
-                                                </h2>
-                                                <form id="change-password-form">
-                                                    <div class="macos-form-group">
-                                                        <label for="newPassword" class="macos-form-label">Nova
-                                                            Senha</label>
-                                                        <input type="password" id="newPassword" name="newPassword"
-                                                            required minlength="6" class="macos-input"
-                                                            placeholder="••••••••">
-                                                    </div>
-                                                    <div class="flex justify-end mt-4">
-                                                        <button type="submit" class="macos-btn-secondary">Alterar
-                                                            Senha</button>
-                                                    </div>
-                                                    <p id="password-feedback"
-                                                        class="text-sm mt-3 hidden p-3 rounded-lg bg-[var(--bg-tertiary)]">
-                                                    </p>
-                                                </form>
-                                            </div>
-
-                                            <!-- Zona de Perigo -->
-                                            <div class="macos-card border-red-500/30 bg-red-500/5 animate-fade-in-up"
-                                                style="animation-delay: 0.4s;">
-                                                <h2
-                                                    class="text-lg font-semibold text-red-500 mb-4 flex items-center gap-2 border-b border-red-500/20 pb-3">
-                                                    <i class="fa-solid fa-triangle-exclamation"></i> Zona de Perigo
-                                                </h2>
-                                                <div
-                                                    class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                                                    <div>
-                                                        <h3 class="font-semibold text-[var(--text-primary)]">Zerar Todos
-                                                            os Dados</h3>
-                                                        <p class="text-sm text-[var(--text-secondary)] mt-1">
-                                                            Esta ação remove permanentemente todos os seus cálculos,
-                                                            arremates, imóveis e custos. Não pode ser desfeita.
-                                                        </p>
-                                                    </div>
-                                                    <button id="reset-all-data-btn"
-                                                        class="px-4 py-2 rounded-lg bg-red-500 hover:bg-red-600 text-white font-medium transition-colors shadow-sm whitespace-nowrap">
-                                                        Zerar Dados...
-                                                    </button>
-                                                </div>
-                                            </div>
 
                 </div>
             </div>
@@ -287,57 +306,7 @@
                 });
             </script>
 
-            <script type="module">
-                import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
-                const SUPABASE_URL = '<%= supabaseUrl %>';
-                const SUPABASE_ANON_KEY = '<%= supabaseAnonKey %>';
-                const form = document.getElementById('change-password-form');
-                const feedback = document.getElementById('password-feedback');
-
-                if (form && SUPABASE_URL && SUPABASE_ANON_KEY) {
-                    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-                    form.addEventListener('submit', async (e) => {
-                        e.preventDefault();
-                        feedback.classList.add('hidden');
-                        feedback.className = 'text-sm mt-3 hidden p-3 rounded-lg bg-[var(--bg-tertiary)]'; // Reset classes
-
-                        const newPassword = document.getElementById('newPassword').value;
-                        if (!newPassword || newPassword.length < 6) {
-                            feedback.textContent = 'A nova senha deve ter ao menos 6 caracteres.';
-                            feedback.classList.add('text-red-500');
-                            feedback.classList.remove('hidden');
-                            return;
-                        }
-
-                        const submitBtn = form.querySelector('button[type="submit"]');
-                        const originalText = submitBtn.textContent;
-                        submitBtn.disabled = true;
-                        submitBtn.textContent = 'Alterando...';
-
-                        try {
-                            const { data, error } = await supabase.auth.updateUser({ password: newPassword });
-                            if (error) {
-                                feedback.textContent = 'Erro: ' + error.message;
-                                feedback.classList.add('text-red-500');
-                                feedback.classList.remove('hidden');
-                            } else {
-                                feedback.textContent = 'Senha atualizada com sucesso!';
-                                feedback.classList.add('text-green-500');
-                                feedback.classList.remove('hidden');
-                                form.reset();
-                            }
-                        } catch (err) {
-                            console.error(err);
-                            feedback.textContent = 'Erro ao alterar senha.';
-                            feedback.classList.add('text-red-500');
-                            feedback.classList.remove('hidden');
-                        } finally {
-                            submitBtn.disabled = false;
-                            submitBtn.textContent = originalText;
-                        }
-                    });
-                }
-            </script>
+            <!-- Supabase script removed -->
 </body>
 
 </html>

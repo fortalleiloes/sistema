@@ -10,8 +10,12 @@ import multer from 'multer';
 import sqlite3 from 'sqlite3';
 import ViabilityCalculator from './ViabilityCalculator.js'; // Force restart
 import { body, validationResult } from 'express-validator';
-import { createClient } from '@supabase/supabase-js';
+// import { createClient } from '@supabase/supabase-js'; // Removed
 import nodemailer from 'nodemailer';
+import { scrypt, randomBytes, timingSafeEqual } from 'crypto';
+import { promisify } from 'util';
+
+const scryptAsync = promisify(scrypt);
 
 // ========================================
 // OTIMIZAÇÕES FASE 1 - Imports
@@ -315,8 +319,8 @@ app.set('views', path.join(__dirname, 'views'));
 
 // Expor chaves necessárias para views (APENAS a anon key será usada no cliente)
 app.use((req, res, next) => {
-    res.locals.supabaseUrl = process.env.SUPABASE_URL || '';
-    res.locals.supabaseAnonKey = process.env.SUPABASE_ANON_KEY || '';
+    res.locals.supabaseUrl = '';
+    res.locals.supabaseAnonKey = '';
     res.locals.username = req.session?.username || '';
     res.locals.email = req.session?.email || '';
     res.locals.profile_pic_url = req.session?.profile_pic_url || '';
@@ -598,15 +602,21 @@ await createIndexes();
 // Helper: parse list of admin emails from env (comma separated)
 const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
 
-// --- Supabase (server-side) ---
-const SUPABASE_URL = process.env.SUPABASE_URL;
-const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
-let supabaseAdmin = null;
-if (SUPABASE_URL && SUPABASE_SERVICE_KEY) {
-    supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
-} else {
-    console.warn('Supabase não está configurado (variáveis de ambiente ausentes). Autenticação via Supabase ficará indisponível.');
-}
+// --- Password Security Helpers ---
+const hashPassword = async (password) => {
+    const salt = randomBytes(16).toString('hex');
+    const derivedKey = await scryptAsync(password, salt, 64);
+    return `${salt}:${derivedKey.toString('hex')}`;
+};
+
+const verifyPassword = async (password, storedHash) => {
+    if (!storedHash) return false;
+    const [salt, key] = storedHash.split(':');
+    if (!salt || !key) return false;
+    const keyBuffer = Buffer.from(key, 'hex');
+    const derivedKey = await scryptAsync(password, salt, 64);
+    return timingSafeEqual(keyBuffer, derivedKey);
+};
 
 // --- Middleware de Autenticação ---
 const isAuthenticated = (req, res, next) => {
@@ -651,8 +661,39 @@ console.log('✅ Rate limiting configurado');
 
 // Rota de Login
 app.get('/login', (req, res) => {
-    // Renderiza a página de login. O cliente usará res.locals.supabaseAnonKey para iniciar o Supabase JS.
-    res.render('login', { message: req.query.message || null });
+    res.render('login', { message: req.query.message || null, error: req.query.error || null });
+});
+
+// Processar Login (Local)
+app.post('/login', authLimiter, async (req, res) => {
+    const { username, password } = req.body;
+    try {
+        // Tenta buscar por email ou username
+        const user = await db.get('SELECT * FROM users WHERE email = ? OR username = ?', [username, username]);
+
+        if (!user) {
+            return res.render('login', { message: null, error: 'Usuário ou senha incorretos.' });
+        }
+
+        // Verifica senha
+        // Nota: Usuários migrados do Supabase sem senha definida no DB local não conseguirão logar por senha até redefinirem.
+        const isValid = await verifyPassword(password, user.password);
+        if (!isValid) {
+            return res.render('login', { message: null, error: 'Usuário ou senha incorretos.' });
+        }
+
+        // Cria sessão
+        req.session.userId = user.id;
+        req.session.username = user.username;
+        req.session.email = user.email;
+        req.session.profile_pic_url = user.profile_pic_url;
+        req.session.isAdmin = !!(user.is_admin || (user.email && ADMIN_EMAILS.includes(user.email.toLowerCase())));
+
+        res.redirect('/');
+    } catch (err) {
+        console.error('Login Error:', err);
+        res.render('login', { message: null, error: 'Erro interno no servidor' });
+    }
 });
 
 // Rota para listar convites (admin)
@@ -683,7 +724,9 @@ app.get('/admin/invites', isAuthenticated, async (req, res) => {
             profile_pic_url,
             supabaseUrl: process.env.SUPABASE_URL,
             supabaseAnonKey: process.env.SUPABASE_ANON_KEY,
-            baseUrl: `${req.protocol}://${req.get('host')}`
+            baseUrl: `${req.protocol}://${req.get('host')}`,
+            message: req.query.message || null,
+            previewUrl: req.query.previewUrl || null
         });
     } catch (err) {
         console.error('Erro ao buscar convites:', err);
@@ -702,6 +745,18 @@ app.post('/admin/invites', isAuthenticated, async (req, res) => {
         const { email } = req.body;
         if (!email) return res.status(400).send('E-mail é obrigatório');
 
+        // Basic email validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            return res.redirect('/admin/invites?message=' + encodeURIComponent('Erro: Formato de e-mail inválido.'));
+        }
+
+        // Check if user already exists with this email
+        const existingUser = await db.get('SELECT id FROM users WHERE email = ?', [email]);
+        if (existingUser) {
+            return res.redirect('/admin/invites?message=' + encodeURIComponent('Erro: Já existe um usuário com este e-mail.'));
+        }
+
         const crypto = await import('crypto');
         const token = crypto.randomBytes(24).toString('hex');
         const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 dias
@@ -713,7 +768,76 @@ app.post('/admin/invites', isAuthenticated, async (req, res) => {
         // Não enviamos mais e-mail, apenas geramos o link
         console.log(`✅ Convite gerado para ${email}: ${inviteUrl}`);
 
-        res.redirect('/admin/invites');
+        let message = 'Convite gerado com sucesso!';
+        let previewUrl = null;
+
+        // Tenta enviar e-mail via SMTP ou Ethereal (para testes)
+        try {
+            let transporter;
+
+            if (process.env.SMTP_HOST) {
+                transporter = nodemailer.createTransport({
+                    host: process.env.SMTP_HOST,
+                    port: process.env.SMTP_PORT || 587,
+                    secure: false,
+                    auth: {
+                        user: process.env.SMTP_USER,
+                        pass: process.env.SMTP_PASS,
+                    },
+                });
+            } else {
+                console.log('⚠️ SMTP não configurado. Criando conta de teste no Ethereal...');
+                const testAccount = await nodemailer.createTestAccount();
+                transporter = nodemailer.createTransport({
+                    host: testAccount.smtp.host,
+                    port: testAccount.smtp.port,
+                    secure: testAccount.smtp.secure,
+                    auth: {
+                        user: testAccount.user,
+                        pass: testAccount.pass,
+                    },
+                });
+            }
+
+            const info = await transporter.sendMail({
+                from: `"Arremata System" <${process.env.SMTP_USER || 'noreply@arremata.local'}>`,
+                to: email,
+                subject: "Seu Convite para o Arremata!",
+                html: `
+                    <div style="font-family: sans-serif; padding: 20px; color: #333; background: #f4f4f4;">
+                        <div style="max-width: 600px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                            <h2 style="color: #007bff;">Bem-vindo ao Arremata!</h2>
+                            <p>Você foi convidado para acessar o sistema de gestão.</p>
+                            <div style="padding: 20px 0; text-align: center;">
+                                <a href="${inviteUrl}" style="background: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
+                                    Aceitar Convite e Criar Conta
+                                </a>
+                            </div>
+                            <p style="color: #666; font-size: 14px;">Ou copie este link:</p>
+                            <p style="background: #eee; padding: 10px; border-radius: 4px; word-break: break-all; font-family: monospace;">${inviteUrl}</p>
+                            <p style="font-size: 12px; color: #999; margin-top: 20px;">Este link expira em 7 dias.</p>
+                        </div>
+                    </div>
+                `
+            });
+
+            console.log(`📧 E-mail de convite enviado para ${email}`);
+
+            if (!process.env.SMTP_HOST) {
+                previewUrl = nodemailer.getTestMessageUrl(info);
+                console.log('🔗 Preview URL (Ethereal):', previewUrl);
+                message = 'Convite gerado (Modo Teste: Veja o Email Abaixo)';
+            } else {
+                message = 'Convite gerado e e-mail enviado!';
+            }
+
+        } catch (emailErr) {
+            console.error('❌ Falha ao enviar e-mail (mas convite foi criado):', emailErr);
+            message = 'Convite criado, mas erro ao enviar email.';
+        }
+
+        res.redirect(`/admin/invites?message=${encodeURIComponent(message)}${previewUrl ? '&previewUrl=' + encodeURIComponent(previewUrl) : ''}`);
+        return; // Ensure no fall-through
     } catch (err) {
         console.error('Erro ao criar convite:', err);
         res.status(500).send('Erro ao criar convite');
@@ -784,48 +908,47 @@ app.get('/invite/accept', async (req, res) => {
     }
 });
 
-// Processa criação de conta a partir do convite (server cria o usuário no Supabase via admin)
+// Processa criação de conta a partir do convite (Local Auth)
 app.post('/invite/accept', async (req, res) => {
     const { token, username, password } = req.body;
     if (!token || !username || !password) return res.status(400).send('Dados incompletos');
+
     try {
         const invite = await db.get('SELECT * FROM invites WHERE token = ?', [token]);
         if (!invite) return res.status(400).send('Convite inválido');
         if (invite.used) return res.status(400).send('Convite já utilizado');
         if (invite.expires_at && new Date(invite.expires_at) < new Date()) return res.status(400).send('Convite expirado');
-        if (!supabaseAdmin) return res.status(500).send('Supabase não configurado');
 
-        // Cria usuário no Supabase via admin
-        const { data, error } = await supabaseAdmin.auth.admin.createUser({
-            email: invite.email,
-            password: password,
-            user_metadata: { username }
-        });
-        if (error) {
-            console.error('Erro ao criar usuário Supabase:', error);
-            return res.status(500).send('Erro ao criar usuário');
+        // Check if email already exists
+        const existing = await db.get('SELECT id FROM users WHERE email = ?', [invite.email]);
+        if (existing) {
+            return res.status(400).send('Este e-mail já está cadastrado.');
         }
 
-        const sbUser = data.user || data;
+        // Hash password
+        const hashedPassword = await hashPassword(password);
 
-        // marca invite como usado
+        // Marca invite como usado
         await db.run('UPDATE invites SET used = 1 WHERE id = ?', [invite.id]);
 
-        // cria usuário local mapeado
-        const result = await db.run('INSERT INTO users (username, password, profile_pic_url, email, supabase_id, supabase_metadata) VALUES (?, ?, ?, ?, ?, ?)', [username, '', null, invite.email, sbUser.id, JSON.stringify(sbUser.user_metadata || {})]);
+        // Cria usuário local
+        const result = await db.run(
+            'INSERT INTO users (username, password, profile_pic_url, email, is_admin) VALUES (?, ?, ?, ?, 0)',
+            [username, hashedPassword, null, invite.email]
+        );
         const newId = result.lastID || result.stmt?.lastID;
 
-        // cria sessão e redireciona para perfil
+        // Cria sessão
         req.session.userId = newId;
         req.session.username = username;
         req.session.email = invite.email;
         req.session.profile_pic_url = null;
-        req.session.isAdmin = !!(ADMIN_EMAILS.includes(invite.email.toLowerCase()));
+        req.session.isAdmin = false;
 
         res.redirect('/perfil?success=registered');
     } catch (err) {
         console.error('Erro em POST /invite/accept:', err);
-        return res.status(500).send('Erro interno');
+        return res.status(500).send('Erro interno ao criar conta.');
     }
 });
 
@@ -833,60 +956,7 @@ app.post('/invite/accept', async (req, res) => {
 // Rotas do Chat / Integração com n8n - REMOVIDAS
 // -----------------------
 
-// Endpoint que cria sessão local a partir do access_token do Supabase (POST JSON { access_token })
-app.post('/session', authLimiter, async (req, res) => {
-    try {
-        const { access_token } = req.body;
-        if (!access_token) return res.status(400).json({ error: 'access_token is required' });
-        if (!supabaseAdmin) return res.status(500).json({ error: 'Supabase server client not configured' });
-
-        // Verifica o token e obtém o usuário do Supabase
-        const { data, error } = await supabaseAdmin.auth.getUser(access_token);
-        if (error || !data?.user) {
-            console.error('Erro ao obter usuário do Supabase:', error);
-            return res.status(401).json({ error: 'Invalid token' });
-        }
-        const sbUser = data.user;
-
-        const supabase_id = sbUser.id;
-        const email = sbUser.email || sbUser.user_metadata?.email || null;
-        const avatar = sbUser.user_metadata?.avatar_url || sbUser.user_metadata?.picture || null;
-
-        // Procura usuário local por supabase_id primeiro, depois por email
-        let localUser = null;
-        if (supabase_id) {
-            localUser = await db.get('SELECT * FROM users WHERE supabase_id = ?', [supabase_id]);
-        }
-        if (!localUser && email) {
-            localUser = await db.get('SELECT * FROM users WHERE email = ? OR username = ?', [email, email]);
-        }
-
-        if (localUser) {
-            // Atualiza dados locais (foto, email, supabase_id) caso necessário
-            await db.run('UPDATE users SET supabase_id = ?, email = ?, profile_pic_url = ?, supabase_metadata = ? WHERE id = ?', [supabase_id, email || localUser.email, avatar || localUser.profile_pic_url, JSON.stringify(sbUser.user_metadata || {}), localUser.id]);
-        } else {
-            const result = await db.run(
-                'INSERT INTO users (username, password, profile_pic_url, email, supabase_id, supabase_metadata) VALUES (?, ?, ?, ?, ?, ?)',
-                [email || supabase_id, '', avatar, email, supabase_id, JSON.stringify(sbUser.user_metadata || {})]
-            );
-            const newId = result.lastID || result.stmt?.lastID;
-            localUser = await db.get('SELECT * FROM users WHERE id = ?', [newId]);
-        }
-
-        // Cria sessão local compatível com resto da aplicação
-        req.session.userId = localUser.id;
-        req.session.username = localUser.username;
-        req.session.profile_pic_url = localUser.profile_pic_url;
-        req.session.email = localUser.email || '';
-        // marca se é admin localmente (coluna is_admin) ou se o email está na lista ADMIN_EMAILS
-        req.session.isAdmin = !!(localUser.is_admin || (localUser.email && ADMIN_EMAILS.includes(localUser.email.toLowerCase())));
-
-        return res.json({ ok: true });
-    } catch (err) {
-        console.error('Erro criando sessão a partir do Supabase token:', err);
-        return res.status(500).json({ error: 'server error' });
-    }
-});
+// Rota /session removida (Auth Local)
 
 // Rota principal da aplicação (protegida)
 app.get('/', isAuthenticated, async (req, res) => {
@@ -945,6 +1015,23 @@ app.post('/perfil/update-info', isAuthenticated, async (req, res) => {
         res.redirect('/perfil?success=info');
     } catch (error) {
         console.error('Erro ao atualizar informações do perfil:', error);
+        res.redirect('/perfil?error=server');
+    }
+});
+
+// Rota para alterar senha (Local)
+app.post('/perfil/change-password', isAuthenticated, async (req, res) => {
+    const { newPassword } = req.body;
+    if (!newPassword || newPassword.length < 6) {
+        return res.redirect('/perfil?error=new_password_length');
+    }
+
+    try {
+        const hashedPassword = await hashPassword(newPassword);
+        await db.run('UPDATE users SET password = ? WHERE id = ?', [hashedPassword, req.session.userId]);
+        res.redirect('/perfil?success=password_changed');
+    } catch (error) {
+        console.error('Erro ao alterar senha:', error);
         res.redirect('/perfil?error=server');
     }
 });

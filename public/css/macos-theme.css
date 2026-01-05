@@ -479,11 +479,16 @@ h6 {
     border-radius: var(--macos-radius-lg);
     border: 1px solid var(--macos-glass-border);
     padding: 20px;
-    transition: all var(--macos-transition-normal);
+    /* transition: all alterado para propriedades específicas para performance */
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    /* Hacks de estabilidade de renderização */
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    transform: translateZ(0);
 }
 
 .macos-card:hover {
-    transform: translateY(-2px);
+    /* Transform removido definitivamente para estabilidade */
     box-shadow: var(--macos-shadow-md);
     border-color: rgba(255, 255, 255, 0.15);
 }

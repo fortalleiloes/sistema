@@ -12,6 +12,9 @@
     padding: 24px;
     min-height: calc(100vh - 52px);
     transition: margin-left var(--macos-transition-normal);
+    /* Hacks de estabilidade */
+    transform: translateZ(0);
+    will-change: margin-left;
 }
 
 /* Scrollbar estilo macOS para main content */
@@ -69,7 +72,7 @@
 }
 
 .macos-grid-item:hover {
-    transform: translateY(-4px);
+    /* transform: translateY(-4px); Removido para evitar glitch */
     box-shadow: var(--macos-shadow-lg);
     border-color: rgba(255, 255, 255, 0.15);
 }
@@ -326,7 +329,7 @@
 }
 
 .macos-stat-card:hover {
-    transform: translateY(-2px);
+    /* transform: translateY(-2px); Removido para evitar glitch */
     box-shadow: var(--macos-shadow-md);
 }
 
@@ -564,7 +567,7 @@
 
 .macos-btn-primary:hover {
     opacity: 0.9;
-    transform: translateY(-1px);
+    /* transform: translateY(-1px); Removido para evitar glitch */
     box-shadow: 0 2px 8px rgba(255, 214, 10, 0.2);
 }
 

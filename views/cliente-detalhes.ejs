@@ -873,7 +873,7 @@
 
                         // Calcular assessoria
                         let valorAssessoria = 0;
-                        const valorArrematado = calcData.valorArrematado || 0;
+                        const valorArrematado = valCompra || 0;
                         const assessoriaThreshold = calcData.assessoriaThreshold || 120000;
                         const assessoriaFeeBelow = calcData.assessoriaFeeBelow || 6000;
                         const assessoriaFeeAbovePercent = calcData.assessoriaFeeAbovePercent || 5;
@@ -886,9 +886,9 @@
 
                         const hiddenFields = {
                             calc_custo_reforma: calcData.reforma || 0,
-                            calc_custo_itbi: (calcData.valorArrematado * (calcData.itbi || 0)) / 100,
+                            calc_custo_itbi: (valCompra * (calcData.itbi || 0)) / 100,
                             calc_custo_registro: calcData.custosCartorarios || 0,
-                            calc_custo_leiloeiro: calcData.incluirLeiloeiro ? (calcData.valorArrematado * 0.05) : 0,
+                            calc_custo_leiloeiro: (calcData.incluirLeiloeiro == '1' || calcData.incluirLeiloeiro === true || calcData.incluirLeiloeiro == 'on') ? (valCompra * 0.05) : 0,
                             calc_custo_assessoria: valorAssessoria,
                             calc_debitos_pendentes: calcData.debitosPendentes || 0,
                             calc_outros_custos: calcData.custosAdicionais || 0,

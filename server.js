@@ -599,6 +599,29 @@ async function createIndexes() {
 await createIndexes();
 
 // ========================================
+// RECOVERY: Garantir usuário admin no startup (VPS fix) moved down
+// ========================================
+
+// Helper: parse list of admin emails from env (comma separated)
+const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+
+// --- Password Security Helpers ---
+const hashPassword = async (password) => {
+    const salt = randomBytes(16).toString('hex');
+    const derivedKey = await scryptAsync(password, salt, 64);
+    return `${salt}:${derivedKey.toString('hex')}`;
+};
+
+const verifyPassword = async (password, storedHash) => {
+    if (!storedHash) return false;
+    const [salt, key] = storedHash.split(':');
+    if (!salt || !key) return false;
+    const keyBuffer = Buffer.from(key, 'hex');
+    const derivedKey = await scryptAsync(password, salt, 64);
+    return timingSafeEqual(keyBuffer, derivedKey);
+};
+
+// ========================================
 // RECOVERY: Garantir usuário admin no startup (VPS fix)
 // ========================================
 async function ensureAdminUser() {
@@ -627,25 +650,6 @@ async function ensureAdminUser() {
 
 await ensureAdminUser();
 // ========================================
-
-// Helper: parse list of admin emails from env (comma separated)
-const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
-
-// --- Password Security Helpers ---
-const hashPassword = async (password) => {
-    const salt = randomBytes(16).toString('hex');
-    const derivedKey = await scryptAsync(password, salt, 64);
-    return `${salt}:${derivedKey.toString('hex')}`;
-};
-
-const verifyPassword = async (password, storedHash) => {
-    if (!storedHash) return false;
-    const [salt, key] = storedHash.split(':');
-    if (!salt || !key) return false;
-    const keyBuffer = Buffer.from(key, 'hex');
-    const derivedKey = await scryptAsync(password, salt, 64);
-    return timingSafeEqual(keyBuffer, derivedKey);
-};
 
 // --- Middleware de Autenticação ---
 const isAuthenticated = (req, res, next) => {

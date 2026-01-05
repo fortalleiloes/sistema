@@ -722,6 +722,13 @@ app.post('/login', authLimiter, async (req, res) => {
         req.session.profile_pic_url = user.profile_pic_url;
         req.session.isAdmin = !!(user.is_admin || (user.email && ADMIN_EMAILS.includes(user.email.toLowerCase())));
 
+        console.log('🔐 Login bem-sucedido:', {
+            email: user.email,
+            is_admin_db: user.is_admin,
+            in_admin_list: user.email && ADMIN_EMAILS.includes(user.email.toLowerCase()),
+            final_isAdmin: req.session.isAdmin
+        });
+
         res.redirect('/');
     } catch (err) {
         console.error('Login Error:', err);
@@ -1028,6 +1035,10 @@ app.get('/', isAuthenticated, async (req, res) => {
 
         const data = await getPortfolioData(req.session.userId);
         console.log('✅ Dashboard: Dados carregados com sucesso');
+        console.log('👤 User object sendo passado para view:', {
+            email: baseContext.user.email,
+            isAdmin: baseContext.user.isAdmin
+        });
 
         res.render('index', {
             ...baseContext,

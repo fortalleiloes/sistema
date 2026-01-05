@@ -26,6 +26,9 @@ COPY --from=builder /app ./
 # Create directories for persistence with correct permissions
 RUN mkdir -p db public/uploads && chown -R node:node /app
 
+# Declare volumes for persistence (Documentation/Hint for EasyPanel)
+VOLUME ["/app/db", "/app/public/uploads"]
+
 # Use non-root user for security
 USER node
 

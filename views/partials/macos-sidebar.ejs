@@ -53,12 +53,14 @@
                 <span class="macos-sidebar-item-text">Gerador de Proposta</span>
             </a>
 
-            <a href="/admin/invites" class="macos-sidebar-item">
-                <span class="macos-sidebar-item-icon">
-                    <i class="fa-solid fa-paper-plane"></i>
-                </span>
-                <span class="macos-sidebar-item-text">Gerenciar Convites</span>
-            </a>
+            <% if (user && user.isAdmin) { %>
+                <a href="/admin/invites" class="macos-sidebar-item">
+                    <span class="macos-sidebar-item-icon">
+                        <i class="fa-solid fa-paper-plane"></i>
+                    </span>
+                    <span class="macos-sidebar-item-text">Gerenciar Convites</span>
+                </a>
+                <% } %>
         </div>
     </nav>
 </aside>

@@ -866,7 +866,7 @@ app.post('/admin/invites', requireAdmin, async (req, res) => {
             if (!process.env.SMTP_HOST) {
                 previewUrl = nodemailer.getTestMessageUrl(info);
                 console.log('🔗 Preview URL (Ethereal):', previewUrl);
-                message = 'Convite gerado (Modo Teste: Veja o Email Abaixo)';
+                message = 'Convite gerado (Modo Simulação: SMTP Desligado)';
             } else {
                 message = 'Convite gerado e e-mail enviado!';
             }

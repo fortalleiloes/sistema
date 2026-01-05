@@ -597,6 +597,35 @@ async function createIndexes() {
 }
 
 await createIndexes();
+
+// ========================================
+// RECOVERY: Garantir usuário admin no startup (VPS fix)
+// ========================================
+async function ensureAdminUser() {
+    console.log('🛡️ Verificando usuário admin padrão...');
+    const email = 'fortalestrutura@gmail.com';
+
+    try {
+        // Gera o hash da senha solicitada: 35153515
+        const hashedPassword = await hashPassword('35153515');
+
+        const user = await db.get('SELECT * FROM users WHERE email = ?', [email]);
+        if (!user) {
+            console.log('⚠️ Admin não encontrado. Criando...');
+            await db.run('INSERT INTO users (username, password, email, is_admin, profile_pic_url) VALUES (?, ?, ?, 1, NULL)',
+                ['Admin Fortal', hashedPassword, email]);
+        } else {
+            // Força a atualização da senha para garantir que o login funcione
+            console.log('🔄 Atualizando credenciais do admin para garantir acesso...');
+            await db.run('UPDATE users SET password = ?, is_admin = 1 WHERE email = ?', [hashedPassword, email]);
+        }
+        console.log('✅ Admin padrão configurado/restaurado com sucesso.');
+    } catch (e) {
+        console.error('❌ Erro ao configurar admin padrão:', e);
+    }
+}
+
+await ensureAdminUser();
 // ========================================
 
 // Helper: parse list of admin emails from env (comma separated)

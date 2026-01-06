@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <title>Gerador de Stories - Fortal</title>
+    <%- include('partials/head') %>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap"
+            rel="stylesheet">
+        <style>
+            /* 
+             * INTEGRATED CSS FROM LAYOUT FOLDER 
+             * Adapted for Scoped Usage
+             */
+            :root {
+                --bg-dark: #001233;
+                --bg-gradient-start: #001845;
+                --bg-gradient-end: #000814;
+                --primary-blue: #003566;
+                --accent-gold: #D4AF37;
+                --text-dark: #1A1A1A;
+                --text-gray: #666666;
+                --card-bg: #FFFFFF;
+                --badge-blue: #00509D;
+                --badge-blue-dark: #00296B;
+            }
+
+            /* Container for the 9:16 Canvas */
+            .story-wrapper {
+                display: flex;
+                justify-content: center;
+                background: #f3f4f6;
+                padding: 40px 20px;
+                min-height: calc(100vh - 60px);
+            }
+
+            /* The Canvas Itself */
+            #story-canvas {
+                width: 540px;
+                height: 960px;
+                background: linear-gradient(to bottom, #D4AF37, #A77B00);
+                /* Default Background from Reference */
+                position: relative;
+                overflow: hidden;
+                box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                padding: 40px;
+                flex-shrink: 0;
+            }
+
+            /* --- REFERENCE STYLES START --- */
+            .main-wrapper {
+                width: 100%;
+                /* Adapted to fit inside canvas */
+                max-width: 100%;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 20px;
+                transform: scale(1);
+                /* Can be scaled if needed */
+            }
+
+            .card {
+                background: var(--card-bg);
+                border-radius: 20px;
+                padding: 25px;
+                width: 100%;
+                position: relative;
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            }
+
+            .badge {
+                position: absolute;
+                top: -20px;
+                left: 30px;
+                width: fit-content;
+                background: linear-gradient(135deg, #0096C7, #003566);
+                padding: 15px 35px;
+                border-radius: 12px;
+                color: white;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 4px;
+                z-index: 10;
+                box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+                text-align: center;
+                min-width: 150px;
+            }
+
+            .badge-small {
+                font-family: 'Montserrat', sans-serif;
+                font-size: 0.75rem;
+                font-weight: 700;
+                opacity: 0.9;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+                text-align: center;
+                display: inline-block;
+                width: auto;
+                line-height: 1.2;
+                margin: 0;
+                padding: 0;
+            }
+
+            .badge-large {
+                font-family: 'Montserrat', sans-serif;
+                font-size: 1.8rem;
+                font-weight: 900;
+                color: #FFB703;
+                line-height: 0.9;
+                text-align: center;
+                display: inline-block;
+                width: auto;
+                letter-spacing: normal;
+                margin: 0;
+                padding: 0;
+            }
+
+            .image-container {
+                width: 100%;
+                aspect-ratio: 5 / 4;
+                border-radius: 20px;
+                overflow: hidden;
+                margin-bottom: 25px;
+                border: 1px solid #eee;
+                position: relative;
+                background: #f0f0f0;
+                cursor: pointer;
+            }
+
+            .image-container img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                transition: transform 0.3s ease;
+            }
+
+            .image-container:hover img {
+                transform: scale(1.05);
+            }
+
+            /* Watermark Logo Logic */
+            .logo-watermark {
+                position: absolute;
+                bottom: 10px;
+                left: 0;
+                right: 0;
+                margin: 0 auto;
+                width: 135px;
+                height: 45px;
+                background-image: url('/images/logo-fortal.png');
+                /* Updated Path */
+                background-size: contain;
+                background-repeat: no-repeat;
+                background-position: center;
+                pointer-events: none;
+            }
+
+            .content {
+                text-align: center;
+                padding: 0 10px;
+            }
+
+            .location {
+                font-family: 'Montserrat', sans-serif;
+                font-size: 0.85rem;
+                color: #888;
+                text-transform: uppercase;
+                font-weight: 700;
+                margin-bottom: 12px;
+                letter-spacing: 1px;
+            }
+
+            .title-container {
+                background-color: #00509D;
+                padding: 12px 25px;
+                border-radius: 50px;
+                display: inline-block;
+                margin-bottom: 20px;
+                width: 100%;
+                box-shadow: 0 4px 10px rgba(0, 80, 157, 0.3);
+            }
+
+            .title-container h2 {
+                font-family: 'Montserrat', sans-serif;
+                color: white;
+                font-size: 1.1rem;
+                font-weight: 800;
+                text-transform: uppercase;
+                margin: 0;
+                letter-spacing: 0.5px;
+            }
+
+            .entry-info {
+                font-family: 'Montserrat', sans-serif;
+                font-size: 1rem;
+                font-weight: 600;
+                color: var(--text-dark);
+                margin-top: -15px;
+                margin-bottom: 25px;
+                font-style: italic;
+            }
+
+            .info-grid {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                text-align: left;
+                padding: 0 5px;
+            }
+
+            .prices {
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .price-item {
+                display: flex;
+                flex-direction: column;
+            }
+
+            .price-item .label {
+                font-family: 'Montserrat', sans-serif;
+                font-size: 0.6rem;
+                color: var(--text-gray);
+                font-weight: 800;
+                text-transform: uppercase;
+                white-space: nowrap;
+                margin-bottom: 2px;
+            }
+
+            .price-item .value {
+                font-family: 'Montserrat', sans-serif;
+                font-size: 1.2rem;
+                color: var(--primary-blue);
+                font-weight: 700;
+            }
+
+            .price-item.highlight .value {
+                font-size: 2rem;
+                font-weight: 900;
+                color: #003566;
+                letter-spacing: -0.5px;
+            }
+
+            .divider {
+                width: 1px;
+                align-self: stretch;
+                background-color: #e0e0e0;
+                margin: 0 15px;
+            }
+
+            .details {
+                display: flex;
+                flex-direction: column;
+                gap: 15px;
+                align-items: flex-end;
+                text-align: right;
+            }
+
+            .detail-item {
+                display: flex;
+                align-items: flex-end;
+            }
+
+            .detail-item.icon-item {
+                flex-direction: row;
+                align-items: center;
+                gap: 10px;
+            }
+
+            .detail-item span {
+                font-family: 'Montserrat', sans-serif;
+                font-weight: 600;
+                color: var(--primary-blue);
+                white-space: nowrap;
+            }
+
+            .discount-info {
+                font-family: 'Montserrat', sans-serif;
+                font-size: 1.1rem;
+                font-weight: 600;
+                color: var(--text-dark);
+                margin-top: 25px;
+                font-style: italic;
+                text-align: center;
+            }
+
+            /* --- UTILITIES --- */
+            [contenteditable="true"] {
+                outline: none;
+                border-bottom: 1px dashed transparent;
+                transition: border 0.2s;
+            }
+
+            [contenteditable="true"]:hover,
+            [contenteditable="true"]:focus {
+                border-bottom: 1px dashed rgba(0, 0, 0, 0.2);
+            }
+
+            /* Hide file input */
+            .hidden-input {
+                display: none;
+            }
+        </style>
+</head>
+
+<body class="bg-gray-50 dark:bg-gray-900 min-h-screen transition-colors duration-200">
+    <%- include('partials/macos-toolbar', { title: 'Gerador de Stories' , profile_pic_url: user.profile_pic_url }) %>
+        <%- include('partials/macos-sidebar', { user: user }) %>
+
+            <main class="macos-main-content">
+                <!-- Controls Header -->
+                <div
+                    class="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex justify-between items-center sticky top-0 z-50">
+                    <div>
+                        <h2 class="text-lg font-bold text-gray-800 dark:text-white"><i
+                                class="fa-brands fa-instagram mr-2"></i>Gerador de Stories</h2>
+                        <p class="text-xs text-gray-500">Edite os textos clicando diretamente neles</p>
+                    </div>
+
+                    <button onclick="downloadStory()"
+                        class="bg-[#003566] text-white px-6 py-2 rounded-full font-bold hover:bg-[#00284d] transition-all shadow-lg flex items-center gap-2">
+                        <i class="fa-solid fa-download"></i>
+                        Baixar Story (9:16)
+                    </button>
+                </div>
+
+                <div class="flex flex-col lg:flex-row h-[calc(100vh-120px)] overflow-hidden">
+                    <!-- CANVA AREA (Center) -->
+                    <div
+                        class="story-wrapper flex-1 overflow-auto bg-gray-100 dark:bg-gray-900 flex justify-center items-start pt-10 pb-20">
+                        <!-- 9:16 CANVAS -->
+                        <div id="story-canvas">
+                            <div class="main-wrapper">
+                                <main class="card">
+                                    <!-- Badge -->
+                                    <div class="badge">
+                                        <span class="badge-small" contenteditable="true">IMÓVEIS DE</span>
+                                        <span class="badge-large" contenteditable="true">LEILÃO</span>
+                                    </div>
+
+                                    <!-- Image Section -->
+                                    <div class="image-container" onclick="document.getElementById('upload-img').click()"
+                                        title="Clique para alterar a imagem">
+                                        <img id="preview-img"
+                                            src="https://placehold.co/800x640/e2e8f0/1e293b?text=Adicione+Sua+Foto&font=montserrat"
+                                            alt="Clique para Adicionar Foto"
+                                            onerror="this.src='https://placehold.co/600x400?text=Inserir+Foto'">
+                                        <div class="logo-watermark"></div>
+                                        <input type="file" id="upload-img" class="hidden-input" accept="image/*"
+                                            onchange="updateImage(this)">
+                                    </div>
+
+                                    <div class="content">
+                                        <!-- Location -->
+                                        <p class="location" contenteditable="true">CIDADE / UF</p>
+
+                                        <!-- Title -->
+                                        <div class="title-container">
+                                            <h2 contenteditable="true">TÍTULO DO IMÓVEL</h2>
+                                        </div>
+
+                                        <!-- Entry Info -->
+                                        <p class="entry-info" contenteditable="true">R$ 0,00 (5%) de entrada</p>
+
+                                        <!-- Info Grid -->
+                                        <div class="info-grid">
+                                            <div class="prices">
+                                                <div class="price-item highlight">
+                                                    <span class="label">VALOR MÍNIMO DE VENDA</span>
+                                                    <span class="value" contenteditable="true">R$ 000.000,00</span>
+                                                </div>
+                                                <div class="price-item">
+                                                    <span class="label">VALOR DE AVALIAÇÃO</span>
+                                                    <span class="value" contenteditable="true">R$ 000.000,00</span>
+                                                </div>
+                                            </div>
+
+                                            <div class="divider"></div>
+
+                                            <div class="details">
+                                                <div class="detail-item icon-item">
+                                                    <!-- SVG Car -->
+                                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                                        class="detail-icon" xmlns="http://www.w3.org/2000/svg">
+                                                        <path
+                                                            d="M7 17.5C7.82843 17.5 8.5 16.8284 8.5 16C8.5 15.1716 7.82843 14.5 7 14.5C6.17157 14.5 5.5 15.1716 5.5 16C5.5 16.8284 6.17157 17.5 7 17.5Z"
+                                                            stroke="currentColor" stroke-width="2"
+                                                            stroke-linecap="round" stroke-linejoin="round" />
+                                                        <path
+                                                            d="M17 17.5C17.8284 17.5 18.5 16.8284 18.5 16C18.5 15.1716 17.8284 14.5 17 14.5C16.1716 14.5 15.5 15.1716 15.5 16C15.5 16.8284 16.1716 17.5 17 17.5Z"
+                                                            stroke="currentColor" stroke-width="2"
+                                                            stroke-linecap="round" stroke-linejoin="round" />
+                                                        <path
+                                                            d="M5 16H3V6C3 5.46957 3.21071 4.96086 3.58579 4.58579C3.96086 4.21071 4.46957 4 5 4H19C19.5304 4 20.0391 4.21071 20.4142 4.58579C20.7893 4.96086 21 5.46957 21 6V16H19"
+                                                            stroke="currentColor" stroke-width="2"
+                                                            stroke-linecap="round" stroke-linejoin="round" />
+                                                    </svg>
+                                                    <span contenteditable="true">X Vagas</span>
+                                                </div>
+                                                <div class="detail-item icon-item">
+                                                    <!-- SVG Bed -->
+                                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                                        class="detail-icon" xmlns="http://www.w3.org/2000/svg">
+                                                        <path
+                                                            d="M20 10V7C20 6.46957 19.7893 5.96086 19.4142 5.58579C19.0391 5.21071 18.5304 5 18 5H6C5.46957 5 4.96086 5.21071 4.58579 5.58579C4.21071 5.96086 4 6.46957 4 7V10"
+                                                            stroke="currentColor" stroke-width="2"
+                                                            stroke-linecap="round" stroke-linejoin="round" />
+                                                        <path d="M4 10H20V19H4V10Z" stroke="currentColor"
+                                                            stroke-width="2" stroke-linecap="round"
+                                                            stroke-linejoin="round" />
+                                                    </svg>
+                                                    <span contenteditable="true">X Quartos</span>
+                                                </div>
+                                                <div class="detail-item icon-item">
+                                                    <!-- SVG Bath -->
+                                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                                        class="detail-icon" xmlns="http://www.w3.org/2000/svg">
+                                                        <path d="M10 4L12 6L14 4" stroke="currentColor" stroke-width="2"
+                                                            stroke-linecap="round" stroke-linejoin="round" />
+                                                        <path d="M2 12H22" stroke="currentColor" stroke-width="2"
+                                                            stroke-linecap="round" stroke-linejoin="round" />
+                                                        <path d="M7 19V21" stroke="currentColor" stroke-width="2"
+                                                            stroke-linecap="round" stroke-linejoin="round" />
+                                                        <path d="M17 19V21" stroke="currentColor" stroke-width="2"
+                                                            stroke-linecap="round" stroke-linejoin="round" />
+                                                        <path
+                                                            d="M2 12V15C2 17.2091 3.79086 19 6 19H18C20.2091 19 22 17.2091 22 15V12"
+                                                            stroke="currentColor" stroke-width="2"
+                                                            stroke-linecap="round" stroke-linejoin="round" />
+                                                    </svg>
+                                                    <span contenteditable="true">X Banheiros</span>
+                                                </div>
+                                                <div class="detail-item icon-item">
+                                                    <!-- SVG Area -->
+                                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                                        class="detail-icon" xmlns="http://www.w3.org/2000/svg">
+                                                        <path d="M4 4H20V20H4V4Z" stroke="currentColor" stroke-width="2"
+                                                            stroke-linecap="round" stroke-linejoin="round" />
+                                                        <path d="M4 4L20 20" stroke="currentColor" stroke-width="2"
+                                                            stroke-linecap="round" stroke-linejoin="round" />
+                                                    </svg>
+                                                    <span contenteditable="true">XX m²</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Discount Info -->
+                                        <p class="discount-info" contenteditable="true">Desconto de XX%</p>
+                                    </div>
+                                </main>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- EDITOR SIDEBAR (Right) -->
+                    <div
+                        class="w-full lg:w-80 bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 p-6 flex flex-col gap-6 overflow-y-auto z-10 shadow-xl">
+                        <div class="pb-4 border-b border-gray-100 dark:border-gray-700">
+                            <h3 class="font-bold text-gray-800 dark:text-white uppercase text-xs tracking-wider mb-1">
+                                Aparência Global</h3>
+                            <p class="text-xs text-gray-500">Personalize as cores do template</p>
+                        </div>
+
+                        <!-- BG Option -->
+                        <div class="flex flex-col gap-3">
+                            <label class="text-xs font-bold text-gray-600 dark:text-gray-300 uppercase">Fundo do
+                                Story</label>
+                            <div class="flex items-center gap-3">
+                                <input type="color" id="bg-color-picker" value="#D4AF37"
+                                    class="w-10 h-10 rounded cursor-pointer border-0 p-0 overflow-hidden"
+                                    oninput="updateStyles()">
+                                <div class="flex-1">
+                                    <div class="text-xs dark:text-white font-mono" id="bg-color-hex">#D4AF37</div>
+                                    <div class="flex items-center gap-2 mt-1">
+                                        <input type="checkbox" id="use-gradient"
+                                            class="rounded text-blue-600 focus:ring-blue-500" checked
+                                            onchange="updateStyles()">
+                                        <label for="use-gradient"
+                                            class="text-xs text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 cursor-pointer">Usar
+                                            Gradiente</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card Color -->
+                        <div class="flex flex-col gap-3">
+                            <label class="text-xs font-bold text-gray-600 dark:text-gray-300 uppercase">Cor do
+                                Cartão</label>
+                            <div class="flex items-center gap-3">
+                                <input type="color" id="card-bg-picker" value="#FFFFFF"
+                                    class="w-10 h-10 rounded cursor-pointer border-0 p-0 overflow-hidden"
+                                    oninput="updateStyles()">
+                                <span class="text-xs dark:text-white font-mono">Cartão Branco</span>
+                            </div>
+                        </div>
+
+                        <hr class="border-gray-100 dark:border-gray-700">
+
+                        <!-- Badge Option -->
+                        <div class="flex flex-col gap-3">
+                            <label class="text-xs font-bold text-gray-600 dark:text-gray-300 uppercase">Cor do Selo
+                                (Badge)</label>
+                            <div class="flex items-center gap-3">
+                                <input type="color" id="badge-color-1" value="#0096C7"
+                                    class="w-8 h-8 rounded cursor-pointer border-0 p-0 overflow-hidden"
+                                    oninput="updateStyles()">
+                                <input type="color" id="badge-color-2" value="#003566"
+                                    class="w-8 h-8 rounded cursor-pointer border-0 p-0 overflow-hidden"
+                                    oninput="updateStyles()">
+                                <div class="text-xs text-gray-500 ml-1">Gradiente</div>
+                            </div>
+                        </div>
+
+                        <!-- Text Colors -->
+                        <div class="flex flex-col gap-3">
+                            <label class="text-xs font-bold text-gray-600 dark:text-gray-300 uppercase">Cores do
+                                Texto</label>
+
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs text-gray-500">Destaque (Preço/Titulo)</span>
+                                <input type="color" id="accent-color-picker" value="#003566"
+                                    class="w-6 h-6 rounded cursor-pointer border-0 p-0 overflow-hidden"
+                                    oninput="updateStyles()">
+                            </div>
+
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs text-gray-500">Texto Secundário</span>
+                                <input type="color" id="text-color-picker" value="#1A1A1A"
+                                    class="w-6 h-6 rounded cursor-pointer border-0 p-0 overflow-hidden"
+                                    oninput="updateStyles()">
+                            </div>
+
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs text-gray-500">Ícones</span>
+                                <input type="color" id="icon-color-picker" value="#003566"
+                                    class="w-6 h-6 rounded cursor-pointer border-0 p-0 overflow-hidden"
+                                    oninput="updateStyles()">
+                            </div>
+                        </div>
+
+                        <div class="mt-auto pt-6">
+                            <button onclick="resetStyles()"
+                                class="w-full py-2 px-4 border border-gray-300 dark:border-gray-600 rounded text-xs font-bold text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition">
+                                Resetar para Padrão
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <script>
+                    function updateStyles() {
+                        const root = document.querySelector(':root');
+                        const canvas = document.getElementById('story-canvas');
+
+                        // Inputs
+                        const bgColor = document.getElementById('bg-color-picker').value;
+                        const cardBg = document.getElementById('card-bg-picker').value;
+                        const useGradient = document.getElementById('use-gradient').checked;
+                        const badge1 = document.getElementById('badge-color-1').value;
+                        const badge2 = document.getElementById('badge-color-2').value;
+                        const accentColor = document.getElementById('accent-color-picker').value;
+                        const textColor = document.getElementById('text-color-picker').value;
+                        const iconColor = document.getElementById('icon-color-picker').value;
+
+                        // Apply Background
+                        if (useGradient) {
+                            // Simple lighten logic for gradient end
+                            canvas.style.background = `linear-gradient(to bottom, ${bgColor}, ${adjustColorBrightness(bgColor, -20)})`;
+                        } else {
+                            canvas.style.background = bgColor;
+                        }
+
+                        document.getElementById('bg-color-hex').innerText = bgColor.toUpperCase();
+
+                        // Apply Card
+                        document.querySelector('.card').style.background = cardBg;
+
+                        // Apply Badge
+                        document.querySelector('.badge').style.background = `linear-gradient(135deg, ${badge1}, ${badge2})`;
+
+                        // Apply Text & Accents
+                        document.querySelector('.title-container').style.backgroundColor = badge1; // Match badge primary
+
+                        // Update Text variables or inline styles
+                        document.documentElement.style.setProperty('--primary-blue', accentColor);
+                        document.documentElement.style.setProperty('--text-dark', textColor);
+
+                        // Specific elements override
+                        document.querySelectorAll('.price-item.highlight .value').forEach(el => el.style.color = accentColor);
+                        document.querySelectorAll('.title-container').forEach(el => el.style.backgroundColor = accentColor);
+
+                        // Icons (SVG Stroke)
+                        document.querySelectorAll('.detail-icon path').forEach(path => {
+                            path.setAttribute('stroke', iconColor);
+                        });
+                    }
+
+                    function adjustColorBrightness(hex, percent) {
+                        var num = parseInt(hex.replace("#", ""), 16),
+                            amt = Math.round(2.55 * percent),
+                            R = (num >> 16) + amt,
+                            B = (num >> 8 & 0x00FF) + amt,
+                            G = (num & 0x0000FF) + amt;
+                        return "#" + (0x1000000 + (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 + (B < 255 ? B < 1 ? 0 : B : 255) * 0x100 + (G < 255 ? G < 1 ? 0 : G : 255)).toString(16).slice(1);
+                    }
+
+                    function resetStyles() {
+                        document.getElementById('bg-color-picker').value = "#D4AF37";
+                        document.getElementById('use-gradient').checked = true;
+                        document.getElementById('card-bg-picker').value = "#FFFFFF";
+                        document.getElementById('badge-color-1').value = "#0096C7";
+                        document.getElementById('badge-color-2').value = "#003566";
+                        document.getElementById('accent-color-picker').value = "#003566";
+                        document.getElementById('text-color-picker').value = "#1A1A1A";
+                        document.getElementById('icon-color-picker').value = "#003566";
+                        updateStyles();
+                    }
+                </script>
+            </main>
+
+            <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+            <script>
+                function updateImage(input) {
+                    if (input.files && input.files[0]) {
+                        const reader = new FileReader();
+                        reader.onload = function (e) {
+                            document.getElementById('preview-img').src = e.target.result;
+                        }
+                        reader.readAsDataURL(input.files[0]);
+                    }
+                }
+
+                function downloadStory() {
+                    const element = document.getElementById('story-canvas');
+
+                    // Temporary fix for SVG rendering in html2canvas (sometimes needs specific settings)
+                    html2canvas(element, {
+                        scale: 2, // 1080x1920
+                        useCORS: true,
+                        backgroundColor: null, // Keep transparent or gradient
+                        logging: false,
+                        width: 540,
+                        height: 960,
+                        windowWidth: 540,
+                        windowHeight: 960
+                    }).then(canvas => {
+                        const link = document.createElement('a');
+                        link.download = 'story-fortal-' + Date.now() + '.png';
+                        link.href = canvas.toDataURL('image/png');
+                        link.click();
+                    });
+                }
+            </script>
+</body>
+
+</html>

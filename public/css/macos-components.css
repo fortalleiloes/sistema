@@ -12,9 +12,9 @@
     padding: 24px;
     min-height: calc(100vh - 52px);
     transition: margin-left var(--macos-transition-normal);
-    /* Hacks de estabilidade */
-    transform: translateZ(0);
-    will-change: margin-left;
+    /* Hacks de estabilidade REMOVIDOS para evitar glitch */
+    /* transform: translateZ(0); */
+    /* will-change: margin-left; */
 }
 
 /* Scrollbar estilo macOS para main content */
@@ -62,8 +62,9 @@
 
 .macos-grid-item {
     background: var(--macos-glass-bg);
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    background: var(--macos-glass-bg);
+    /* backdrop-filter removido */
+    /* -webkit-backdrop-filter removido */
     border-radius: var(--macos-radius-lg);
     border: 1px solid var(--macos-glass-border);
     overflow: hidden;
@@ -112,8 +113,9 @@
 
 .macos-list-item {
     background: var(--macos-glass-bg);
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    background: var(--macos-glass-bg);
+    /* backdrop-filter removido */
+    /* -webkit-backdrop-filter removido */
     border-radius: var(--macos-radius-md);
     border: 1px solid var(--macos-glass-border);
     padding: 16px;
@@ -205,8 +207,9 @@
     right: 0;
     bottom: 0;
     background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    background: rgba(0, 0, 0, 0.5);
+    /* backdrop-filter removido */
+    /* -webkit-backdrop-filter removido */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -216,8 +219,9 @@
 
 .macos-modal {
     background: var(--macos-bg-window);
-    backdrop-filter: blur(40px) saturate(180%);
-    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    background: var(--macos-bg-window);
+    /* backdrop-filter removido */
+    /* -webkit-backdrop-filter removido */
     border-radius: var(--macos-radius-lg);
     border: 1px solid var(--macos-border);
     box-shadow: var(--macos-shadow-xl);
@@ -320,8 +324,9 @@
 
 .macos-stat-card {
     background: var(--macos-glass-bg);
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    background: var(--macos-glass-bg);
+    /* backdrop-filter removido */
+    /* -webkit-backdrop-filter removido */
     border-radius: var(--macos-radius-lg);
     border: 1px solid var(--macos-glass-border);
     padding: 20px;

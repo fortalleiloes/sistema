@@ -1,0 +1,290 @@
+:root {
+    --bg-dark: #001233;
+    --bg-gradient-start: #001845;
+    --bg-gradient-end: #000814;
+    --primary-blue: #003566;
+    --accent-gold: #D4AF37;
+    --text-dark: #1A1A1A;
+    --text-gray: #666666;
+    --card-bg: #FFFFFF;
+    --badge-blue: #00509D;
+    --badge-blue-dark: #00296B;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Montserrat', sans-serif;
+}
+
+body {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 80px 20px; /* Aumenta o espaço no topo e na base */
+}
+
+.main-wrapper {
+    width: 100%;
+    max-width: 500px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+/* Card */
+.card {
+    background: var(--card-bg);
+    border-radius: 20px;
+    padding: 25px;
+    width: 100%;
+    position: relative;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+/* Badge */
+.badge {
+    position: absolute;
+    top: -15px;
+    left: -20px;
+    background: linear-gradient(135deg, #0096C7, #003566);
+    padding: 12px 30px;
+    border-radius: 15px;
+    border-bottom-left-radius: 0;
+    border-top-right-radius: 20px;
+    border-bottom-right-radius: 20px;
+    border-top-left-radius: 20px;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    z-index: 10;
+    box-shadow: 5px 5px 20px rgba(0, 0, 0, 0.3);
+}
+
+.badge-small {
+    font-size: 0.7rem;
+    font-weight: 600;
+    opacity: 0.9;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 2px;
+}
+
+.badge-large {
+    font-size: 1.8rem;
+    font-weight: 900;
+    color: #FFB703;
+    /* Gold/Orange */
+    line-height: 0.9;
+    letter-spacing: -1px;
+}
+
+/* Image */
+.image-container {
+    width: 100%;
+    aspect-ratio: 5 / 4; /* Define a proporção da imagem para 5:4 */
+    border-radius: 20px;
+    overflow: hidden;
+    margin-bottom: 25px;
+    border: 1px solid #eee;
+    position: relative;
+}
+
+.image-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.image-container::after {
+    content: '';
+    position: absolute;
+    bottom: 10px;
+    left: 0;
+    right: 0;
+    margin: 0 auto; /* Centraliza horizontalmente */
+    width: 135px; /* Largura aumentada */
+    height: 45px; /* Altura aumentada */
+    background-image: url(assets/logofortal.png);
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center; /* Garante que a imagem do logo fique centralizada */
+}
+
+/* Content */
+.content {
+    text-align: center;
+    padding: 0 10px;
+}
+
+.location {
+    font-size: 0.7rem;
+    color: #888;
+    text-transform: uppercase;
+    font-weight: 700;
+    margin-bottom: 12px;
+    letter-spacing: 1px;
+}
+
+.title-container {
+    background-color: #00509D;
+    padding: 12px 25px;
+    border-radius: 50px;
+    display: inline-block;
+    margin-bottom: 20px; /* Reduz o espaço abaixo do título */
+    width: 100%;
+    box-shadow: 0 4px 10px rgba(0, 80, 157, 0.3);
+}
+
+.title-container h2 {
+    color: white;
+    font-size: 0.95rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    margin: 0;
+    letter-spacing: 0.5px;
+}
+
+.entry-info {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-dark);
+    margin-top: -15px; /* Ajustado para nova margem do título */
+    margin-bottom: 25px;
+    font-style: italic;
+}
+
+/* Info Grid */
+.info-grid {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    text-align: left;
+    padding: 0 5px;
+}
+
+.prices {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.price-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.price-item .label {
+    font-size: 0.55rem;
+    color: var(--text-gray);
+    font-weight: 800;
+    text-transform: uppercase;
+    white-space: nowrap; /* Força o texto a ficar em uma única linha */
+    margin-bottom: 2px;
+}
+
+.price-item .value {
+    font-size: 1.1rem; /* Diminuído */
+    color: var(--primary-blue);
+    font-weight: 700;
+}
+
+.price-item.highlight .value {
+    font-size: 1.8rem; /* Aumentado */
+    font-weight: 900;
+    color: #003566;
+    letter-spacing: -0.5px;
+}
+
+.divider {
+    width: 1px;
+    align-self: stretch; /* Faz a linha esticar para a altura do contêiner */
+    background-color: #e0e0e0; /* Cor um pouco mais visível */
+    margin: 0 15px; /* Ajusta o espaçamento */
+}
+
+.details {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    align-items: flex-end;
+    /* Align to right */
+    text-align: right;
+}
+
+.detail-item {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.detail-item.icon-item {
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-end; /* Garante alinhamento à direita */
+    gap: 10px;
+}
+
+.detail-item span {
+    white-space: nowrap; /* Impede que o texto quebre para a próxima linha */
+}
+
+.detail-label {
+    font-size: 0.9rem;
+    color: var(--primary-blue);
+    font-weight: 800;
+    line-height: 1.2;
+}
+
+.detail-value {
+    font-size: 0.9rem;
+    color: var(--primary-blue);
+    font-weight: 800;
+    line-height: 1.2;
+}
+
+.area-text {
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+    font-size: 0.75rem;
+    color: var(--text-dark);
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.discount-info {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-dark);
+    margin-top: 25px; /* Espaço acima */
+    font-style: italic;
+    text-align: center;
+}
+
+/* Estilos para telas menores (versão mobile) */
+@media (max-width: 500px) {
+    .card {
+        padding: 20px; /* Diminui o padding geral do card */
+    }
+    .image-container {
+        margin-bottom: 20px; /* Diminui a margem abaixo da imagem */
+    }
+    .title-container {
+        padding: 12px 15px; /* Reduz o padding horizontal para dar mais espaço ao texto */
+        margin-bottom: 10px; /* Diminui ainda mais a margem abaixo do título */
+    }
+    .title-container h2 {
+        font-size: 0.75rem; /* Reduz um pouco mais a fonte */
+    }
+    .entry-info {
+        margin-top: -5px; /* Puxa o texto para cima na versão mobile */
+        margin-bottom: 20px; /* Adiciona espaço abaixo */
+    }
+    .discount-info {
+        margin-bottom: 0; /* Remove o espaço extra abaixo do desconto */
+    }
+}

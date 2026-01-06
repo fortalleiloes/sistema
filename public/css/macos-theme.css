@@ -158,8 +158,8 @@ h6 {
    ============================================ */
 .macos-window {
     background: var(--macos-bg-window);
-    backdrop-filter: blur(40px) saturate(180%);
-    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    /* backdrop-filter removido para evitar glitch gráfico */
+    /* -webkit-backdrop-filter removido */
     border-radius: var(--macos-radius-lg);
     border: 1px solid var(--macos-border);
     box-shadow: var(--macos-shadow-lg);
@@ -262,8 +262,8 @@ h6 {
 .macos-sidebar {
     width: 240px;
     background: var(--macos-bg-sidebar);
-    backdrop-filter: blur(40px) saturate(180%);
-    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    /* backdrop-filter removido */
+    /* -webkit-backdrop-filter removido */
     border-right: 1px solid var(--macos-border);
     height: 100vh;
     position: fixed;
@@ -343,6 +343,11 @@ h6 {
     color: #ffffff;
 }
 
+.macos-sidebar-item.active .macos-sidebar-item-text,
+.macos-sidebar-item.active .macos-sidebar-item-icon {
+    color: #ffffff !important;
+}
+
 .macos-sidebar-item-icon {
     width: 20px;
     height: 20px;
@@ -374,8 +379,8 @@ h6 {
 .macos-toolbar {
     height: 52px;
     background: var(--macos-bg-toolbar);
-    backdrop-filter: blur(40px) saturate(180%);
-    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    /* backdrop-filter removido */
+    /* -webkit-backdrop-filter removido */
     border-bottom: 1px solid var(--macos-divider);
     position: fixed;
     top: 0;
@@ -474,8 +479,8 @@ h6 {
    ============================================ */
 .macos-card {
     background: var(--macos-glass-bg);
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    /* backdrop-filter removido */
+    /* -webkit-backdrop-filter removido */
     border-radius: var(--macos-radius-lg);
     border: 1px solid var(--macos-glass-border);
     padding: 20px;

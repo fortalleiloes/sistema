@@ -193,17 +193,21 @@
                                                             value="<%= locals.inputData?.assessoriaFeeAbovePercent || '5' %>">
                                                     </div>
                                                     <div class="macos-form-group">
-                                                        <div style="display: flex; gap: 12px;">
-                                                            <div style="flex: 1;">
-                                                                <label class="macos-form-label" id="itbi-label">ITBI
+                                                        <div style="display: flex; gap: 12px; align-items: stretch;">
+                                                            <div
+                                                                style="flex: 1; display: flex; flex-direction: column;">
+                                                                <label class="macos-form-label" id="itbi-label"
+                                                                    style="flex-grow: 1; display: flex; align-items: end; margin-bottom: 8px;">ITBI
                                                                     (%)</label>
                                                                 <input type="number" step="0.1" name="itbi"
                                                                     value="<%= locals.inputData?.itbi || '2' %>"
                                                                     class="macos-input" placeholder="2">
                                                             </div>
-                                                            <div style="flex: 1; display: none;"
+                                                            <div style="flex: 1; display: none; flex-direction: column;"
                                                                 id="itbi-financiado-container">
-                                                                <label class="macos-form-label">ITBI Financ. (%)</label>
+                                                                <label class="macos-form-label"
+                                                                    style="flex-grow: 1; display: flex; align-items: end; margin-bottom: 8px;">ITBI
+                                                                    Financ. (%)</label>
                                                                 <input type="number" step="0.1"
                                                                     name="itbiFinanciadoPercent"
                                                                     value="<%= locals.inputData?.itbiFinanciadoPercent || '0.5' %>"
@@ -544,7 +548,7 @@
 
             <!-- Modal Detalhamento (macOS Sonoma Style) -->
             <% if (results) { %>
-                <div id="detailsModal" class="macos-modal-overlay" style="display: none;">
+                <div id="detailsModal" class="macos-modal-overlay" style="display: none; background: rgba(0,0,0,0.5);">
                     <div class="macos-modal" style="width: 500px; max-width: 95%;">
                         <div class="macos-modal-header">
                             <h3 class="macos-modal-title">Detalhamento Financeiro</h3>
@@ -847,7 +851,7 @@
 
                     <!-- Modal: Editar Cálculo -->
                     <div id="modal-editar-calculo" class="hidden"
-                        style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 1001; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s; padding: 20px;">
+                        style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1001; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s; padding: 20px;">
                         <div class="macos-window"
                             style="width: 900px; max-width: 100%; background: var(--macos-bg-secondary); border-radius: 16px; box-shadow: 0 25px 50px rgba(0,0,0,0.4); transform: scale(0.95); transition: transform 0.3s; max-height: 90vh; display: flex; flex-direction: column;">
 
@@ -968,7 +972,10 @@
                                 setTimeout(() => fields.style.opacity = '1', 10);
 
                                 // Mostra campo ITBI Financiado e ajusta label
-                                if (itbiFinanciadoContainer) itbiFinanciadoContainer.style.display = 'block';
+                                if (itbiFinanciadoContainer) {
+                                    itbiFinanciadoContainer.style.display = 'flex';
+                                    itbiFinanciadoContainer.style.flexDirection = 'column'; // Garantir direção correta
+                                }
                                 if (itbiLabel) itbiLabel.textContent = 'ITBI Entrada (%)';
                             } else {
                                 fields.style.display = 'none';
@@ -1066,8 +1073,30 @@
                                         </h4>
                                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 14px;">
                                             <div><span style="color: var(--macos-text-secondary);">Valor Venda:</span> <strong>${formatMoney(dados.valorVendaFinal)}</strong></div>
-                                            <div><span style="color: var(--macos-text-secondary);">Corretagem (${dados.corretagemPercent || 6}%):</span> <strong>Calculado</strong></div>
-                                            <div><span style="color: var(--macos-text-secondary);">IR (${(dados.aliquotaIRGC || 0.15) * 100}%):</span> <strong>Sobre lucro</strong></div>
+                                            <div><span style="color: var(--macos-text-secondary);">Corretagem (${dados.corretagemPercent || 6}%):</span> <strong>${(() => {
+                                    const valorVenda = parseFloat(dados.valorVendaFinal) || 0;
+                                    const corretagemPercent = parseFloat(dados.corretagemPercent) || 6;
+                                    const corretagem = valorVenda * (corretagemPercent / 100);
+                                    return formatMoney(corretagem);
+                                })()}</strong></div>
+                                            <div><span style="color: var(--macos-text-secondary);">IR (${((parseFloat(dados.aliquotaIRGC) || 0.15) * 100).toFixed(0)}%):</span> <strong>${(() => {
+                                    const valorVenda = parseFloat(dados.valorVendaFinal) || 0;
+                                    const corretagemPercent = parseFloat(dados.corretagemPercent) || 6;
+                                    const corretagem = valorVenda * (corretagemPercent / 100);
+
+                                    const valorArremate = parseFloat(dados.valorArrematado) || 0;
+                                    const reforma = parseFloat(dados.reforma) || 0;
+                                    const custosCartorarios = parseFloat(dados.custosCartorarios) || 0;
+                                    const debitosPendentes = parseFloat(dados.debitosPendentes) || 0;
+                                    const custoDesocupacao = parseFloat(dados.custoDesocupacao) || 0;
+                                    const custosAdicionais = parseFloat(dados.custosAdicionais) || 0;
+
+                                    const totalCustos = valorArremate + reforma + custosCartorarios + debitosPendentes + custoDesocupacao + custosAdicionais;
+                                    const lucroBruto = valorVenda - corretagem - totalCustos;
+                                    const aliquotaIR = parseFloat(dados.aliquotaIRGC) || 0.15;
+                                    const impostoRenda = lucroBruto > 0 ? lucroBruto * aliquotaIR : 0;
+                                    return formatMoney(impostoRenda);
+                                })()}</strong></div>
                                         </div>
                                     </div>
                                 </div>
@@ -1118,21 +1147,25 @@
                             document.getElementById('modal-editar-titulo').textContent = `Editar: ${calculo.name}`;
 
                             // Construir formulário
-                            const formatMoney = (val) => parseFloat(val || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+                            const formatMoney = (val) => {
+                                if (!val && val !== 0) return '';
+                                // Formata como BRL
+                                return parseFloat(val).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+                            };
 
                             const html = `
                                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                                     <div class="macos-form-group">
                                         <label class="macos-form-label">Valor de Arremate</label>
-                                        <input type="number" step="0.01" id="edit-valorArrematado" value="${dados.valorArrematado || ''}" class="macos-input" required>
+                                        <input type="text" id="edit-valorArrematado" name="valorArrematado" value="${formatMoney(dados.valorArrematado)}" class="macos-input currency-input" required>
                                     </div>
                                     <div class="macos-form-group">
                                         <label class="macos-form-label">Valor de Avaliação</label>
-                                        <input type="number" step="0.01" id="edit-valorAvaliacao" value="${dados.valorAvaliacao || ''}" class="macos-input" required>
+                                        <input type="text" id="edit-valorAvaliacao" name="valorAvaliacao" value="${formatMoney(dados.valorAvaliacao)}" class="macos-input currency-input" required>
                                     </div>
                                     <div class="macos-form-group">
                                         <label class="macos-form-label">Valor de Venda</label>
-                                        <input type="number" step="0.01" id="edit-valorVendaFinal" value="${dados.valorVendaFinal || ''}" class="macos-input" required>
+                                        <input type="text" id="edit-valorVendaFinal" name="valorVendaFinal" value="${formatMoney(dados.valorVendaFinal)}" class="macos-input currency-input" required>
                                     </div>
                                     <div class="macos-form-group">
                                         <label class="macos-form-label">ITBI (%)</label>
@@ -1140,31 +1173,31 @@
                                     </div>
                                     <div class="macos-form-group">
                                         <label class="macos-form-label">Reforma</label>
-                                        <input type="number" step="0.01" id="edit-reforma" value="${dados.reforma || ''}" class="macos-input">
+                                        <input type="text" id="edit-reforma" name="reforma" value="${formatMoney(dados.reforma)}" class="macos-input currency-input">
                                     </div>
                                     <div class="macos-form-group">
                                         <label class="macos-form-label">Custos de Cartório</label>
-                                        <input type="number" step="0.01" id="edit-custosCartorarios" value="${dados.custosCartorarios || ''}" class="macos-input">
+                                        <input type="text" id="edit-custosCartorarios" name="custosCartorarios" value="${formatMoney(dados.custosCartorarios)}" class="macos-input currency-input">
                                     </div>
                                     <div class="macos-form-group">
                                         <label class="macos-form-label">Débitos Pendentes</label>
-                                        <input type="number" step="0.01" id="edit-debitosPendentes" value="${dados.debitosPendentes || ''}" class="macos-input">
+                                        <input type="text" id="edit-debitosPendentes" name="debitosPendentes" value="${formatMoney(dados.debitosPendentes)}" class="macos-input currency-input">
                                     </div>
                                     <div class="macos-form-group">
                                         <label class="macos-form-label">Desocupação/Advogado</label>
-                                        <input type="number" step="0.01" id="edit-custoDesocupacao" value="${dados.custoDesocupacao || ''}" class="macos-input">
+                                        <input type="text" id="edit-custoDesocupacao" name="custoDesocupacao" value="${formatMoney(dados.custoDesocupacao)}" class="macos-input currency-input">
                                     </div>
                                     <div class="macos-form-group">
                                         <label class="macos-form-label">Condomínio (Mensal)</label>
-                                        <input type="number" step="0.01" id="edit-condominioMensal" value="${dados.condominioMensal || ''}" class="macos-input">
+                                        <input type="text" id="edit-condominioMensal" name="condominioMensal" value="${formatMoney(dados.condominioMensal)}" class="macos-input currency-input">
                                     </div>
                                     <div class="macos-form-group">
                                         <label class="macos-form-label">IPTU (Mensal)</label>
-                                        <input type="number" step="0.01" id="edit-iptuMensal" value="${dados.iptuMensal || ''}" class="macos-input">
+                                        <input type="text" id="edit-iptuMensal" name="iptuMensal" value="${formatMoney(dados.iptuMensal)}" class="macos-input currency-input">
                                     </div>
                                     <div class="macos-form-group">
                                         <label class="macos-form-label">Seguro Fixo</label>
-                                        <input type="number" step="0.01" id="edit-taxaSeguroCaixa" value="${dados.taxaSeguroCaixa || ''}" class="macos-input">
+                                        <input type="text" id="edit-taxaSeguroCaixa" name="taxaSeguroCaixa" value="${formatMoney(dados.taxaSeguroCaixa)}" class="macos-input currency-input">
                                     </div>
                                     <div class="macos-form-group">
                                         <label class="macos-form-label">Corretagem (%)</label>
@@ -1178,6 +1211,12 @@
                             // Abrir modal
                             const modal = document.getElementById('modal-editar-calculo');
                             modal.classList.remove('hidden');
+
+                            // Inicializar máscaras de moeda para os novos inputs
+                            if (window.initCurrencyInputs) {
+                                window.initCurrencyInputs();
+                            }
+
                             setTimeout(() => {
                                 modal.style.opacity = '1';
                                 modal.style.pointerEvents = 'auto';

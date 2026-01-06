@@ -14,8 +14,9 @@
     /* Altura padrão mobile */
     background: var(--macos-bg-toolbar);
     /* Mesma do desktop */
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    /* Mesma do desktop */
+    /* backdrop-filter removido */
+    /* -webkit-backdrop-filter removido */
     border-bottom: 1px solid var(--macos-divider);
     z-index: 10001;
     /* Acima de tudo */
@@ -113,8 +114,9 @@
         position: fixed;
         inset: 0;
         background: rgba(0, 0, 0, 0.4);
-        backdrop-filter: blur(4px);
-        -webkit-backdrop-filter: blur(4px);
+        background: rgba(0, 0, 0, 0.4);
+        /* backdrop-filter removido */
+        /* -webkit-backdrop-filter removido */
         z-index: 10001;
         /* Logo abaixo da sidebar */
         opacity: 0;

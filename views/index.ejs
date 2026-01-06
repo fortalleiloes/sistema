@@ -241,20 +241,6 @@
                                                     </div>
                                                 </a>
 
-                                                <a href="/guia"
-                                                    class="macos-card p-4 flex items-center gap-4 group hover:border-[var(--macos-accent)] transition-colors border-l-4 border-l-transparent hover:border-l-[var(--macos-accent)]">
-                                                    <div
-                                                        class="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-teal-600 flex items-center justify-center text-white shadow-lg">
-                                                        <i class="fa-solid fa-book text-xl"></i>
-                                                    </div>
-                                                    <div>
-                                                        <h3
-                                                            class="font-semibold text-[var(--macos-text-primary)] group-hover:text-[var(--macos-accent)] transition-colors">
-                                                            Guia do Site</h3>
-                                                        <p class="text-xs text-[var(--macos-text-secondary)]">Aprenda a
-                                                            usar</p>
-                                                    </div>
-                                                </a>
 
                                                 <a href="/admin/invites"
                                                     class="macos-card p-4 flex items-center gap-4 group hover:border-[var(--macos-accent)] transition-colors border-l-4 border-l-transparent hover:border-l-[var(--macos-accent)]">
@@ -310,10 +296,10 @@
                         new Chart(ctx, {
                             type: 'line',
                             data: {
-                                labels: <%- JSON.stringify(growth.labels) %>,
+                                labels: <% - JSON.stringify(growth.labels) %>,
                                 datasets: [{
                                     label: 'Potencial de Lucro (R$)',
-                                    data: <%- JSON.stringify(growth.profitData) %>,
+                                    data: <% - JSON.stringify(growth.profitData) %>,
                                     borderColor: '#10b981', // green-500
                                     backgroundColor: gradient,
                                     borderWidth: 3,

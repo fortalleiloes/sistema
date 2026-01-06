@@ -702,6 +702,12 @@ console.log('✅ Rate limiting configurado');
 
 // --- Rotas ---
 
+// Rota de Layout (Stories)
+app.get('/layout', isAuthenticated, (req, res) => {
+    const userContext = getUserContext(req.session);
+    res.render('layout', { user: userContext, path: '/layout' });
+});
+
 // Rota de Login
 app.get('/login', (req, res) => {
     res.render('login', { message: req.query.message || null, error: req.query.error || null });
@@ -776,7 +782,7 @@ app.get('/admin/invites', requireAdmin, async (req, res) => {
 
         res.render('admin_invites', {
             invites,
-            user: { username, email, profile_pic_url }, // Pass as object expected by layout
+            user: { ...getUserContext(req.session) }, // Use helper to ensure consistency
             username,
             email,
             profile_pic_url,
@@ -1664,12 +1670,6 @@ app.post('/calculadora/salvar', isAuthenticated, [
 //         }
 //     });
 // });
-
-app.get('/guia', isAuthenticated, (req, res) => {
-    res.render('guia', {
-        user: getUserContext(req.session)
-    });
-});
 
 // -----------------------------------
 // Carteira / Dashboard do Lead

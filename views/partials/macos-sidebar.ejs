@@ -16,9 +16,9 @@
 
     <!-- Navegação Principal -->
     <nav style="padding: 12px 8px;">
-        <!-- Principal -->
+        <!-- Ferramentas -->
         <div class="macos-sidebar-section">
-            <div class="macos-sidebar-section-title">Principal</div>
+            <div class="macos-sidebar-section-title">Ferramentas</div>
 
             <a href="/carteira" class="macos-sidebar-item">
                 <span class="macos-sidebar-item-icon">
@@ -26,18 +26,6 @@
                 </span>
                 <span class="macos-sidebar-item-text">Carteira</span>
             </a>
-
-            <a href="/guia" class="macos-sidebar-item">
-                <span class="macos-sidebar-item-icon">
-                    <i class="fa-solid fa-map"></i>
-                </span>
-                <span class="macos-sidebar-item-text">Guia do Site</span>
-            </a>
-        </div>
-
-        <!-- Ferramentas -->
-        <div class="macos-sidebar-section">
-            <div class="macos-sidebar-section-title">Ferramentas</div>
 
             <a href="/calculadora" class="macos-sidebar-item">
                 <span class="macos-sidebar-item-icon">
@@ -51,6 +39,13 @@
                     <i class="fa-solid fa-file-signature"></i>
                 </span>
                 <span class="macos-sidebar-item-text">Gerador de Proposta</span>
+            </a>
+
+            <a href="/layout" class="macos-sidebar-item">
+                <span class="macos-sidebar-item-icon">
+                    <i class="fa-brands fa-instagram"></i>
+                </span>
+                <span class="macos-sidebar-item-text">Gerador de Stories</span>
             </a>
 
             <% if (user && user.isAdmin) { %>

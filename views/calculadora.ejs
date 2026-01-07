@@ -4,6 +4,63 @@
 <head>
     <title>Calculadora de Viabilidade - Fortal</title>
     <%- include('partials/head') %>
+        <style>
+            /* NUCLEAR FIX FOR RENDERING GLITCHES v2 */
+            /* Forces the browser to render simply without complex GPU layering */
+            * {
+                -webkit-font-smoothing: antialiased;
+            }
+
+            .macos-card,
+            .macos-card:hover,
+            .macos-list-item,
+            .macos-list-item:hover,
+            .macos-btn,
+            .macos-btn:hover,
+            input,
+            select,
+            .macos-window,
+            .macos-main-content {
+                transform: none !important;
+                transition: none !important;
+                animation: none !important;
+                backface-visibility: visible !important;
+                -webkit-backface-visibility: visible !important;
+                perspective: none !important;
+                -webkit-perspective: none !important;
+                will-change: auto !important;
+                filter: none !important;
+            }
+
+            .macos-card:hover {
+                /* Static shadow only */
+                box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15) !important;
+            }
+
+            /* Force solid background to avoid alpha compositing issues */
+            .macos-card {
+                background-color: var(--macos-bg-secondary) !important;
+                backdrop-filter: none !important;
+                -webkit-backdrop-filter: none !important;
+                border: 1px solid var(--macos-divider) !important;
+            }
+
+            /* Disable all entry animations */
+            .animate-fade-in,
+            .animate-scale-in,
+            .animate-slide-in-left {
+                animation: none !important;
+                opacity: 1 !important;
+                transform: none !important;
+            }
+
+            /* Prevent white flash on modals */
+            .macos-modal-overlay {
+                backdrop-filter: none !important;
+                -webkit-backdrop-filter: none !important;
+                background: rgba(0, 0, 0, 0.7) !important;
+            }
+        </style>
 </head>
 
 <body class="min-h-screen">
@@ -471,7 +528,7 @@
                                                     style="font-size: 22px; font-weight: 600; color: var(--macos-text-primary); margin-bottom: 16px;">
                                                     Cálculos Salvos
                                                 </h2>
-                                                <div class="macos-card" style="padding: 0; overflow: hidden;">
+                                                <div class="macos-card" style="padding: 0;">
                                                     <div style="display: grid; grid-template-columns: 1fr;">
                                                         <% savedCalculations.forEach(calc=> {
                                                             let data = {};
@@ -799,7 +856,7 @@
 
                     <!-- Modal: Detalhes do Cálculo Salvo -->
                     <div id="modal-detalhes-calculo" class="hidden"
-                        style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 1000; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s; padding: 20px;">
+                        style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s; padding: 20px;">
                         <div class="macos-window"
                             style="width: 700px; max-width: 100%; background: var(--macos-bg-secondary); border-radius: 16px; box-shadow: 0 25px 50px rgba(0,0,0,0.4); transform: scale(0.95); transition: transform 0.3s; max-height: 90vh; display: flex; flex-direction: column;">
 

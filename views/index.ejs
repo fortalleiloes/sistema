@@ -26,79 +26,79 @@
 
                     <% if (stats) { %>
                         <!-- Stats Grid -->
+                        <!-- Stats Grid (Advisor View) -->
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                            <!-- Total Investido -->
+                            <!-- VGV sob Gestão -->
                             <div
                                 class="macos-card p-6 relative overflow-hidden group hover:scale-[1.02] transition-transform duration-300">
                                 <div
-                                    class="absolute top-4 right-4 w-10 h-10 rounded-full bg-yellow-500/10 flex items-center justify-center">
-                                    <i class="fa-solid fa-vault text-[var(--macos-accent)] text-lg"></i>
+                                    class="absolute top-4 right-4 w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center">
+                                    <i class="fa-solid fa-sack-dollar text-blue-500 text-lg"></i>
                                 </div>
                                 <p
                                     class="text-sm font-semibold text-[var(--macos-text-secondary)] uppercase tracking-wider mb-2">
-                                    Total Investido</p>
+                                    VGV sob Gestão</p>
                                 <h3 class="text-2xl font-bold text-[var(--macos-text-primary)]">
-                                    <%= stats.total_investido.toLocaleString('pt-BR', { style: 'currency' ,
-                                        currency: 'BRL' }) %>
+                                    <%= stats.vgv_gestao.toLocaleString('pt-BR', { style: 'currency' , currency: 'BRL'
+                                        }) %>
                                 </h3>
                                 <div class="mt-4 flex items-center text-xs text-[var(--macos-text-tertiary)]">
-                                    <i class="fa-solid fa-building mr-1"></i>
-                                    <%= stats.total_imoveis %> imóveis em carteira
+                                    <i class="fa-solid fa-chart-line mr-1"></i>
+                                    Volume Geral de Vendas
                                 </div>
                             </div>
 
-                            <!-- Lucro Estimado -->
+                            <!-- Comissão Prevista -->
                             <div
                                 class="macos-card p-6 relative overflow-hidden group hover:scale-[1.02] transition-transform duration-300">
                                 <div
                                     class="absolute top-4 right-4 w-10 h-10 rounded-full bg-green-500/10 flex items-center justify-center">
-                                    <i class="fa-solid fa-arrow-trend-up text-green-500 text-lg"></i>
+                                    <i class="fa-solid fa-hand-holding-dollar text-green-500 text-lg"></i>
                                 </div>
                                 <p
                                     class="text-sm font-semibold text-[var(--macos-text-secondary)] uppercase tracking-wider mb-2">
-                                    Lucro Potencial</p>
+                                    Comissão Prevista</p>
                                 <h3 class="text-2xl font-bold text-[var(--macos-text-primary)]">
-                                    <%= stats.lucro_potencial.toLocaleString('pt-BR', { style: 'currency' ,
+                                    <%= stats.comissao_prevista.toLocaleString('pt-BR', { style: 'currency' ,
                                         currency: 'BRL' }) %>
                                 </h3>
                                 <div
                                     class="mt-4 flex items-center text-xs text-green-600 bg-green-500/10 px-2 py-1 rounded w-fit">
-                                    <i class="fa-solid fa-check mr-1"></i> Projetado
+                                    <i class="fa-solid fa-check mr-1"></i> Base 6%
                                 </div>
                             </div>
 
-                            <!-- ROI Médio -->
+                            <!-- Clientes Ativos -->
                             <div
                                 class="macos-card p-6 relative overflow-hidden group hover:scale-[1.02] transition-transform duration-300">
                                 <div
                                     class="absolute top-4 right-4 w-10 h-10 rounded-full bg-purple-500/10 flex items-center justify-center">
-                                    <i class="fa-solid fa-chart-pie text-purple-500 text-lg"></i>
+                                    <i class="fa-solid fa-users text-purple-500 text-lg"></i>
                                 </div>
                                 <p
                                     class="text-sm font-semibold text-[var(--macos-text-secondary)] uppercase tracking-wider mb-2">
-                                    ROI Médio</p>
+                                    Clientes Ativos</p>
                                 <h3 class="text-2xl font-bold text-purple-500">
-                                    <%= stats.roi_medio %>%
+                                    <%= stats.clientes_ativos %>
                                 </h3>
-                                <p class="mt-4 text-xs text-[var(--macos-text-secondary)]">Retorno sobre investimento
-                                </p>
+                                <p class="mt-4 text-xs text-[var(--macos-text-secondary)]">Carteira de Clientes</p>
                             </div>
 
-                            <!-- Custo Mensal -->
+                            <!-- Imóveis sob Gestão -->
                             <div
                                 class="macos-card p-6 relative overflow-hidden group hover:scale-[1.02] transition-transform duration-300">
                                 <div
-                                    class="absolute top-4 right-4 w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center">
-                                    <i class="fa-solid fa-receipt text-red-500 text-lg"></i>
+                                    class="absolute top-4 right-4 w-10 h-10 rounded-full bg-orange-500/10 flex items-center justify-center">
+                                    <i class="fa-solid fa-building-user text-orange-500 text-lg"></i>
                                 </div>
                                 <p
                                     class="text-sm font-semibold text-[var(--macos-text-secondary)] uppercase tracking-wider mb-2">
-                                    Custo Mensal</p>
+                                    Imóveis sob Gestão</p>
                                 <h3 class="text-2xl font-bold text-[var(--macos-text-primary)]">
-                                    <%= stats.custo_recorrente_mensal.toLocaleString('pt-BR', { style: 'currency' ,
-                                        currency: 'BRL' }) %>
+                                    <%= stats.total_imoveis %>
                                 </h3>
-                                <p class="mt-4 text-xs text-[var(--macos-text-secondary)]">Condomínio + IPTU</p>
+                                <p class="mt-4 text-xs text-[var(--macos-text-secondary)]">Total de ativos gerenciados
+                                </p>
                             </div>
                         </div>
                         <% } %>
@@ -129,12 +129,12 @@
                                     <!-- Content Split -->
                                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
-                                        <!-- Left Column: Recent Properties -->
-                                        <div class="lg:col-span-2">
+                                        <!-- Full Width: Recent Properties -->
+                                        <div class="lg:col-span-3">
                                             <div class="flex items-center justify-between mb-4">
                                                 <h2 class="text-xl font-semibold text-[var(--macos-text-primary)]">
                                                     Imóveis
-                                                    Recentes</h2>
+                                                    Recentes (Carteira)</h2>
                                                 <a href="/carteira"
                                                     class="text-sm text-[var(--macos-accent)] hover:opacity-80 font-medium">Ver
                                                     todos</a>
@@ -200,77 +200,6 @@
                                                             </a>
                                                         </div>
                                                         <% } %>
-                                            </div>
-                                        </div>
-
-                                        <!-- Right Column: Quick Actions -->
-                                        <div class="lg:col-span-1">
-                                            <h2 class="text-xl font-semibold text-[var(--macos-text-primary)] mb-4">
-                                                Acesso
-                                                Rápido</h2>
-                                            <div class="flex flex-col gap-4">
-
-                                                <a href="/calculadora"
-                                                    class="macos-card p-4 flex items-center gap-4 group hover:border-[var(--macos-accent)] transition-colors border-l-4 border-l-transparent hover:border-l-[var(--macos-accent)]">
-                                                    <div
-                                                        class="w-12 h-12 rounded-xl bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center text-white shadow-lg">
-                                                        <i class="fa-solid fa-calculator text-xl"></i>
-                                                    </div>
-                                                    <div>
-                                                        <h3
-                                                            class="font-semibold text-[var(--macos-text-primary)] group-hover:text-[var(--macos-accent)] transition-colors">
-                                                            Calculadora</h3>
-                                                        <p class="text-xs text-[var(--macos-text-secondary)]">Simular
-                                                            viabilidade</p>
-                                                    </div>
-                                                </a>
-
-                                                <a href="/da-vinci"
-                                                    class="macos-card p-4 flex items-center gap-4 group hover:border-[var(--macos-accent)] transition-colors border-l-4 border-l-transparent hover:border-l-[var(--macos-accent)]">
-                                                    <div
-                                                        class="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white shadow-lg">
-                                                        <i class="fa-solid fa-wand-magic-sparkles text-xl"></i>
-                                                    </div>
-                                                    <div>
-                                                        <h3
-                                                            class="font-semibold text-[var(--macos-text-primary)] group-hover:text-[var(--macos-accent)] transition-colors">
-                                                            Da Vinci</h3>
-                                                        <p class="text-xs text-[var(--macos-text-secondary)]">Gerar
-                                                            propostas
-                                                            com IA</p>
-                                                    </div>
-                                                </a>
-
-
-                                                <a href="/admin/invites"
-                                                    class="macos-card p-4 flex items-center gap-4 group hover:border-[var(--macos-accent)] transition-colors border-l-4 border-l-transparent hover:border-l-[var(--macos-accent)]">
-                                                    <div
-                                                        class="w-12 h-12 rounded-xl bg-gradient-to-br from-gray-600 to-gray-800 flex items-center justify-center text-white shadow-lg">
-                                                        <i class="fa-solid fa-paper-plane text-xl"></i>
-                                                    </div>
-                                                    <div>
-                                                        <h3
-                                                            class="font-semibold text-[var(--macos-text-primary)] group-hover:text-[var(--macos-accent)] transition-colors">
-                                                            Convites</h3>
-                                                        <p class="text-xs text-[var(--macos-text-secondary)]">Gerenciar
-                                                            acessos
-                                                        </p>
-                                                    </div>
-                                                </a>
-
-                                            </div>
-
-                                            <!-- Mini Widget: Quote/Tip -->
-                                            <div
-                                                class="mt-6 macos-card p-5 bg-gradient-to-br from-[var(--macos-bg-secondary)] to-[var(--macos-bg-tertiary)] relative overflow-hidden">
-                                                <i
-                                                    class="fa-solid fa-quote-right absolute top-4 right-4 text-4xl text-[var(--macos-text-tertiary)] opacity-20"></i>
-                                                <p class="text-sm italic text-[var(--macos-text-secondary)] mb-2">"O
-                                                    melhor
-                                                    investimento é aquele que você entende."</p>
-                                                <p class="text-xs font-bold text-[var(--macos-text-primary)]">- Warren
-                                                    Buffett
-                                                </p>
                                             </div>
                                         </div>
 

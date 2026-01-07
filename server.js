@@ -1049,18 +1049,49 @@ app.get('/', isAuthenticated, async (req, res) => {
             });
         }
 
-        const data = await getPortfolioData(req.session.userId);
-        console.log('✅ Dashboard: Dados carregados com sucesso');
-        console.log('👤 User object sendo passado para view:', {
-            email: baseContext.user.email,
-            isAdmin: baseContext.user.isAdmin
-        });
+        // ADVISOR DASHBOARD LOGIC
+        // 1. Fetch all clients managed by this advisor
+        const clients = await db.all('SELECT id, status FROM clientes WHERE assessor_id = ?', [req.session.userId]);
+        const clientIds = clients.map(c => c.id);
+        const activeClients = clients.filter(c => c.status === 'ativo').length;
+
+        let totalProperties = 0;
+        let vgvManagement = 0;
+        let recentProperties = [];
+        let growthData = null;
+
+        if (clientIds.length > 0) {
+            // 2. Fetch all properties linked to these clients
+            const placeholders = clientIds.map(() => '?').join(',');
+            const properties = await db.all(
+                `SELECT * FROM carteira_imoveis WHERE cliente_id IN (${placeholders}) ORDER BY data_aquisicao DESC`,
+                clientIds
+            );
+
+            totalProperties = properties.length;
+            vgvManagement = properties.reduce((sum, p) => sum + (p.valor_venda_estimado || 0), 0);
+
+            // Get recent 5
+            recentProperties = properties.slice(0, 5);
+        }
+
+        // 6% Commission Assumption
+        const estimatedCommission = vgvManagement * 0.06;
+
+        const advisorStats = {
+            vgv_gestao: vgvManagement,
+            comissao_prevista: estimatedCommission,
+            clientes_ativos: activeClients,
+            total_imoveis: totalProperties
+        };
+
+        console.log('✅ Dashboard: Dados do ASSESSOR carregados com sucesso');
 
         res.render('index', {
             ...baseContext,
-            stats: data.kpis || null,
-            growth: data.growthData || null,
-            recentProperties: (data.imoveis && Array.isArray(data.imoveis)) ? data.imoveis.slice(0, 5) : []
+            stats: advisorStats,
+            growth: growthData,
+            recentProperties: recentProperties
         });
     } catch (error) {
         console.error('❌ ERRO CRÍTICO NO DASHBOARD:', error.message);

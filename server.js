@@ -506,6 +506,46 @@ async function ensureTables() {
         console.error('Erro na migração de carteira_imoveis (extra):', e);
     }
 
+    // Tabela de Leads (Funil de Vendas)
+    await db.exec(`
+        CREATE TABLE IF NOT EXISTS leads (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nome TEXT,
+            whatsapp TEXT,
+            
+            -- Dados de Qualificação
+            objetivo TEXT, -- 'morar' | 'investir'
+            experiencia TEXT, -- 'primeira_vez' | 'experiente'
+            restricao_nome BOOLEAN, -- 1 (sujo) | 0 (limpo)
+            
+            -- Financeiro
+            capital_entrada REAL,
+            capital_vista REAL,
+            preferencia_pgto TEXT, -- 'vista' | 'financiado'
+            
+            -- Localização
+            estado TEXT,
+            cidade TEXT,
+
+            -- Metadados
+            score INTEGER DEFAULT 0,
+            status TEXT DEFAULT 'novo', -- 'novo', 'contatado', 'convertido', 'desqualificado'
+            claimed_by INTEGER, -- ID do assessor que pegou o lead
+            
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+    `);
+
+    // Migração para adicionar colunas de localização se não existirem
+    try {
+        await db.exec("ALTER TABLE leads ADD COLUMN estado TEXT");
+        await db.exec("ALTER TABLE leads ADD COLUMN cidade TEXT");
+        console.log("Colunas 'estado' e 'cidade' adicionadas à tabela leads.");
+    } catch (e) {
+        // Ignora erro se colunas já existirem
+    }
+
     // Limpeza de tabelas antigas
     await db.exec('DROP TABLE IF EXISTS carteira_entries');
 }
@@ -1644,7 +1684,7 @@ app.post('/calculadora/salvar', isAuthenticated, [
         return res.status(400).redirect('/calculadora?error=missing_name');
     }
 
-    const { calculationName, ...inputDataRaw } = req.body;
+    const { calculationName, calculationId, ...inputDataRaw } = req.body;
 
     // --- CORREÇÃO INICIA AQUI ---
     // Preserva os dados do formulário como estão, apenas garantindo que não haja valores indefinidos.
@@ -1653,10 +1693,19 @@ app.post('/calculadora/salvar', isAuthenticated, [
     // --- FIM DA CORREÇÃO ---
 
     try {
-        await db.run(
-            `INSERT INTO saved_calculations (user_id, name, data) VALUES (?, ?, ?)`,
-            [req.session.userId, calculationName, JSON.stringify(inputData)] // Salva o objeto de dados brutos
-        );
+        if (calculationId) {
+            // Atualizar cálculo existente
+            await db.run(
+                'UPDATE saved_calculations SET name = ?, data = ? WHERE id = ? AND user_id = ?',
+                [calculationName, JSON.stringify(inputData), calculationId, req.session.userId]
+            );
+        } else {
+            // Salvar novo cálculo
+            await db.run(
+                `INSERT INTO saved_calculations (user_id, name, data) VALUES (?, ?, ?)`,
+                [req.session.userId, calculationName, JSON.stringify(inputData)] // Salva o objeto de dados brutos
+            );
+        }
 
         // Apenas salva o cálculo e redireciona. 
         // A importação para a carteira agora é feita manualmente via "Meus Imóveis" -> "Carregar Cálculo".
@@ -2600,6 +2649,135 @@ app.get('/api/portfolio/dashboard', isAuthenticated, async (req, res) => {
 // Listar todos os imóveis do portfólio
 // Helper: Consolidated Portfolio Data Fetching & Healing
 // (Already defined above)
+
+// ========================================
+// FUNIL DE VENDAS (LEAD GENERATION)
+// ========================================
+
+// Rota Pública do Funil
+app.get('/start', (req, res) => {
+    res.render('funnel');
+});
+
+// Processamento do Lead (API)
+app.post('/api/leads/submit', async (req, res) => {
+    try {
+        const { nome, whatsapp, objetivo, experiencia, restricao_nome, capital_disponivel, preferencia_pgto, estado, cidade } = req.body;
+
+        // Scoring Logic (Simples)
+        let score = 50; // Começa com média
+
+        // 0. Experiência
+        if (experiencia === 'ja_arrematei') score += 10;
+
+        // 1. Capital
+        if (capital_disponivel >= 200000) score += 30;
+        else if (capital_disponivel >= 50000) score += 15;
+        else score -= 10;
+
+        // 2. Pagamento
+        if (preferencia_pgto === 'vista') score += 10; // Cash is king
+
+        // 3. Restrição (Deal breaker for financing, but ok for cash)
+        const isRestricted = restricao_nome === 'true'; // Vem como string do form
+        if (isRestricted) {
+            score -= 20;
+            // Se tiver restrição mas muito dinheiro, ainda é bom
+            if (capital_disponivel < 50000) score -= 20; // Bad combo
+        } else {
+            score += 10;
+        }
+
+        // Cap score 0-100
+        score = Math.min(100, Math.max(0, score));
+
+        // Save to DB
+        await db.run(`
+            INSERT INTO leads (
+                nome, whatsapp, objetivo, experiencia, restricao_nome, 
+                capital_entrada, preferencia_pgto, score, status,
+                estado, cidade
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'novo', ?, ?)
+        `, [
+            nome, whatsapp, objetivo, experiencia || 'primeira_vez', isRestricted ? 1 : 0,
+            capital_disponivel, preferencia_pgto, score,
+            estado || '', cidade || ''
+        ]);
+
+        res.json({ success: true, score: score });
+
+    } catch (error) {
+        console.error('Erro ao salvar lead:', error);
+        res.status(500).json({ success: false, error: 'Erro ao processar perfil.' });
+    }
+});
+
+// ========================================
+
+// ========================================
+// ÁREA DO ASSESSOR (LEADS POOL)
+// ========================================
+
+// Listar Leads Disponíveis (Piscina)
+app.get('/leads', isAuthenticated, async (req, res) => {
+    try {
+        // Busca leads 'novos' ou 'desqualificados' (histórico)
+        // Ordena por Score (Melhores primeiro)
+        const leads = await db.all(`
+            SELECT * FROM leads 
+            WHERE status = 'novo' 
+            ORDER BY score DESC, created_at DESC
+        `);
+
+        res.render('leads-pool', {
+            leads: leads,
+            user: getUserContext(req.session),
+            username: req.session.username,
+            profile_pic_url: req.session.profile_pic_url
+        });
+    } catch (error) {
+        console.error('Erro ao listar leads:', error);
+        res.status(500).send("Erro ao carregar leads.");
+    }
+});
+
+// Puxar Lead (Claim)
+app.post('/api/leads/claim/:id', isAuthenticated, async (req, res) => {
+    try {
+        const leadId = req.params.id;
+        const advisorId = req.session.userId;
+
+        // 1. Verifica se o lead ainda está disponível
+        const lead = await db.get('SELECT * FROM leads WHERE id = ? AND status = "novo"', [leadId]);
+
+        if (!lead) {
+            return res.status(400).send('Lead não encontrado ou já assumido por outro assessor.');
+        }
+
+        // 2. Marca como 'contactado' na tabela leads e vincula ao assessor
+        await db.run('UPDATE leads SET status = ?, claimed_by = ? WHERE id = ?', ['contactado', advisorId, leadId]);
+
+        // 3. Cria automaticamente o registro na tabela 'clientes' do assessor
+        await db.run(`
+            INSERT INTO clientes (
+                assessor_id, nome, email, telefone, status, data_inicio, observacoes
+            ) VALUES (?, ?, ?, ?, 'ativo', date('now'), ?)
+        `, [
+            advisorId,
+            lead.nome,
+            'email@pendente.com', // Placeholder 
+            lead.whatsapp,
+            `Lead vindo do Funil (Score: ${lead.score}). Objetivo: ${lead.objetivo}. Capital: ${lead.capital_entrada}`
+        ]);
+
+        console.log(`✅ Assessor ${advisorId} puxou o lead ${leadId} (${lead.nome})`);
+        res.redirect('/leads'); // Recarrega a página
+
+    } catch (error) {
+        console.error('Erro ao puxar lead:', error);
+        res.status(500).send("Erro ao processar sua solicitação.");
+    }
+});
 
 // Rota API para buscar imóveis (consumida pelo front)
 app.get('/api/portfolio/imoveis', isAuthenticated, async (req, res) => {

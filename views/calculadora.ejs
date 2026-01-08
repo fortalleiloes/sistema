@@ -769,13 +769,21 @@
                                         <input type="hidden" name="<%= key %>" value="<%= inputData[key] %>">
                                         <% } %>
 
-                                            <div class="macos-form-group">
-                                                <label class="macos-form-label" style="margin-left: 4px;">Nome da
-                                                    Oportunidade</label>
-                                                <input type="text" name="calculationName" required class="macos-input"
-                                                    placeholder="Ex: Apto Centro - Leilão Caixa"
-                                                    style="font-size: 15px;" autofocus>
-                                            </div>
+                                            <% if (locals.editMode && locals.editingId) { %>
+                                                <input type="hidden" name="calculationId"
+                                                    value="<%= locals.editingId %>">
+                                                <% } %>
+
+                                                    <div class="macos-form-group">
+                                                        <label class="macos-form-label" style="margin-left: 4px;">Nome
+                                                            da
+                                                            Oportunidade</label>
+                                                        <input type="text" name="calculationName" required
+                                                            class="macos-input"
+                                                            placeholder="Ex: Apto Centro - Leilão Caixa"
+                                                            value="<%= locals.editMode ? locals.editingName : '' %>"
+                                                            style="font-size: 15px;" autofocus>
+                                                    </div>
                                 </div>
                                 <div class="macos-modal-footer"
                                     style="background: var(--macos-bg-tertiary); border-top: 1px solid var(--macos-divider);">

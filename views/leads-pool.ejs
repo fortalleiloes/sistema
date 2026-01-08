@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <title>Fortal - Novos Leads</title>
+    <%- include('partials/head') %>
+</head>
+
+<body class="min-h-screen page-leads">
+
+    <%- include('partials/macos-toolbar', { title: 'Piscina de Leads' , username: username, profile_pic_url:
+        profile_pic_url }) %>
+        <%- include('partials/macos-sidebar', { user: user }) %>
+
+            <main class="macos-main-content">
+                <div class="animate-fade-in" style="padding-bottom: 40px; max-width: 1200px; margin: 0 auto;">
+
+                    <!-- Header -->
+                    <div class="flex items-center justify-between mb-8">
+                        <div>
+                            <h1 class="text-3xl font-bold text-[var(--macos-text-primary)] mb-2">Novos Leads</h1>
+                            <p class="text-[var(--macos-text-secondary)]">Leads qualificados pelo funil aguardando
+                                atendimento.</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <div
+                                class="px-4 py-2 bg-yellow-500/10 rounded-lg border border-yellow-500/20 text-yellow-500 text-sm font-medium">
+                                <i class="fa-solid fa-star mr-2"></i> Leads Quentes: <%= leads.filter(l=> l.score >
+                                    70).length %>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Leads Table -->
+                    <div class="macos-card p-0 overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="bg-[var(--macos-bg-tertiary)] border-b border-[var(--macos-divider)]">
+                                        <th
+                                            class="p-4 text-xs font-semibold text-[var(--macos-text-secondary)] uppercase tracking-wider">
+                                            Score</th>
+                                        <th
+                                            class="p-4 text-xs font-semibold text-[var(--macos-text-secondary)] uppercase tracking-wider">
+                                            Nome / Contato</th>
+                                        <th
+                                            class="p-4 text-xs font-semibold text-[var(--macos-text-secondary)] uppercase tracking-wider">
+                                            Perfil</th>
+                                        <th
+                                            class="p-4 text-xs font-semibold text-[var(--macos-text-secondary)] uppercase tracking-wider">
+                                            Capital</th>
+                                        <th
+                                            class="p-4 text-xs font-semibold text-[var(--macos-text-secondary)] uppercase tracking-wider">
+                                            Ação</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-[var(--macos-divider)]">
+                                    <% if (leads && leads.length> 0) { %>
+                                        <% leads.forEach(lead=> { %>
+                                            <tr class="hover:bg-[var(--macos-bg-secondary)] transition-colors group">
+                                                <!-- Score -->
+                                                <td class="p-4">
+                                                    <div class="flex items-center gap-2">
+                                                        <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm
+                                                    <%= lead.score >= 80 ? 'bg-green-500/20 text-green-500' : 
+                                                       lead.score >= 50 ? 'bg-yellow-500/20 text-yellow-500' : 
+                                                       'bg-red-500/20 text-red-500' %>">
+                                                            <%= lead.score %>
+                                                        </div>
+                                                    </div>
+                                                </td>
+
+                                                <!-- Nome -->
+                                                <td class="p-4">
+                                                    <p class="font-semibold text-[var(--macos-text-primary)]">
+                                                        <%= lead.nome %>
+                                                    </p>
+                                                    <p
+                                                        class="text-xs text-[var(--macos-text-tertiary)] flex items-center gap-1 mb-1">
+                                                    </p>
+                                                    <i class="fa-solid fa-location-dot"></i>
+                                                    <%= lead.cidade || 'N/A' %> - <%= lead.estado || 'UF' %>
+                                                            </p>
+                                                            <p
+                                                                class="text-sm text-[var(--macos-text-tertiary)] flex items-center gap-1">
+                                                                <i class="fa-brands fa-whatsapp"></i>
+                                                                <%= lead.whatsapp %>
+                                                            </p>
+                                                </td>
+
+                                                <!-- Perfil -->
+                                                <td class="p-4">
+                                                    <div class="flex flex-col gap-1">
+                                                        <span
+                                                            class="text-sm text-[var(--macos-text-primary)] capitalize">
+                                                            <i
+                                                                class="<%= lead.objetivo === 'investir' ? 'fa-solid fa-chart-line text-green-500' : 'fa-solid fa-house text-blue-500' %> mr-1"></i>
+                                                            <%= lead.objetivo %>
+                                                        </span>
+
+                                                        <% if (lead.experiencia==='ja_arrematei' ) { %>
+                                                            <span class="text-xs text-yellow-500 font-medium">
+                                                                <i class="fa-solid fa-medal mr-1"></i> Já Arrematou
+                                                            </span>
+                                                            <% } else { %>
+                                                                <span class="text-xs text-slate-500">
+                                                                    <i class="fa-solid fa-graduation-cap mr-1"></i> 1ª
+                                                                    Viagem
+                                                                </span>
+                                                                <% } %>
+
+                                                                    <span
+                                                                        class="text-xs <%= lead.restricao_nome ? 'text-red-500' : 'text-green-500' %>">
+                                                                        <i class="fa-solid fa-id-card mr-1"></i>
+                                                                        <%= lead.restricao_nome ? 'Restrição Ativa'
+                                                                            : 'Nome Limpo' %>
+                                                                    </span>
+                                                    </div>
+                                                </td>
+
+                                                <!-- Capital -->
+                                                <td class="p-4">
+                                                    <p class="font-medium text-[var(--macos-text-primary)]">
+                                                        <%= (lead.capital_entrada || 0).toLocaleString('pt-BR', {
+                                                            style: 'currency' , currency: 'BRL' }) %>
+                                                    </p>
+                                                    <span
+                                                        class="text-xs px-2 py-0.5 rounded-full <%= lead.preferencia_pgto === 'vista' ? 'bg-green-500/10 text-green-500' : 'bg-blue-500/10 text-blue-500' %>">
+                                                        <%= lead.preferencia_pgto==='vista' ? 'À Vista' : 'Financiado'
+                                                            %>
+                                                    </span>
+                                                </td>
+
+                                                <!-- Ação -->
+                                                <td class="p-4">
+                                                    <form action="/api/leads/claim/<%= lead.id %>" method="POST"
+                                                        class="inline">
+                                                        <button type="submit"
+                                                            class="macos-btn-primary py-1.5 px-3 text-xs flex items-center gap-2">
+                                                            <i class="fa-solid fa-user-plus"></i> Puxar
+                                                        </button>
+                                                    </form>
+                                                </td>
+                                            </tr>
+                                            <% }); %>
+                                                <% } else { %>
+                                                    <tr>
+                                                        <td colspan="5"
+                                                            class="p-8 text-center text-[var(--macos-text-tertiary)]">
+                                                            <i class="fa-solid fa-inbox text-4xl mb-2 opacity-50"></i>
+                                                            <p>Nenhum lead novo no momento.</p>
+                                                        </td>
+                                                    </tr>
+                                                    <% } %>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+            </main>
+</body>
+
+</html>

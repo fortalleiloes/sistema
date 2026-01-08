@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Análise de Perfil - Fortal Leilões</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
+
+    <style>
+        :root {
+            --gold-primary: #D4AF37;
+            --gold-hover: #B5952F;
+            --dark-bg: #0f172a;
+            --card-bg: #1e293b;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--dark-bg);
+            color: white;
+        }
+
+        .step-content {
+            display: none;
+            animation: fadeIn 0.4s ease-in-out;
+        }
+
+        .step-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .option-card {
+            transition: all 0.2s ease;
+            border: 2px solid transparent;
+        }
+
+        .option-card:hover {
+            border-color: rgba(212, 175, 55, 0.3);
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .option-card.selected {
+            border-color: var(--gold-primary);
+            background-color: rgba(212, 175, 55, 0.1);
+        }
+
+        .progress-bar-fill {
+            transition: width 0.4s ease;
+        }
+
+        /* Custom Range Slider */
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 24px;
+            width: 24px;
+            border-radius: 50%;
+            background: var(--gold-primary);
+            cursor: pointer;
+            margin-top: -10px;
+            box-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+        }
+
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: #334155;
+            border-radius: 2px;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen flex flex-col items-center justify-center p-4">
+
+    <!-- Progress Bar -->
+    <div class="fixed top-0 left-0 w-full h-1 bg-slate-800 z-50">
+        <div class="progress-bar-fill h-full bg-yellow-500 w-[0%]"></div>
+    </div>
+
+    <main class="w-full max-w-lg">
+
+        <!-- Header / Logo -->
+        <!-- Header / Logo -->
+        <div class="text-center mb-8">
+            <img src="/images/logo-fortal.png" alt="Fortal Leilões"
+                class="h-24 mx-auto mb-2 object-contain drop-shadow-2xl">
+            <p class="text-slate-400 text-sm font-medium uppercase tracking-widest">Fortal Leilões</p>
+        </div>
+
+        <form id="funnelForm" class="relative min-h-[400px]">
+
+            <!-- STEP 1: INTRO -->
+            <div class="step-content active" data-step="1">
+                <div class="text-center mb-8">
+                    <h1 class="text-3xl font-bold mb-4 text-white">Descubra se leilão é para você</h1>
+                    <p class="text-slate-400 text-lg">Responda algumas perguntas rápidas e receba uma análise do seu
+                        perfil de arrematante.</p>
+                </div>
+
+                <div class="bg-slate-800/50 p-6 rounded-2xl border border-slate-700 mb-8">
+                    <div class="flex items-start gap-4">
+                        <div
+                            class="w-8 h-8 rounded-full bg-yellow-500/10 flex items-center justify-center flex-shrink-0 mt-1">
+                            <i class="fa-solid fa-lightbulb text-yellow-500 text-sm"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold text-white mb-1">Por que participar?</h3>
+                            <p class="text-sm text-slate-400">Imóveis de leilão podem custar até 60% menos que o valor
+                                de mercado. É a forma mais inteligente de construir patrimônio.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="button" onclick="nextStep(2)"
+                    class="w-full bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-400 hover:to-yellow-500 text-black font-bold py-4 rounded-xl transition-all transform hover:scale-[1.02] shadow-lg shadow-yellow-500/20">
+                    Começar Análise <i class="fa-solid fa-arrow-right ml-2"></i>
+                </button>
+            </div>
+
+            <!-- STEP 2: OBJETIVO -->
+            <div class="step-content" data-step="2">
+                <h2 class="text-2xl font-bold mb-2 text-white">Qual seu objetivo principal?</h2>
+                <p class="text-slate-400 mb-8">Isso ajuda a definir o tipo de oportunidade ideal.</p>
+
+                <div class="grid grid-cols-1 gap-4">
+                    <label
+                        class="option-card cursor-pointer p-6 rounded-2xl bg-slate-800 border border-slate-700 flex items-center gap-4 group">
+                        <input type="radio" name="objetivo" value="morar" class="hidden" onchange="autoNext(3)">
+                        <div
+                            class="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center group-hover:bg-blue-500/20 transition-colors">
+                            <i class="fa-solid fa-house-user text-blue-400 text-xl"></i>
+                        </div>
+                        <div>
+                            <span class="block font-bold text-lg text-white">Morar</span>
+                            <span class="text-sm text-slate-400">Busco minha casa própria</span>
+                        </div>
+                    </label>
+
+                    <label
+                        class="option-card cursor-pointer p-6 rounded-2xl bg-slate-800 border border-slate-700 flex items-center gap-4 group">
+                        <input type="radio" name="objetivo" value="investir" class="hidden" onchange="autoNext(3)">
+                        <div
+                            class="w-12 h-12 rounded-full bg-green-500/10 flex items-center justify-center group-hover:bg-green-500/20 transition-colors">
+                            <i class="fa-solid fa-chart-line text-green-400 text-xl"></i>
+                        </div>
+                        <div>
+                            <span class="block font-bold text-lg text-white">Investir</span>
+                            <span class="text-sm text-slate-400">Quero revender ou alugar</span>
+                        </div>
+                    </label>
+                </div>
+
+                <button type="button" onclick="prevStep(1)"
+                    class="mt-8 text-slate-500 hover:text-white text-sm font-medium flex items-center gap-2">
+                    <i class="fa-solid fa-arrow-left"></i> Voltar
+                </button>
+            </div>
+
+            <!-- STEP 3: EXPERIÊNCIA (NEW) -->
+            <div class="step-content" data-step="3">
+                <h2 class="text-2xl font-bold mb-2 text-white">Qual sua experiência?</h2>
+                <p class="text-slate-400 mb-8">Já participou de algum leilão antes?</p>
+
+                <div class="grid grid-cols-1 gap-4">
+                    <label
+                        class="option-card cursor-pointer p-6 rounded-2xl bg-slate-800 border border-slate-700 flex items-center gap-4 group">
+                        <input type="radio" name="experiencia" value="primeira_vez" class="hidden"
+                            onchange="autoNext(4)">
+                        <div
+                            class="w-12 h-12 rounded-full bg-purple-500/10 flex items-center justify-center group-hover:bg-purple-500/20 transition-colors">
+                            <i class="fa-solid fa-graduation-cap text-purple-400 text-xl"></i>
+                        </div>
+                        <div>
+                            <span class="block font-bold text-lg text-white">É minha primeira vez</span>
+                            <span class="text-sm text-slate-400">Quero aprender como funciona</span>
+                        </div>
+                    </label>
+
+                    <label
+                        class="option-card cursor-pointer p-6 rounded-2xl bg-slate-800 border border-slate-700 flex items-center gap-4 group">
+                        <input type="radio" name="experiencia" value="ja_arrematei" class="hidden"
+                            onchange="autoNext(4)">
+                        <div
+                            class="w-12 h-12 rounded-full bg-yellow-500/10 flex items-center justify-center group-hover:bg-yellow-500/20 transition-colors">
+                            <i class="fa-solid fa-gavel text-yellow-400 text-xl"></i>
+                        </div>
+                        <div>
+                            <span class="block font-bold text-lg text-white">Já arrematei imóveis</span>
+                            <span class="text-sm text-slate-400">Busco novas oportunidades</span>
+                        </div>
+                    </label>
+                </div>
+
+                <button type="button" onclick="prevStep(2)"
+                    class="mt-8 text-slate-500 hover:text-white text-sm font-medium flex items-center gap-2">
+                    <i class="fa-solid fa-arrow-left"></i> Voltar
+                </button>
+            </div>
+
+            <!-- STEP 4: FINANCIALS (Was Step 3) -->
+            <div class="step-content" data-step="4">
+                <h2 class="text-2xl font-bold mb-2 text-white">Capacidade Financeira</h2>
+                <p class="text-slate-400 mb-8">Quanto você tem disponível para investir ou dar de entrada?</p>
+
+                <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 mb-6">
+                    <label class="block text-sm font-medium text-slate-400 mb-2">Valor Disponível (R$)</label>
+                    <input type="tel" name="capital_disponivel" id="capital_input"
+                        class="w-full bg-transparent text-3xl font-bold text-white focus:outline-none border-b border-slate-600 pb-2 focus:border-yellow-500 transition-colors"
+                        placeholder="0,00">
+                </div>
+
+                <div class="mb-8">
+                    <p class="text-sm font-medium text-slate-300 mb-4">Como prefere pagar?</p>
+                    <div class="flex gap-4">
+                        <label
+                            class="flex-1 option-card cursor-pointer p-4 rounded-xl bg-slate-800 border border-slate-700 text-center flex flex-col items-center justify-center h-32 group hover:bg-slate-700 transition-all relative overflow-hidden"
+                            onclick="selectPayment(this)">
+                            <input type="radio" name="preferencia_pgto" value="vista" class="hidden">
+                            <div
+                                class="w-12 h-12 rounded-full bg-green-500/10 flex items-center justify-center mb-3 group-hover:bg-green-500/20 transition-colors icon-container">
+                                <i class="fa-solid fa-money-bill-wave text-green-500 text-xl"></i>
+                            </div>
+                            <span class="block font-bold text-white text-lg">À Vista</span>
+                            <div
+                                class="absolute inset-0 bg-green-500/10 opacity-0 transition-opacity selection-overlay">
+                            </div>
+                        </label>
+                        <label
+                            class="flex-1 option-card cursor-pointer p-4 rounded-xl bg-slate-800 border border-slate-700 text-center flex flex-col items-center justify-center h-32 group hover:bg-slate-700 transition-all relative overflow-hidden"
+                            onclick="selectPayment(this)">
+                            <input type="radio" name="preferencia_pgto" value="financiado" class="hidden">
+                            <div
+                                class="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center mb-3 group-hover:bg-blue-500/20 transition-colors icon-container">
+                                <i class="fa-solid fa-building-columns text-blue-500 text-xl"></i>
+                            </div>
+                            <span class="block font-bold text-white text-lg">Financiado</span>
+                            <div
+                                class="absolute inset-0 bg-green-500/10 opacity-0 transition-opacity selection-overlay">
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="bg-yellow-500/10 p-4 rounded-xl border border-yellow-500/20 flex gap-3 items-start">
+                    <i class="fa-solid fa-circle-info text-yellow-500 mt-1"></i>
+                    <p class="text-xs text-yellow-200">Em leilões da Caixa, é possível financiar até 95% do imóvel.
+                        Atenção: alguns imóveis não aceitam financiamento total.</p>
+                </div>
+
+                <div class="flex justify-between items-center mt-8">
+                    <button type="button" onclick="prevStep(3)"
+                        class="text-slate-500 hover:text-white text-sm font-medium">Voltar</button>
+                    <button type="button" onclick="validateStep4()"
+                        class="bg-white text-black px-6 py-3 rounded-xl font-bold hover:bg-slate-200 transition-colors">
+                        Próximo <i class="fa-solid fa-arrow-right ml-2 text-xs"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- STEP 5: QUALIFICATION (Was Step 4) -->
+            <div class="step-content" data-step="5">
+                <h2 class="text-2xl font-bold mb-2 text-white">Análise de Crédito</h2>
+                <p class="text-slate-400 mb-8">Essa informação é sigilosa e usada apenas para filtrar oportunidades de
+                    financiamento.</p>
+
+                <h3 class="text-lg font-medium text-white mb-4">Seu nome possui restrições (negativado)?</h3>
+
+                <div class="grid grid-cols-2 gap-4 mb-8">
+                    <label
+                        class="option-card cursor-pointer p-6 rounded-2xl bg-slate-800 border border-slate-700 text-center">
+                        <input type="radio" name="restricao_nome" value="true" class="hidden" onchange="autoNext(6)">
+                        <span class="block text-2xl mb-2">🚫</span>
+                        <span class="font-bold text-white">Sim, possuo</span>
+                    </label>
+
+                    <label
+                        class="option-card cursor-pointer p-6 rounded-2xl bg-slate-800 border border-slate-700 text-center">
+                        <input type="radio" name="restricao_nome" value="false" class="hidden" onchange="autoNext(6)">
+                        <span class="block text-2xl mb-2">✅</span>
+                        <span class="font-bold text-white">Não, nome limpo</span>
+                    </label>
+                </div>
+
+                <div class="flex justify-between items-center mt-8">
+                    <button type="button" onclick="prevStep(4)"
+                        class="text-slate-500 hover:text-white text-sm font-medium">Voltar</button>
+                </div>
+            </div>
+
+            <!-- STEP 6: CONTACT (Was Step 5) -->
+            <div class="step-content" data-step="6">
+                <h2 class="text-2xl font-bold mb-2 text-white">Último passo!</h2>
+                <p class="text-slate-400 mb-8">Onde enviamos as oportunidades selecionadas para seu perfil?</p>
+
+                <div class="space-y-4 mb-8">
+                    <div class="grid grid-cols-3 gap-4">
+                        <div class="col-span-1">
+                            <label class="block text-sm font-medium text-slate-400 mb-2">Estado</label>
+                            <select name="estado"
+                                class="w-full bg-slate-800 text-white rounded-xl px-4 py-3 border border-slate-700 focus:border-yellow-500 focus:outline-none appearance-none">
+                                <option value="" disabled selected>UF</option>
+                                <option value="AC">AC</option>
+                                <option value="AL">AL</option>
+                                <option value="AP">AP</option>
+                                <option value="AM">AM</option>
+                                <option value="BA">BA</option>
+                                <option value="CE">CE</option>
+                                <option value="DF">DF</option>
+                                <option value="ES">ES</option>
+                                <option value="GO">GO</option>
+                                <option value="MA">MA</option>
+                                <option value="MT">MT</option>
+                                <option value="MS">MS</option>
+                                <option value="MG">MG</option>
+                                <option value="PA">PA</option>
+                                <option value="PB">PB</option>
+                                <option value="PR">PR</option>
+                                <option value="PE">PE</option>
+                                <option value="PI">PI</option>
+                                <option value="RJ">RJ</option>
+                                <option value="RN">RN</option>
+                                <option value="RS">RS</option>
+                                <option value="RO">RO</option>
+                                <option value="RR">RR</option>
+                                <option value="SC">SC</option>
+                                <option value="SP">SP</option>
+                                <option value="SE">SE</option>
+                                <option value="TO">TO</option>
+                            </select>
+                        </div>
+                        <div class="col-span-2">
+                            <label class="block text-sm font-medium text-slate-400 mb-2">Cidade</label>
+                            <input type="text" name="cidade"
+                                class="w-full bg-slate-800 text-white rounded-xl px-4 py-3 border border-slate-700 focus:border-yellow-500 focus:outline-none"
+                                placeholder="Ex: Fortaleza">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-slate-400 mb-2">Seu Nome</label>
+                        <input type="text" name="nome"
+                            class="w-full bg-slate-800 text-white rounded-xl px-4 py-3 border border-slate-700 focus:border-yellow-500 focus:outline-none"
+                            placeholder="Ex: João da Silva">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-400 mb-2">WhatsApp</label>
+                        <input type="tel" name="whatsapp" id="whatsapp_input"
+                            class="w-full bg-slate-800 text-white rounded-xl px-4 py-3 border border-slate-700 focus:border-yellow-500 focus:outline-none"
+                            placeholder="(00) 00000-0000">
+                    </div>
+                </div>
+
+                <button type="submit"
+                    class="w-full bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-400 hover:to-yellow-500 text-black font-bold py-4 rounded-xl transition-all shadow-lg shadow-yellow-500/20 flex items-center justify-center gap-2">
+                    <span id="btnText">Ver meu Resultado</span>
+                    <i id="btnIcon" class="fa-solid fa-check"></i>
+                    <i id="btnSpinner" class="fa-solid fa-circle-notch fa-spin hidden"></i>
+                </button>
+
+                <button type="button" onclick="prevStep(4)"
+                    class="w-full mt-4 text-slate-500 hover:text-white text-sm font-medium">Voltar</button>
+            </div>
+
+            <!-- STEP 6: SUCCESS -->
+            <div class="step-content text-center" data-step="success">
+                <div
+                    class="w-20 h-20 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-6 animate-bounce">
+                    <i class="fa-solid fa-check text-4xl text-green-500"></i>
+                </div>
+                <h2 class="text-3xl font-bold mb-4 text-white">Perfil Recebido!</h2>
+                <p class="text-slate-400 mb-8 max-w-xs mx-auto">Nossa inteligência artificial já classificou seu perfil.
+                    Um de nossos assessores entrará em contato para tirar mais dúvidas.</p>
+
+                <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700 mb-8 max-w-sm mx-auto">
+                    <p class="text-sm font-medium text-slate-300 mb-2">Seu Score de Arrematante</p>
+                    <div class="w-full h-4 bg-slate-700 rounded-full overflow-hidden mb-2">
+                        <div id="scoreBar"
+                            class="h-full bg-gradient-to-r from-yellow-400 to-green-500 w-[0%] transition-all duration-1000">
+                        </div>
+                    </div>
+                    <p class="text-right text-xs text-yellow-500 font-bold" id="scoreText">Calculando...</p>
+                </div>
+
+                <a href="https://instagram.com/fortalleiloes"
+                    class="inline-flex items-center text-slate-400 hover:text-white transition-colors">
+                    <i class="fa-brands fa-instagram mr-2"></i> Voltar para o Instagram
+                </a>
+            </div>
+
+        </form>
+    </main>
+
+    <script src="/js/funnel.js"></script>
+</body>
+
+</html>

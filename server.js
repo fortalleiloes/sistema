@@ -1339,16 +1339,23 @@ app.post('/historico/add', isAuthenticated, [
 
         // Helper para extrair números de strings formatadas (pt-BR) ou números puros
         const parseMonetary = (val) => {
-            if (!val) return 0;
+            if (val === null || val === undefined || val === '') return 0;
             if (typeof val === 'number') return val;
-            if (typeof val === 'string') {
-                // Remove tudo que não for dígito, vírgula ou sinal de menos
-                // Ex: "R$ 1.200,50" -> "1200,50"
-                const cleanStr = val.replace(/[^\d,-]/g, '');
-                // Troca vírgula por ponto e converte
-                return parseFloat(cleanStr.replace(',', '.')) || 0;
+
+            const strVal = val.toString().trim();
+
+            // Se tiver vírgula, assume formato BRL (Ex: "1.000,00" ou "10,50")
+            if (strVal.includes(',')) {
+                // Remove pontos de milhar, mantém vírgula e sinal de menos e dígitos
+                const clean = strVal.replace(/[^\d,-]/g, '');
+                // Troca vírgula por ponto para converter
+                return parseFloat(clean.replace(',', '.')) || 0;
             }
-            return 0;
+
+            // Se NÃO tiver vírgula, assume formato Standard/US (Ex: "1000.00" vindo de inputs hidden, ou "1000")
+            // Apenas remove caracteres inválidos, mantendo o ponto
+            const clean = strVal.replace(/[^\d.-]/g, '');
+            return parseFloat(clean) || 0;
         };
 
         // 1. Salva no histórico de arremates
@@ -2705,14 +2712,20 @@ app.post('/carteira/edit/:id', isAuthenticated, async (req, res) => {
 
     // Helper para extrair números de strings formatadas (pt-BR) ou números puros
     const parseMonetary = (val) => {
-        if (!val) return 0;
+        if (val === null || val === undefined || val === '') return 0;
         if (typeof val === 'number') return val;
-        if (typeof val === 'string') {
-            // Remove tudo que não for dígito, vírgula ou sinal de menos
-            const cleanStr = val.replace(/[^\d,-]/g, '');
-            return parseFloat(cleanStr.replace(',', '.')) || 0;
+
+        const strVal = val.toString().trim();
+
+        // Se tiver vírgula, assume formato BRL (Ex: "1.000,00" ou "10,50")
+        if (strVal.includes(',')) {
+            const clean = strVal.replace(/[^\d,-]/g, '');
+            return parseFloat(clean.replace(',', '.')) || 0;
         }
-        return 0;
+
+        // Se NÃO tiver vírgula, assume formato Standard/US (Ex: "1000.00")
+        const clean = strVal.replace(/[^\d.-]/g, '');
+        return parseFloat(clean) || 0;
     };
 
     try {

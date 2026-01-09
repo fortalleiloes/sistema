@@ -139,6 +139,23 @@
                                                     </div>
                                                     <input type="hidden" name="tipoPagamento" id="tipoPagamento"
                                                         value="<%= locals.inputData?.tipoPagamento || 'vista' %>">
+
+                                                    <!-- Preservar ID e Nome se estiver editando -->
+                                                    <% if (locals.editMode && locals.editingId) { %>
+                                                        <input type="hidden" name="calculationId"
+                                                            value="<%= locals.editingId %>">
+                                                        <input type="hidden" name="editingName"
+                                                            value="<%= locals.editingName %>">
+                                                        <% } else if (locals.inputData &&
+                                                            locals.inputData.calculationId) { %>
+                                                            <!-- Caso venha de um POST anterior -->
+                                                            <input type="hidden" name="calculationId"
+                                                                value="<%= locals.inputData.calculationId %>">
+                                                            <input type="hidden" name="editingName"
+                                                                value="<%= locals.inputData.editingName %>">
+                                                            <% } %>
+                                                                value="<%= locals.inputData?.tipoPagamento || 'vista' %>
+                                                                    ">
                                                 </div>
 
                                                 <div class="macos-form-group">
@@ -228,10 +245,18 @@
                                                         <label class="macos-form-label">Assessoria</label>
                                                         <div class="macos-input-wrapper"
                                                             style="display: flex; gap: 8px;">
-                                                            <input type="text" id="assessoriaDisplay" readonly
+                                                            <!-- Input Visível (Formatado) -->
+                                                            <input type="text" id="assessoriaDisplay"
                                                                 class="macos-input"
-                                                                value="<%= locals.results ? locals.results.common.valorAssessoria.toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'}) : 'Configurar' %>"
-                                                                style="cursor: default; background-color: var(--macos-bg-tertiary); flex: 1; text-align: left;">
+                                                                value="<%= locals.results ? locals.results.common.valorAssessoria.toLocaleString('pt-BR', {minimumFractionDigits: 2}) : (locals.inputData && locals.inputData.valorAssessoria ? parseFloat(locals.inputData.valorAssessoria).toLocaleString('pt-BR', {minimumFractionDigits: 2}) : '') %>"
+                                                                placeholder="Automático"
+                                                                oninput="handleAssessoriaInput(this)"
+                                                                style="flex: 1; text-align: left;">
+
+                                                            <!-- Input Oculto (Valor Numérico para o Server) -->
+                                                            <input type="hidden" name="valorAssessoria"
+                                                                id="valorAssessoriaHidden"
+                                                                value="<%= locals.results ? locals.results.common.valorAssessoria : (locals.inputData && locals.inputData.valorAssessoria ? locals.inputData.valorAssessoria : '') %>">
                                                             <button type="button" class="macos-btn-secondary"
                                                                 onclick="document.getElementById('assessoriaModal').style.display = 'flex'"
                                                                 style="padding: 0 12px;">
@@ -390,9 +415,9 @@
                                                     </div>
                                                     <div class="macos-form-group">
                                                         <label class="macos-form-label">Imposto de Renda (%)</label>
-                                                        <input type="number" step="0.1" name="aliquotaIRGC"
-                                                            value="<%= locals.inputData ? (locals.inputData.aliquotaIRGC * 100) : '15' %>"
-                                                            required class="macos-input" placeholder="15">
+                                                        <input type="number" step="0.1" name="aliquotaIRGC" value="15"
+                                                            readonly class="macos-input"
+                                                            style="background-color: var(--macos-bg-tertiary); cursor: default;">
                                                     </div>
                                                 </div>
                                             </div>
@@ -621,6 +646,14 @@
                                     style="font-size: 13px; font-weight: 700; color: var(--macos-text-secondary); text-transform: uppercase; margin-bottom: 12px; border-bottom: 1px solid var(--macos-divider); padding-bottom: 8px; letter-spacing: 0.5px;">
                                     Custos de Aquisição
                                 </h4>
+                                <div
+                                    style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px;">
+                                    <span style="color: var(--macos-text-secondary);">Valor de Arremate</span>
+                                    <span style="font-weight: 500; color: var(--macos-text-primary);">
+                                        <%= parseFloat(inputData.valorArrematado || 0).toLocaleString('pt-BR',
+                                            {style: 'currency' , currency: 'BRL' }) %>
+                                    </span>
+                                </div>
                                 <div
                                     style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px;">
                                     <span style="color: var(--macos-text-secondary);">Assessoria</span>
@@ -1006,6 +1039,11 @@
 
                             document.getElementById('assessoriaDisplay').value = `Até ${thresholdFormatted} = ${feeBelowFormatted} | > ${feeAbove}%`;
 
+                            // Recalcular assessoria com as novas regras (se não for manual)
+                            if (typeof updateAssessoriaFromRule === 'function') {
+                                updateAssessoriaFromRule();
+                            }
+
                             document.getElementById('assessoriaModal').style.display = 'none';
                         }
 
@@ -1303,19 +1341,39 @@
                         async function salvarEdicaoCalculo() {
                             if (!calculoEditandoId) return;
 
+                            // Helper para obter valor numérico de inputs de moeda (que podem ser text ou hidden)
+                            const getCurrencyValue = (id) => {
+                                const input = document.getElementById(id);
+                                if (!input) return 0;
+
+                                // Se o input tem formato de moeda (texto com R$), precisamos limpar
+                                if (input.type === 'text' && input.value.includes('R$')) {
+                                    return parseFloat(input.value.replace(/[^\d,]/g, '').replace(',', '.')) || 0;
+                                }
+
+                                // Se for o input original hidden (currency-input.js cria hidden com o mesmo nome, mas aqui estamos pegando por ID)
+                                // O currency-input.js cria hidden inputs, mas o ID do edit-* é o visível.
+                                // Vamos tentar pegar o valor limpo diretamente do input visível.
+                                const rawValue = input.value;
+                                if (typeof rawValue === 'string') {
+                                    return parseFloat(rawValue.replace(/[^\d,]/g, '').replace(',', '.')) || 0;
+                                }
+                                return parseFloat(rawValue) || 0;
+                            };
+
                             // Coletar dados do formulário
                             const dadosAtualizados = {
-                                valorArrematado: parseFloat(document.getElementById('edit-valorArrematado').value) || 0,
-                                valorAvaliacao: parseFloat(document.getElementById('edit-valorAvaliacao').value) || 0,
-                                valorVendaFinal: parseFloat(document.getElementById('edit-valorVendaFinal').value) || 0,
+                                valorArrematado: getCurrencyValue('edit-valorArrematado'),
+                                valorAvaliacao: getCurrencyValue('edit-valorAvaliacao'),
+                                valorVendaFinal: getCurrencyValue('edit-valorVendaFinal'),
                                 itbi: parseFloat(document.getElementById('edit-itbi').value) || 2,
-                                reforma: parseFloat(document.getElementById('edit-reforma').value) || 0,
-                                custosCartorarios: parseFloat(document.getElementById('edit-custosCartorarios').value) || 0,
-                                debitosPendentes: parseFloat(document.getElementById('edit-debitosPendentes').value) || 0,
-                                custoDesocupacao: parseFloat(document.getElementById('edit-custoDesocupacao').value) || 0,
-                                condominioMensal: parseFloat(document.getElementById('edit-condominioMensal').value) || 0,
-                                iptuMensal: parseFloat(document.getElementById('edit-iptuMensal').value) || 0,
-                                taxaSeguroCaixa: parseFloat(document.getElementById('edit-taxaSeguroCaixa').value) || 0,
+                                reforma: getCurrencyValue('edit-reforma'),
+                                custosCartorarios: getCurrencyValue('edit-custosCartorarios'),
+                                debitosPendentes: getCurrencyValue('edit-debitosPendentes'),
+                                custoDesocupacao: getCurrencyValue('edit-custoDesocupacao'),
+                                condominioMensal: getCurrencyValue('edit-condominioMensal'),
+                                iptuMensal: getCurrencyValue('edit-iptuMensal'),
+                                taxaSeguroCaixa: getCurrencyValue('edit-taxaSeguroCaixa'),
                                 corretagemPercent: parseFloat(document.getElementById('edit-corretagemPercent').value) || 6
                             };
 
@@ -1356,6 +1414,93 @@
                         });
                     </script>
 
+
+                    <script>
+                        // --- Lógica de Assessoria: Manual x Automática ---
+                        window.assessoriaManual = false;
+
+                        function handleAssessoriaInput(input) {
+                            // 1. Formatar moeda
+                            if (typeof formatCurrencyInput === 'function') {
+                                formatCurrencyInput(input);
+                            }
+
+                            // 2. Atualizar input oculto (Raw)
+                            if (typeof parseCurrency === 'function') {
+                                const rawVal = parseCurrency(input.value);
+                                const hidden = document.getElementById('valorAssessoriaHidden');
+                                if (hidden) hidden.value = rawVal;
+                            }
+
+                            // 3. Setar Flag Manual
+                            if (input.value && input.value !== '') {
+                                window.assessoriaManual = true;
+                            } else {
+                                // Se limpar, volta para o automático
+                                window.assessoriaManual = false;
+                                updateAssessoriaFromRule();
+                            }
+                        }
+
+                        function updateAssessoriaFromRule() {
+                            if (window.assessoriaManual) return;
+
+                            // Obter valor do Arremate
+                            let arremateVal = 0;
+                            const arremateHidden = document.querySelector('input[name="valorArrematado"]');
+                            if (arremateHidden) {
+                                arremateVal = parseFloat(arremateHidden.value) || 0;
+                            } else {
+                                // Fallback se não usar currency script
+                                const arremateInput = document.querySelector('input[name="valorArrematado"]');
+                                if (arremateInput) arremateVal = parseFloat(arremateInput.value) || 0;
+                            }
+
+                            // Obter Regras
+                            const getVal = (id, def) => {
+                                const el = document.getElementById(id);
+                                return el ? (parseFloat(el.value) || def) : def;
+                            };
+
+                            const threshold = getVal('assessoriaThreshold', 120000);
+                            const feeBelow = getVal('assessoriaFeeBelow', 6000);
+                            const feeAbovePercent = getVal('assessoriaFeeAbovePercent', 5);
+
+                            // Calcular
+                            let fee = 0;
+                            if (arremateVal > 0) {
+                                if (arremateVal <= threshold) {
+                                    fee = feeBelow;
+                                } else {
+                                    fee = (arremateVal * feeAbovePercent) / 100;
+                                }
+                            }
+                            // Arredondar
+                            fee = Math.round((fee + Number.EPSILON) * 100) / 100;
+
+                            // Atualizar Inputs
+                            const display = document.getElementById('assessoriaDisplay');
+                            const hidden = document.getElementById('valorAssessoriaHidden');
+
+                            if (display && hidden) {
+                                hidden.value = fee > 0 ? fee : '';
+                                if (typeof formatCurrencyValue === 'function') {
+                                    display.value = fee > 0 ? formatCurrencyValue(fee) : '';
+                                } else {
+                                    display.value = fee > 0 ? fee.toFixed(2).replace('.', ',') : '';
+                                }
+                            }
+                        }
+
+                        // Listener para mudanças no Valor do Arremate
+                        document.addEventListener('input', function (e) {
+                            // Verifica se é o input visível do Arremate (irmão do hidden)
+                            const nextSibling = e.target.nextElementSibling;
+                            if (nextSibling && nextSibling.name === 'valorArrematado') {
+                                setTimeout(updateAssessoriaFromRule, 50); // Leve delay para garantir atualização do hidden
+                            }
+                        });
+                    </script>
 
                     <script>
                         console.log('Script de auto-preenchimento carregado (v3 - Currency Compatible)');

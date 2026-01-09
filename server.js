@@ -537,6 +537,43 @@ async function ensureTables() {
         )
     `);
 
+    // Tabela de Oportunidades (Imóveis Estudados)
+    await db.exec(`
+        CREATE TABLE IF NOT EXISTS oportunidades (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER, -- Assessor que cadastrou
+            titulo TEXT,
+            descricao TEXT,
+            
+            -- Dados Principais
+            valor_arremate REAL,
+            valor_venda REAL,
+            lucro_estimado REAL,
+            roi_estimado REAL,
+            cidade TEXT,
+            estado TEXT,
+            tipo_imovel TEXT, -- Casa, Apto, etc
+            
+            -- Links e Midia
+            link_caixa TEXT,
+            foto_capa TEXT,
+            
+            -- Integração
+            calculo_origem_id INTEGER, -- ID do cálculo salvo que gerou isso (opcional)
+            
+            status TEXT DEFAULT 'disponivel', -- disponivel, reservado, vendido
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+    `);
+
+    // Migração para adicionar colunas de localização se não existirem em saved_calculations (para facilitar importação)
+    try {
+        await db.exec("ALTER TABLE saved_calculations ADD COLUMN cidade TEXT");
+        console.log("Coluna 'cidade' adicionada à tabela saved_calculations.");
+    } catch (e) {
+        // Ignora
+    }
+
     // Migração para adicionar colunas de localização se não existirem
     try {
         await db.exec("ALTER TABLE leads ADD COLUMN estado TEXT");
@@ -1527,6 +1564,35 @@ app.get('/api/saved-calculations', isAuthenticated, async (req, res) => {
     }
 });
 
+// Rota para atualizar cálculo salvo via API
+app.put('/api/saved-calculations/:id', isAuthenticated, async (req, res) => {
+    try {
+        const calculoId = req.params.id;
+        const { data } = req.body;
+
+        // Verificar se o cálculo pertence ao usuário
+        const calculo = await db.get(
+            'SELECT * FROM saved_calculations WHERE id = ? AND user_id = ?',
+            [calculoId, req.session.userId]
+        );
+
+        if (!calculo) {
+            return res.status(404).json({ error: 'Cálculo não encontrado' });
+        }
+
+        // Atualizar apenas os dados, mantendo o nome
+        await db.run(
+            'UPDATE saved_calculations SET data = ? WHERE id = ? AND user_id = ?',
+            [JSON.stringify(data), calculoId, req.session.userId]
+        );
+
+        res.json({ success: true, message: 'Cálculo atualizado com sucesso' });
+    } catch (error) {
+        console.error('Erro ao atualizar cálculo:', error);
+        res.status(500).json({ error: 'Erro ao atualizar cálculo' });
+    }
+});
+
 // Importar cálculo salvo para a carteira
 app.post('/api/portfolio/import-calculation/:id', isAuthenticated, async (req, res) => {
     try {
@@ -1577,6 +1643,119 @@ app.post('/api/portfolio/import-calculation/:id', isAuthenticated, async (req, r
     }
 });
 
+// --- Rota da Vitrine de Oportunidades (Imóveis Estudados) ---
+
+// 1. Página de Listagem
+// 1. Página de Listagem
+app.get('/oportunidades', isAuthenticated, async (req, res) => {
+    try {
+        console.log('--- Acessando /oportunidades ---');
+
+        // Busca oportunidades COM o nome do assessor (JOIN)
+        const oportunidades = await db.all(`
+            SELECT oportunidades.*, users.username as autor 
+            FROM oportunidades 
+            LEFT JOIN users ON oportunidades.user_id = users.id 
+            ORDER BY oportunidades.created_at DESC
+        `);
+
+        console.log('Oportunidades encontradas:', oportunidades.length);
+
+        if (typeof getUserContext !== 'function') {
+            throw new Error('getUserContext não é uma função ou não está definida');
+        }
+
+        const context = {
+            user: getUserContext(req.session),
+            oportunidades: oportunidades
+        };
+
+        res.render('oportunidades', context, (err, html) => {
+            if (err) {
+                console.error('Erro de Renderização EJS:', err);
+                return res.status(500).send('Erro de Renderização: ' + err.message);
+            }
+            res.send(html);
+        });
+
+    } catch (error) {
+        console.error('Erro ao carregar oportunidades (catch block):', error);
+        res.status(500).send("Erro ao carregar oportunidades: " + error.message);
+    }
+});
+
+// 2. Criar Nova Oportunidade
+// O 'upload.single' deve vir após a autenticação
+app.post('/oportunidades', isAuthenticated, upload.fields([
+    { name: 'foto_upload', maxCount: 1 },
+    { name: 'pdf_proposta', maxCount: 1 },
+    { name: 'pdf_matricula', maxCount: 1 }
+]), async (req, res) => {
+    try {
+        const {
+            titulo,
+            descricao,
+            valor_arremate,
+            valor_venda,
+            lucro_estimado,
+            roi_estimado,
+            cidade,
+            estado,
+            tipo_imovel,
+            link_caixa,
+            foto_capa, // URL "manual" via hidden input, se não houver upload
+            calculo_origem_id
+        } = req.body;
+
+        // --- Processamento de Arquivos ---
+        let finalFotoCapa = foto_capa;
+        let pdfPropostaPath = null;
+        let pdfMatriculaPath = null;
+
+        // Se houver uploads, sobrescreve as vars
+        if (req.files) {
+            if (req.files['foto_upload'] && req.files['foto_upload'][0]) {
+                finalFotoCapa = '/uploads/' + req.files['foto_upload'][0].filename;
+            }
+            if (req.files['pdf_proposta'] && req.files['pdf_proposta'][0]) {
+                pdfPropostaPath = '/uploads/' + req.files['pdf_proposta'][0].filename;
+            }
+            if (req.files['pdf_matricula'] && req.files['pdf_matricula'][0]) {
+                pdfMatriculaPath = '/uploads/' + req.files['pdf_matricula'][0].filename;
+            }
+        }
+
+        await db.run(
+            `INSERT INTO oportunidades (
+                user_id, titulo, descricao, valor_arremate, valor_venda, lucro_estimado, 
+                roi_estimado, cidade, estado, tipo_imovel, link_caixa, foto_capa, calculo_origem_id,
+                pdf_proposta, pdf_matricula
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [
+                req.session.userId, titulo, descricao, valor_arremate, valor_venda, lucro_estimado,
+                roi_estimado, cidade, estado, tipo_imovel, link_caixa, finalFotoCapa, calculo_origem_id,
+                pdfPropostaPath, pdfMatriculaPath
+            ]
+        );
+
+        res.json({ success: true, message: 'Oportunidade publicada com sucesso!' });
+    } catch (error) {
+        console.error('Erro ao criar oportunidade:', error);
+        res.status(500).json({ error: 'Erro ao publicar oportunidade.' });
+    }
+});
+
+app.delete('/oportunidades/:id', isAuthenticated, async (req, res) => {
+    try {
+        const { id } = req.params;
+        await db.run('DELETE FROM oportunidades WHERE id = ?', [id]);
+        res.json({ success: true, message: 'Oportunidade removida com sucesso.' });
+    } catch (error) {
+        console.error('Erro ao remover oportunidade:', error);
+        res.status(500).json({ error: 'Erro ao remover oportunidade.' });
+    }
+});
+
 app.post('/calculadora', isAuthenticated, async (req, res) => {
     const calculator = new ViabilityCalculator();
 
@@ -1611,7 +1790,10 @@ app.post('/calculadora', isAuthenticated, async (req, res) => {
         results: results, // Passa os resultados para a view
         inputData: { ...req.body, ...inputData }, // Passa TODOS os dados, originais e calculados
         savedCalculations: savedCalculations,
-        success: req.query.success
+        success: req.query.success,
+        editMode: !!req.body.calculationId, // Preserva modo de edição se ID estiver presente
+        editingId: req.body.calculationId,
+        editingName: req.body.editingName
     });
 });
 

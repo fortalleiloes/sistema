@@ -411,8 +411,13 @@
                         <div class="grid grid-cols-2 gap-4">
                             <!-- Fachada -->
                             <div id="dropzone_fileFachada"
-                                class="border border-dashed border-gray-400 dark:border-gray-600 p-4 rounded text-center cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 outline-none focus:ring-2 focus:ring-[var(--macos-accent)] transition-all"
+                                class="relative border border-dashed border-gray-400 dark:border-gray-600 p-4 rounded text-center cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 outline-none focus:ring-2 focus:ring-[var(--macos-accent)] transition-all"
                                 tabindex="0" onclick="handleSmartUploadClick('fileFachada', this)">
+                                <button type="button"
+                                    class="remove-image-btn absolute top-2 right-2 text-red-500 hover:text-red-700 hidden z-10 bg-white dark:bg-gray-800 rounded-full w-6 h-6 flex items-center justify-center shadow-md"
+                                    onclick="removeImage(event, 'fileFachada', 'previewFachada', 'pdfImage')">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </button>
                                 <p class="text-sm font-bold text-gray-600 dark:text-gray-300">Foto da Fachada (Capa)</p>
                                 <p class="text-[10px] text-gray-400 mt-1">Clica para selecionar, Ctrl+V para colar</p>
                                 <input type="file" id="fileFachada" class="hidden" accept="image/*"
@@ -422,8 +427,13 @@
 
                             <!-- Mapa -->
                             <div id="dropzone_fileMapa"
-                                class="border border-dashed border-gray-400 dark:border-gray-600 p-4 rounded text-center cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 outline-none focus:ring-2 focus:ring-[var(--macos-accent)] transition-all"
+                                class="relative border border-dashed border-gray-400 dark:border-gray-600 p-4 rounded text-center cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 outline-none focus:ring-2 focus:ring-[var(--macos-accent)] transition-all"
                                 tabindex="0" onclick="handleSmartUploadClick('fileMapa', this)">
+                                <button type="button"
+                                    class="remove-image-btn absolute top-2 right-2 text-red-500 hover:text-red-700 hidden z-10 bg-white dark:bg-gray-800 rounded-full w-6 h-6 flex items-center justify-center shadow-md"
+                                    onclick="removeImage(event, 'fileMapa', 'previewMapa', 'pdfMapImage')">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </button>
                                 <p class="text-sm font-bold text-gray-600 dark:text-gray-300">Foto do Mapa (Pág 2)</p>
                                 <p class="text-[10px] text-gray-400 mt-1">Clica para selecionar, Ctrl+V para colar</p>
                                 <input type="file" id="fileMapa" class="hidden" accept="image/*"
@@ -438,8 +448,13 @@
                             <div class="grid grid-cols-3 gap-4">
                                 <!-- Mkt1 -->
                                 <div id="dropzone_fileMkt1"
-                                    class="border border-dashed border-gray-400 dark:border-gray-600 p-2 text-center hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer outline-none focus:ring-2 focus:ring-[var(--macos-accent)] transition-all"
+                                    class="relative border border-dashed border-gray-400 dark:border-gray-600 p-2 text-center hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer outline-none focus:ring-2 focus:ring-[var(--macos-accent)] transition-all"
                                     tabindex="0" onclick="handleSmartUploadClick('fileMkt1', this)">
+                                    <button type="button"
+                                        class="remove-image-btn absolute top-1 right-1 text-red-500 hover:text-red-700 hidden z-10 bg-white dark:bg-gray-800 rounded-full w-5 h-5 flex items-center justify-center shadow-md"
+                                        onclick="removeImage(event, 'fileMkt1', 'pMkt1', 'pdfMkt1')">
+                                        <i class="fa-solid fa-xmark text-xs"></i>
+                                    </button>
                                     <span class="dark:text-gray-300 text-xs block mb-1">Img 1 (Ctrl+V)</span>
                                     <input type="file" id="fileMkt1" class="hidden"
                                         onchange="previewUpload(this, 'pMkt1', 'pdfMkt1')">
@@ -447,8 +462,13 @@
                                 </div>
                                 <!-- Mkt2 -->
                                 <div id="dropzone_fileMkt2"
-                                    class="border border-dashed border-gray-400 dark:border-gray-600 p-2 text-center hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer outline-none focus:ring-2 focus:ring-[var(--macos-accent)] transition-all"
+                                    class="relative border border-dashed border-gray-400 dark:border-gray-600 p-2 text-center hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer outline-none focus:ring-2 focus:ring-[var(--macos-accent)] transition-all"
                                     tabindex="0" onclick="handleSmartUploadClick('fileMkt2', this)">
+                                    <button type="button"
+                                        class="remove-image-btn absolute top-1 right-1 text-red-500 hover:text-red-700 hidden z-10 bg-white dark:bg-gray-800 rounded-full w-5 h-5 flex items-center justify-center shadow-md"
+                                        onclick="removeImage(event, 'fileMkt2', 'pMkt2', 'pdfMkt2')">
+                                        <i class="fa-solid fa-xmark text-xs"></i>
+                                    </button>
                                     <span class="dark:text-gray-300 text-xs block mb-1">Img 2 (Ctrl+V)</span>
                                     <input type="file" id="fileMkt2" class="hidden"
                                         onchange="previewUpload(this, 'pMkt2', 'pdfMkt2')">
@@ -456,8 +476,13 @@
                                 </div>
                                 <!-- Mkt3 -->
                                 <div id="dropzone_fileMkt3"
-                                    class="border border-dashed border-gray-400 dark:border-gray-600 p-2 text-center hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer outline-none focus:ring-2 focus:ring-[var(--macos-accent)] transition-all"
+                                    class="relative border border-dashed border-gray-400 dark:border-gray-600 p-2 text-center hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer outline-none focus:ring-2 focus:ring-[var(--macos-accent)] transition-all"
                                     tabindex="0" onclick="handleSmartUploadClick('fileMkt3', this)">
+                                    <button type="button"
+                                        class="remove-image-btn absolute top-1 right-1 text-red-500 hover:text-red-700 hidden z-10 bg-white dark:bg-gray-800 rounded-full w-5 h-5 flex items-center justify-center shadow-md"
+                                        onclick="removeImage(event, 'fileMkt3', 'pMkt3', 'pdfMkt3')">
+                                        <i class="fa-solid fa-xmark text-xs"></i>
+                                    </button>
                                     <span class="dark:text-gray-300 text-xs block mb-1">Img 3 (Ctrl+V)</span>
                                     <input type="file" id="fileMkt3" class="hidden"
                                         onchange="previewUpload(this, 'pMkt3', 'pdfMkt3')">
@@ -526,8 +551,13 @@
                         <!-- Watermark Upload -->
                         <div class="mt-4 border-t pt-4 dark:border-gray-700">
                             <div id="dropzone_fileLogoWatermark"
-                                class="border border-dashed border-gray-400 dark:border-gray-600 p-4 rounded text-center cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 outline-none focus:ring-2 focus:ring-[var(--macos-accent)] transition-all"
+                                class="relative border border-dashed border-gray-400 dark:border-gray-600 p-4 rounded text-center cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 outline-none focus:ring-2 focus:ring-[var(--macos-accent)] transition-all"
                                 tabindex="0" onclick="handleSmartUploadClick('fileLogoWatermark', this)">
+                                <button type="button"
+                                    class="remove-image-btn absolute top-2 right-2 text-red-500 hover:text-red-700 hidden z-10 bg-white dark:bg-gray-800 rounded-full w-6 h-6 flex items-center justify-center shadow-md"
+                                    onclick="removeImage(event, 'fileLogoWatermark', 'previewWatermark', null)">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </button>
                                 <p class="text-sm font-bold text-gray-600 dark:text-gray-300">Logo para Marca D'água
                                     (Fundo)</p>
                                 <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Sua logo ficará repetida no
@@ -997,6 +1027,44 @@
                     }
                 });
 
+                function removeImage(e, inputId, previewId, pdfTargetId) {
+                    if (e) e.stopPropagation();
+
+                    // 1. Reset Input
+                    const input = document.getElementById(inputId);
+                    if (input) input.value = '';
+
+                    // 2. Hide Preview
+                    const preview = document.getElementById(previewId);
+                    if (preview) {
+                        preview.classList.add('hidden');
+                        preview.src = '';
+                        if (preview.style.backgroundImage) preview.style.backgroundImage = '';
+                    }
+
+                    // 3. Clear PDF Target (if exists)
+                    if (pdfTargetId) {
+                        const pdfImg = document.getElementById(pdfTargetId);
+                        if (pdfImg) {
+                            pdfImg.src = '';
+                        }
+                    }
+
+                    // 4. Hide Delete Button
+                    if (e && e.currentTarget) {
+                        e.currentTarget.classList.add('hidden');
+                    }
+
+                    // Special case for watermark
+                    if (inputId === 'fileLogoWatermark') {
+                        const watermarks = document.querySelectorAll('.pdf-watermark-bg');
+                        watermarks.forEach(div => {
+                            div.style.backgroundImage = "url('/images/logo-placeholder-watermark.png')";
+                            div.style.backgroundSize = "80px";
+                        });
+                    }
+                }
+
                 // Image Preview Handler
                 function previewUpload(input, previewId, pdfTargetId) {
                     if (input.files && input.files[0]) {
@@ -1014,6 +1082,12 @@
                             if (pdfTargetId) {
                                 const pdfImg = document.getElementById(pdfTargetId);
                                 if (pdfImg) pdfImg.src = e.target.result;
+                            }
+
+                            // SHOW DELETE BUTTON
+                            if (input.parentElement) {
+                                const btn = input.parentElement.querySelector('.remove-image-btn');
+                                if (btn) btn.classList.remove('hidden');
                             }
                         }
                         reader.readAsDataURL(input.files[0]);
@@ -1057,7 +1131,7 @@
                         const file = e.clipboardData.files[0];
                         if (file.type.startsWith('image/')) {
                             e.preventDefault();
-                            
+
                             // Manually assigning files to input (DataTransfer hack)
                             const dataTransfer = new DataTransfer();
                             dataTransfer.items.add(file);
@@ -1076,7 +1150,7 @@
                         }
                     }
                 }
-                
+
                 // --- EXISTING FUNCTIONS ---   
                 function saveCompanyProfile() {
                     const instagram = document.getElementById('inputInstagram').value;
@@ -1253,6 +1327,12 @@
                         reader.onload = function (e) {
                             currentLogoBase64 = e.target.result;
                             applyWatermarkFromBase64(currentLogoBase64);
+
+                            // SHOW DELETE BUTTON
+                            if (input.parentElement) {
+                                const btn = input.parentElement.querySelector('.remove-image-btn');
+                                if (btn) btn.classList.remove('hidden');
+                            }
                         }
                         reader.readAsDataURL(input.files[0]);
                     }

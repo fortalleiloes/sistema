@@ -1,6 +1,6 @@
 // Script para formatar inputs de moeda no padrão brasileiro em tempo real
+// ... (existing helper functions)
 
-// Mover funções auxiliares para escopo global ou acessível
 function formatToBRL(value) {
     // Remove tudo que não é dígito
     let numbers = value.replace(/\D/g, '');
@@ -12,6 +12,11 @@ function formatToBRL(value) {
 
     // Converte para número e divide por 100 (para ter centavos)
     let amount = parseInt(numbers) / 100;
+
+    // Safety check for NaN
+    if (isNaN(amount)) {
+        return 'R$ 0,00';
+    }
 
     // Formata usando Intl
     return new Intl.NumberFormat('pt-BR', {
@@ -71,7 +76,10 @@ window.initCurrencyInputs = function () {
         if (input.value) {
             // Se já tiver R$, assume que está formatado. Se não, formata.
             if (!input.value.includes('R$')) {
-                const initialValue = parseFloat(input.value) || 0;
+                // Tenta fazer o parse de forma segura
+                let initialValue = parseFloat(input.value);
+                if (isNaN(initialValue)) { initialValue = 0; }
+
                 const valueInCents = Math.round(initialValue * 100);
                 input.value = formatToBRL(valueInCents.toString());
                 hiddenInput.value = initialValue.toFixed(2);

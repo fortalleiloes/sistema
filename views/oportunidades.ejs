@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <%- include('partials/head') %>
+        <title>Banco de Oportunidades - Fortal</title>
+</head>
+
+<body class="macos-theme">
+    <div class="macos-layout">
+        <%- include('partials/macos-sidebar') %>
+
+            <main class="macos-main-content">
+                <style>
+                    /* Grid Layout para os Cards */
+                    .opportunities-grid {
+                        display: grid;
+                        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+                        gap: 24px;
+                        margin-top: 24px;
+                    }
+
+                    /* Card de Oportunidade */
+                    .opportunity-card {
+                        background: var(--macos-bg-secondary);
+                        border-radius: 12px;
+                        border: 1px solid var(--macos-divider);
+                        overflow: hidden;
+                        transition: all 0.2s ease;
+                        display: flex;
+                        flex-direction: column;
+                    }
+
+                    .opportunity-card:hover {
+                        transform: translateY(-4px);
+                        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+                        border-color: var(--macos-accent);
+                    }
+
+                    /* Header do Card (Foto ou Ícone) */
+                    .opportunity-header {
+                        height: 180px;
+                        background: var(--macos-bg-tertiary);
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        position: relative;
+                        border-bottom: 1px solid var(--macos-divider);
+                    }
+
+                    .opportunity-header img {
+                        width: 100%;
+                        height: 100%;
+                        object-fit: cover;
+                    }
+
+                    .opportunity-header .placeholder-icon {
+                        font-size: 48px;
+                        color: rgba(0, 0, 0, 0.2);
+                    }
+
+
+
+                    /* Corpo do Card */
+                    .opportunity-body {
+                        padding: 20px;
+                        flex: 1;
+                        display: flex;
+                        flex-direction: column;
+                    }
+
+                    .opportunity-title {
+                        font-size: 18px;
+                        font-weight: 600;
+                        color: var(--macos-text-primary);
+                        margin-bottom: 8px;
+                        line-height: 1.3;
+                    }
+
+                    .opportunity-location {
+                        font-size: 13px;
+                        color: var(--macos-text-secondary);
+                        display: flex;
+                        align-items: center;
+                        gap: 6px;
+                        margin-bottom: 16px;
+                    }
+
+                    /* Métricas Principais */
+                    .metrics-row {
+                        display: grid;
+                        grid-template-columns: 1fr 1fr;
+                        gap: 12px;
+                        margin-bottom: 20px;
+                        background: var(--macos-bg-tertiary);
+                        padding: 12px;
+                        border-radius: 8px;
+                    }
+
+                    .metric-item {
+                        display: flex;
+                        flex-direction: column;
+                    }
+
+                    .metric-label {
+                        font-size: 11px;
+                        color: var(--macos-text-secondary);
+                        text-transform: uppercase;
+                        letter-spacing: 0.5px;
+                        margin-bottom: 4px;
+                    }
+
+                    .metric-value {
+                        font-size: 14px;
+                        font-weight: 600;
+                        color: var(--macos-text-primary);
+                    }
+
+                    .metric-value.highlight {
+                        color: #27ae60;
+                    }
+
+                    /* Botões de Ação */
+                    .opportunity-footer {
+                        margin-top: auto;
+                        display: flex;
+                        gap: 8px;
+                    }
+
+                    .btn-action {
+                        flex: 1;
+                        padding: 8px;
+                        border-radius: 6px;
+                        font-size: 13px;
+                        font-weight: 500;
+                        text-align: center;
+                        border: none;
+                        cursor: pointer;
+                        transition: background 0.2s;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        gap: 6px;
+                    }
+
+                    .btn-details {
+                        background: var(--macos-bg-tertiary);
+                        color: var(--macos-text-primary);
+                    }
+
+                    .btn-details:hover {
+                        background: rgba(0, 0, 0, 0.05);
+                    }
+
+                    .btn-whatsapp {
+                        background: #25D366;
+                        color: white;
+                    }
+
+                    .btn-whatsapp:hover {
+                        background: #1ebc59;
+                    }
+
+                    /* Modal de Adição */
+                    .modal-overlay {
+                        position: fixed;
+                        top: 0;
+                        left: 0;
+                        width: 100%;
+                        height: 100%;
+                        background: rgba(0, 0, 0, 0.4);
+                        backdrop-filter: blur(4px);
+                        z-index: 1000;
+                        display: none;
+                        align-items: center;
+                        justify-content: center;
+                    }
+
+                    .modal-overlay.active {
+                        display: flex;
+                    }
+
+                    .modal-window {
+                        width: 500px;
+                        max-width: 90%;
+                        background: var(--macos-bg-secondary);
+                        border-radius: 12px;
+                        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+                        border: 1px solid var(--macos-divider);
+                        overflow: hidden;
+                        animation: modalPop 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+                    }
+
+                    @keyframes modalPop {
+                        from {
+                            transform: scale(0.9);
+                            opacity: 0;
+                        }
+
+                        to {
+                            transform: scale(1);
+                            opacity: 1;
+                        }
+                    }
+
+                    select.macos-input {
+                        appearance: none;
+                        background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23333%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+                        background-repeat: no-repeat;
+                        background-position: right 12px top 50%;
+                        background-position: right 12px top 50%;
+                        background-size: 12px auto;
+                    }
+
+                    /* Delete Button */
+                    .delete-btn {
+                        position: absolute;
+                        top: 12px;
+                        right: 12px;
+                        background: rgba(0, 0, 0, 0.5);
+                        color: white;
+                        border: none;
+                        border-radius: 50%;
+                        width: 32px;
+                        height: 32px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        cursor: pointer;
+                        opacity: 0;
+                        transition: all 0.2s;
+                        backdrop-filter: blur(4px);
+                        z-index: 10;
+                    }
+
+                    .delete-btn:hover {
+                        background: #e74c3c;
+                    }
+
+                    .opportunity-card:hover .delete-btn {
+                        opacity: 1;
+                    }
+                </style>
+                <style>
+                    /* Custom File Upload */
+                    .file-upload-box {
+                        border: 1px dashed var(--macos-divider);
+                        background: var(--macos-bg-tertiary);
+                        border-radius: 8px;
+                        padding: 12px;
+                        text-align: center;
+                        position: relative;
+                        transition: all 0.2s;
+                        display: flex;
+                        flex-direction: column;
+                        align-items: center;
+                        justify-content: center;
+                        min-height: 90px;
+                        cursor: pointer;
+                    }
+
+                    .file-upload-box:hover {
+                        border-color: var(--macos-accent);
+                        background: rgba(255, 255, 255, 0.5);
+                    }
+
+                    .file-upload-box input[type="file"] {
+                        position: absolute;
+                        top: 0;
+                        left: 0;
+                        width: 100%;
+                        height: 100%;
+                        opacity: 0;
+                        cursor: pointer;
+                    }
+
+                    .file-upload-icon {
+                        font-size: 24px;
+                        color: var(--macos-text-tertiary);
+                        margin-bottom: 8px;
+                        transition: color 0.2s;
+                    }
+
+                    .file-upload-text {
+                        font-size: 11px;
+                        color: var(--macos-text-secondary);
+                        pointer-events: none;
+                        max-width: 90%;
+                        white-space: nowrap;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                    }
+
+                    .file-upload-box.has-file {
+                        border-style: solid;
+                        border-color: #2ecc71;
+                        background: rgba(46, 204, 113, 0.05);
+                    }
+
+                    .file-upload-box.has-file .file-upload-icon {
+                        color: #27ae60;
+                    }
+                </style>
+
+                <!-- Header Principal -->
+                <div class="macos-glass-header"
+                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; gap: 16px; flex-wrap: wrap;">
+                    <div style="flex: 1;">
+                        <h1
+                            style="font-size: 28px; font-weight: 700; color: var(--macos-text-primary); letter-spacing: -0.5px;">
+                            Banco de Oportunidades</h1>
+                        <p style="font-size: 15px; color: var(--macos-text-secondary); margin-top: 4px;">Imóveis
+                            estudados e validados pelo time</p>
+                    </div>
+
+                    <div style="display: flex; gap: 12px; align-items: center;">
+                        <div class="flex items-center gap-2">
+                            <label for="stateFilterOp" class="text-xs font-semibold text-gray-500 uppercase mr-2"
+                                style="color: var(--macos-text-secondary);">Filtrar:</label>
+                            <select id="stateFilterOp" class="macos-input"
+                                style="width: auto; min-width: 150px; height: 36px; padding: 0 32px 0 12px; cursor: pointer;">
+                                <option value="">Todos os Estados</option>
+                            </select>
+                        </div>
+
+                        <button class="macos-btn-primary" onclick="openAddModal()">
+                            <i class="fa-solid fa-plus" style="margin-right: 8px;"></i>
+                            Nova Oportunidade
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Grid de Oportunidades -->
+                <div class="opportunities-grid" id="opportunitiesGrid">
+                    <% if (oportunidades.length===0) { %>
+                        <div class="empty-state"
+                            style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: var(--macos-text-secondary);">
+                            <i class="fa-regular fa-folder-open" style="font-size: 48px; margin-bottom: 16px;"></i>
+                            <h3>Nenhuma oportunidade cadastrada</h3>
+                            <p>Adicione imóveis estudados para criar um banco de ofertas para leads.</p>
+                        </div>
+                        <% } else { %>
+                            <% oportunidades.forEach(op=> { %>
+                                <div class="opportunity-card"
+                                    data-state="<%= (op.estado || '').trim().toUpperCase() %>">
+                                    <div class="opportunity-header">
+                                        <button class="delete-btn" onclick="deleteOpportunity('<%= op.id %>', event)"
+                                            title="Excluir Oportunidade">
+                                            <i class="fa-solid fa-trash"></i>
+                                        </button>
+                                        <% if (op.foto_capa) { %>
+                                            <img src="<%= op.foto_capa %>" alt="<%= op.titulo %>">
+                                            <% } else { %>
+                                                <i class="fa-solid fa-house placeholder-icon"></i>
+                                                <% } %>
+                                    </div>
+                                    <div class="opportunity-body">
+                                        <h3 class="opportunity-title">
+                                            <%= op.titulo %>
+                                        </h3>
+                                        <div class="opportunity-location">
+                                            <i class="fa-solid fa-location-dot"></i>
+                                            <%= op.cidade || 'Não informada' %>
+                                                <%= op.estado ? '-' : '' %>
+                                                    <%= op.estado %>
+                                        </div>
+
+                                        <% if (op.autor) { %>
+                                            <div
+                                                style="font-size: 11px; color: var(--macos-text-secondary); margin-bottom: 12px; display: flex; align-items: center; gap: 4px;">
+                                                <i class="fa-solid fa-user-circle"></i> Publicado por: <strong>
+                                                    <%= op.autor %>
+                                                </strong>
+                                            </div>
+                                            <% } %>
+
+                                                <div class="metrics-row">
+                                                    <div class="metric-item">
+                                                        <span class="metric-label">Valor Venda</span>
+                                                        <span class="metric-value">
+                                                            <%= (op.valor_venda || 0).toLocaleString('pt-BR', {
+                                                                style: 'currency' , currency: 'BRL' }) %>
+                                                        </span>
+                                                    </div>
+                                                    <div class="metric-item">
+                                                        <span class="metric-label">Lance Mínimo</span>
+                                                        <span class="metric-value">
+                                                            <%= (op.valor_arremate || 0).toLocaleString('pt-BR', {
+                                                                style: 'currency' , currency: 'BRL' }) %>
+                                                        </span>
+                                                    </div>
+                                                </div>
+
+                                                <div class="metrics-row" style="background: rgba(39, 174, 96, 0.1);">
+                                                    <div class="metric-item">
+                                                        <span class="metric-label">Lucro Estimado</span>
+                                                        <span class="metric-value highlight">
+                                                            <%= (op.lucro_estimado || 0).toLocaleString('pt-BR', {
+                                                                style: 'currency' , currency: 'BRL' }) %>
+                                                        </span>
+                                                    </div>
+                                                    <div class="metric-item">
+                                                        <span class="metric-label">ROI</span>
+                                                        <span class="metric-value highlight">
+                                                            <%= (op.roi_estimado || 0).toFixed(2) %>%
+                                                        </span>
+                                                    </div>
+                                                </div>
+
+                                                <div class="opportunity-footer" style="flex-wrap: wrap;">
+                                                    <button class="btn-action btn-details"
+                                                        onclick="openDetails('<%= op.id %>')">
+                                                        <i class="fa-solid fa-eye"></i> Ver Análise Completa
+                                                    </button>
+                                                </div>
+                                    </div>
+                                </div>
+                                <% }) %>
+                                    <% } %>
+                </div>
+            </main>
+    </div>
+
+    <!-- Modal Adicionar Oportunidade -->
+    <div id="addModal" class="modal-overlay">
+        <div class="modal-window" style="width: 600px;">
+            <div
+                style="padding: 20px; border-bottom: 1px solid var(--macos-divider); display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.5);">
+                <h3 style="margin: 0; font-size: 16px; font-weight: 600;">Nova Oportunidade</h3>
+                <button onclick="closeAddModal()"
+                    style="background: none; border: none; font-size: 18px; cursor: pointer; color: var(--macos-text-tertiary);">&times;</button>
+            </div>
+
+            <div style="padding: 24px;">
+                <form id="addOpportunityForm" onsubmit="submitOpportunity(event)" enctype="multipart/form-data">
+
+                    <!-- Top Section: Import -->
+                    <div
+                        style="margin-bottom: 24px; padding: 16px; background: var(--macos-bg-tertiary); border-radius: 8px;">
+                        <label class="macos-form-label" style="display: flex; align-items: center; gap: 6px;">
+                            <i class="fa-solid fa-bolt text-yellow-500"></i> Importar Estudo (Calculadora)
+                        </label>
+                        <select id="calculoSelect" class="macos-input" onchange="loadCalculationData(this.value)"
+                            style="margin-top: 8px;">
+                            <option value="">Selecione para preencher automaticamente...</option>
+                            <!-- Será preenchido via JS -->
+                        </select>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 16px; margin-bottom: 20px;">
+                        <div class="macos-form-group">
+                            <label class="macos-form-label">Título</label>
+                            <input type="text" name="titulo" id="inpTitulo" class="macos-input" required
+                                placeholder="Ex: Apartamento Centro">
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 90px; gap: 8px;">
+                            <div class="macos-form-group">
+                                <label class="macos-form-label">Cidade</label>
+                                <input type="text" name="cidade" id="inpCidade" class="macos-input"
+                                    placeholder="Fortaleza" style="height: 40px;">
+                            </div>
+                            <div class="macos-form-group">
+                                <label class="macos-form-label">UF</label>
+                                <select name="estado" id="inpEstado" class="macos-input"
+                                    style="height: 40px; padding-right: 20px;">
+                                    <option value="">UF</option>
+                                    <!-- Populated by JS -->
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Uploads Section -->
+                    <label class="macos-form-label" style="margin-bottom: 12px; display: block;">Documentação e
+                        Imagens</label>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 24px;">
+
+                        <!-- Capa -->
+                        <div class="file-upload-box" id="dropFoto">
+                            <input type="file" name="foto_upload" accept="image/*"
+                                onchange="updateFileBox(this, 'Foto de Capa')">
+                            <i class="fa-regular fa-image file-upload-icon"></i>
+                            <span class="file-upload-text">Foto de Capa</span>
+                        </div>
+
+                        <!-- Proposta -->
+                        <div class="file-upload-box" id="dropProp">
+                            <input type="file" name="pdf_proposta" accept="application/pdf"
+                                onchange="updateFileBox(this, 'PDF Proposta')">
+                            <i class="fa-solid fa-file-pdf file-upload-icon" style="color: #e74c3c;"></i>
+                            <span class="file-upload-text">PDF Proposta</span>
+                        </div>
+
+                        <!-- Matricula -->
+                        <div class="file-upload-box" id="dropMat">
+                            <input type="file" name="pdf_matricula" accept="application/pdf"
+                                onchange="updateFileBox(this, 'PDF Matrícula')">
+                            <i class="fa-solid fa-file-contract file-upload-icon" style="color: #3498db;"></i>
+                            <span class="file-upload-text">PDF Matrícula</span>
+                        </div>
+                    </div>
+
+                    <!-- Campos Ocultos com Dados Financeiros -->
+                    <input type="hidden" name="valor_arremate" id="inpValorArremate">
+                    <input type="hidden" name="valor_venda" id="inpValorVenda">
+                    <input type="hidden" name="lucro_estimado" id="inpLucro">
+                    <input type="hidden" name="roi_estimado" id="inpRoi">
+                    <input type="hidden" name="calculo_origem_id" id="inpCalculoId">
+                    <input type="hidden" name="foto_capa" id="inpFotoCapa">
+
+                    <div
+                        style="display: flex; justify-content: flex-end; gap: 12px; border-top: 1px solid var(--macos-divider); padding-top: 20px;">
+                        <button type="button" class="macos-btn-secondary" onclick="closeAddModal()">Cancelar</button>
+                        <button type="submit" class="macos-btn-primary"
+                            style="padding-left: 24px; padding-right: 24px;">Publicar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Detalhes (Studio View) -->
+    <div id="detailsModal" class="modal-overlay">
+        <div class="modal-window" style="width: 800px; max-width: 95%;">
+            <div
+                style="padding: 24px; border-bottom: 1px solid var(--macos-divider); display: flex; justify-content: space-between; align-items: flex-start;">
+                <div>
+                    <h2 id="detMwTitle" style="margin: 0; font-size: 24px; color: var(--macos-text-primary);">Título do
+                        Imóvel</h2>
+                    <p id="detMwLocation"
+                        style="margin: 4px 0 0 0; color: var(--macos-text-secondary); font-size: 14px;">Localização</p>
+                </div>
+                <button onclick="closeDetailsModal()"
+                    style="background: none; border: none; font-size: 24px; cursor: pointer; color: var(--macos-text-secondary);">&times;</button>
+            </div>
+
+            <div style="padding: 0; display: flex; flex-direction: column; max-height: 80vh; overflow-y: auto;">
+
+                <!-- Hero Section with Image & High Level Financials -->
+                <div style="display: flex; gap: 24px; padding: 24px; flex-wrap: wrap;">
+                    <div style="flex: 1; min-width: 300px;">
+                        <div
+                            style="aspect-ratio: 16/9; background: #eee; border-radius: 12px; overflow: hidden; margin-bottom: 16px;">
+                            <img id="detMwImage" src=""
+                                style="width: 100%; height: 100%; object-fit: cover; display: none;">
+                            <div id="detMwPlaceholder"
+                                style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: var(--macos-bg-tertiary); color: rgba(0,0,0,0.1);">
+                                <i class="fa-solid fa-house" style="font-size: 60px;"></i>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: 12px;">
+                            <a id="btnDowProposta" href="#" target="_blank" class="macos-btn-secondary"
+                                style="flex: 1; justify-content: center; display: none;">
+                                <i class="fa-solid fa-file-pdf text-red-500 mr-2"></i> Estudo/Proposta
+                            </a>
+                            <a id="btnDowMatricula" href="#" target="_blank" class="macos-btn-secondary"
+                                style="flex: 1; justify-content: center; display: none;">
+                                <i class="fa-solid fa-file-contract text-blue-500 mr-2"></i> Matrícula
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Numbers -->
+                    <div style="flex: 1; min-width: 250px; display: flex; flex-direction: column; gap: 16px;">
+                        <div class="p-4 rounded-xl bg-green-500/10 border border-green-500/20">
+                            <span class="text-xs uppercase font-bold text-green-600 tracking-wider">Lucro
+                                Estimado</span>
+                            <div id="detMwLucro" class="text-3xl font-bold text-green-700 mt-1">R$ 0,00</div>
+                            <div class="flex items-center gap-2 mt-2">
+                                <span class="text-sm font-medium text-green-700 bg-green-200/50 px-2 py-1 rounded">
+                                    <i class="fa-solid fa-arrow-trend-up"></i> ROI: <span id="detMwRoi">0%</span>
+                                </span>
+                            </div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                            <div class="p-4 rounded-lg bg-[var(--macos-bg-tertiary)]">
+                                <span class="text-xs text-[var(--macos-text-secondary)] uppercase">Valor de
+                                    Mercado</span>
+                                <div id="detMwVenda" class="text-xl font-semibold text-[var(--macos-text-primary)]">R$
+                                    0,00</div>
+                            </div>
+                            <div class="p-4 rounded-lg bg-[var(--macos-bg-tertiary)]">
+                                <span class="text-xs text-[var(--macos-text-secondary)] uppercase">Lance Mínimo</span>
+                                <div id="detMwLance" class="text-xl font-semibold text-[var(--macos-text-primary)]">R$
+                                    0,00</div>
+                            </div>
+                        </div>
+
+                        <div style="margin-top: auto;">
+                            <button id="btnShareModal" class="macos-btn-primary w-full py-3 text-lg shadow-lg"
+                                style="justify-content: center;">
+                                <i class="fa-brands fa-whatsapp mr-2"></i> Enviar para Cliente
+                            </button>
+                            <p class="text-xs text-center text-gray-400 mt-2">Copia o script de apresentação pronto para
+                                colar.</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        // Injeta dados do servidor no cliente
+        // Injeta dados do servidor no cliente com segurança e tratamento de erro
+        let opportunitiesData = [];
+        try {
+            opportunitiesData = <%- JSON.stringify(oportunidades).replace(/<\/script>/g, '<\\/script>') %>;
+            console.log('Dados de oportunidades carregados:', opportunitiesData.length);
+        } catch (e) {
+            console.error('Erro ao carregar dados de oportunidades:', e);
+        }
+
+        const BRAZIL_STATES = [
+            "AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", "PA",
+            "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO"
+        ];
+
+        document.addEventListener('DOMContentLoaded', function () {
+            // -- POPULATE STATE SELECTS --
+            const filterState = document.getElementById('stateFilterOp');
+            const inputState = document.getElementById('inpEstado');
+            const cards = document.querySelectorAll('.opportunity-card');
+
+            // 1. Populate Filter (All States)
+            BRAZIL_STATES.forEach(uf => {
+                const optFilter = document.createElement('option');
+                optFilter.value = uf;
+                optFilter.textContent = uf;
+                filterState.appendChild(optFilter);
+
+                // Populate Input (Modal)
+                const optInput = document.createElement('option');
+                optInput.value = uf;
+                optInput.textContent = uf;
+                inputState.appendChild(optInput);
+            });
+
+            // -- FILTER LOGIC --
+            filterState.addEventListener('change', function () {
+                const val = this.value; // ex: "CE"
+
+                cards.forEach(card => {
+                    const st = (card.getAttribute('data-state') || '').trim().toUpperCase();
+                    if (!val || st === val) {
+                        card.style.display = 'flex';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            });
+        });
+
+        // -- DETAIL MODAL LOGIC --
+        // Mapa para lookup rápido
+        const opportunitiesMap = new Map();
+        // Popula o map após load, ou direto se opportunityData já existir (acima)
+        if (typeof opportunitiesData !== 'undefined') {
+            opportunitiesData.forEach(op => opportunitiesMap.set(op.id, op));
+        }
+
+        function openDetails(id) {
+            // Conversão de ID para numero/string safe
+            const op = opportunitiesMap.get(typeof id === 'string' ? parseInt(id) : id);
+            if (!op) {
+                console.error("Opp not found", id);
+                return;
+            }
+
+            const modal = document.getElementById('detailsModal');
+
+            // Populate Text
+            document.getElementById('detMwTitle').textContent = op.titulo;
+            document.getElementById('detMwLocation').innerHTML = `<i class="fa-solid fa-location-dot mr-1"></i> ${op.cidade || 'N/A'} - ${op.estado || 'UF'}`;
+
+            // Populate Numbers
+            const fmt = (val) => (val || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            document.getElementById('detMwVenda').textContent = fmt(op.valor_venda);
+            document.getElementById('detMwLance').textContent = fmt(op.valor_arremate);
+            document.getElementById('detMwLucro').textContent = fmt(op.lucro_estimado);
+            document.getElementById('detMwRoi').textContent = (op.roi_estimado || 0).toFixed(2) + '%';
+
+            // Populate Image
+            const imgEl = document.getElementById('detMwImage');
+            const placeholderEl = document.getElementById('detMwPlaceholder');
+            if (op.foto_capa) {
+                imgEl.src = op.foto_capa;
+                imgEl.style.display = 'block';
+                placeholderEl.style.display = 'none';
+            } else {
+                imgEl.style.display = 'none';
+                placeholderEl.style.display = 'flex';
+            }
+
+            // Buttons - PDF
+            const btnProp = document.getElementById('btnDowProposta');
+            const btnMat = document.getElementById('btnDowMatricula');
+
+            if (op.pdf_proposta) {
+                btnProp.href = op.pdf_proposta;
+                btnProp.style.display = 'inline-flex';
+            } else {
+                btnProp.style.display = 'none';
+            }
+
+            if (op.pdf_matricula) {
+                btnMat.href = op.pdf_matricula;
+                btnMat.style.display = 'inline-flex';
+            } else {
+                btnMat.style.display = 'none';
+            }
+
+            // Share Button Action
+            const shareBtn = document.getElementById('btnShareModal');
+            shareBtn.onclick = function () {
+                copiarTextoLead(this, op.titulo, fmt(op.valor_venda));
+            };
+
+            modal.classList.add('active');
+        }
+
+        function closeDetailsModal() {
+            document.getElementById('detailsModal').classList.remove('active');
+        }
+
+
+        // Carregar Cálculos Salvos ao Abrir Modal
+        async function openAddModal() {
+            const modal = document.getElementById('addModal');
+            modal.classList.add('active');
+
+            // Fetch calculations
+            try {
+                const res = await fetch('/api/saved-calculations');
+                const calculations = await res.json();
+
+                const select = document.getElementById('calculoSelect');
+                select.innerHTML = '<option value="">Selecione um cálculo...</option>';
+
+                calculations.forEach(calc => {
+                    const option = document.createElement('option');
+                    option.value = calc.id;
+                    option.textContent = `${calc.name} - ${new Date(calc.created_at).toLocaleDateString()}`;
+
+                    // Armazena dados completos no elemento option para facil acesso
+                    option.dataset.calcData = calc.data;
+                    option.dataset.calcName = calc.name;
+                    select.appendChild(option);
+                });
+            } catch (err) {
+                console.error('Erro ao carregar cálculos', err);
+                alert('Erro ao carregar seus cálculos salvos.');
+            }
+        }
+
+        function closeAddModal() {
+            document.getElementById('addModal').classList.remove('active');
+            document.getElementById('addOpportunityForm').reset();
+        }
+
+        function loadCalculationData(id) {
+            if (!id) return;
+
+            const select = document.getElementById('calculoSelect');
+            const selectedOption = select.options[select.selectedIndex];
+
+            if (!selectedOption) return;
+
+            const rawData = selectedOption.dataset.calcData;
+            const name = selectedOption.dataset.calcName;
+
+            try {
+                const data = JSON.parse(rawData);
+
+                // Preencher campos visíveis
+                document.getElementById('inpTitulo').value = name;
+
+                // Tenta extrair cidade do título se possível (heurística simples)
+                // Ex: "Apto Fortaleza" -> assume nada por enquanto para não errar
+
+                // Preencher campos ocultos (Financeiro)
+                // Precisamos calcular Lucro e ROI se não estiverem explícitos no JSON salvo
+                // O JSON salvo em saved_calculations geralmente tem os inputs, não os resultados finais calculados pelo backend
+                // Mas, vamos tentar inferir ou usar o que tiver.
+
+                // NOTA: O backend CalculaLucroLiquido. Para simplificar, vamos estimar aqui ou confiar que o usuário validou.
+                // Idealmente, deveriamos chamar a rota POST /calculadora no backend para recalcular.
+                // Por hora, vamos pegar os inputs brutos.
+
+                const valorArremate = parseFloat(data.valorArrematado) || 0;
+                const valorVenda = parseFloat(data.valorVendaFinal) || 0;
+
+                // Estimativa rápida (não substitui o cálculo real, mas server de placeholder)
+                const custosEstimados = (valorArremate * 0.05) + (valorArremate * 0.06); // ITBI + Corretagem básica
+                const lucro = valorVenda - valorArremate - custosEstimados;
+                const roi = valorArremate > 0 ? (lucro / valorArremate) * 100 : 0;
+
+                document.getElementById('inpValorArremate').value = valorArremate;
+                document.getElementById('inpValorVenda').value = valorVenda;
+                document.getElementById('inpLucro').value = lucro; // Estimativa front-end
+                document.getElementById('inpRoi').value = roi;
+                document.getElementById('inpCalculoId').value = id;
+
+            } catch (e) {
+                console.error('Erro ao parsear dados do cálculo', e);
+            }
+        }
+
+        async function submitOpportunity(e) {
+            e.preventDefault();
+
+            const formData = new FormData(e.target);
+            // Não precisamos mais de JSON.stringify, enviamos formData direto para suportar arquivos
+
+            try {
+                const response = await fetch('/oportunidades', {
+                    method: 'POST',
+                    body: formData // Fetch setará o Content-Type multipart/form-data automaticamente
+                });
+
+                if (response.ok) {
+                    alert('Oportunidade publicada com sucesso!');
+                    location.reload();
+                } else {
+                    const err = await response.json();
+                    alert('Erro ao publicar oportunidade: ' + (err.error || 'Erro desconhecido'));
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Erro interno.');
+            }
+        }
+
+        function updateFileBox(input, label) {
+            const box = input.parentElement;
+            const textSpan = box.querySelector('.file-upload-text');
+            if (input.files && input.files[0]) {
+                box.classList.add('has-file');
+                textSpan.textContent = input.files[0].name;
+            } else {
+                box.classList.remove('has-file');
+                textSpan.textContent = label;
+            }
+        }
+
+        function copiarTextoLead(btn, titulo, valor) {
+            const texto = `🔥 Oportunidade Exclusiva!\n\n🏠 *${titulo}*\n💰 Valor de Venda: ${valor}\n\n✅ Imóvel já analisado pelo nosso assessor.\n\n👇 Tem interesse? Me avise para agendarmos uma proposta!`;
+
+            navigator.clipboard.writeText(texto).then(() => {
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '<i class="fa-solid fa-check"></i> Copiado!';
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                }, 2000);
+            });
+        }
+
+        async function deleteOpportunity(id, event) {
+            // Prevent card click if necessary (not needed here since card isn't clickable as a whole, but good practice)
+            event.preventDefault();
+
+            if (!confirm('Tem certeza que deseja remover esta oportunidade? Ela será excluída permanentemente.')) {
+                return;
+            }
+
+            try {
+                const res = await fetch(`/oportunidades/${id}`, { method: 'DELETE' });
+                const data = await res.json();
+
+                if (data.success) {
+                    // Remove element from DOM directly for instant feedback
+                    const card = event.target.closest('.opportunity-card');
+                    if (card) card.remove();
+                } else {
+                    alert('Erro ao excluir: ' + data.error);
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Erro na requisição.');
+            }
+        }
+    </script>
+</body>
+
+</html>

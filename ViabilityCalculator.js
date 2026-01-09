@@ -37,7 +37,13 @@ class ViabilityCalculator {
 
         // Cálculo da Assessoria
         let valorAssessoria = 0;
-        if (valorArrematado <= assessoriaThreshold) {
+
+        // Se um valor manual for fornecido (e for maior que 0), usa ele.
+        if (data.valorAssessoria && parseFloat(data.valorAssessoria) > 0) {
+            valorAssessoria = parseFloat(data.valorAssessoria);
+        }
+        // Caso contrário, usa a regra configurada
+        else if (valorArrematado <= assessoriaThreshold) {
             valorAssessoria = assessoriaFeeBelow;
         } else {
             valorAssessoria = this._round((valorArrematado * assessoriaFeeAbovePercent) / 100);

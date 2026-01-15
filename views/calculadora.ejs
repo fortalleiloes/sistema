@@ -117,7 +117,8 @@
                                 <% } %>
 
                                     <!-- Formulário Principal -->
-                                    <form action="/calculadora" method="POST" id="calculatorForm">
+                                    <form action="/calculadora" method="POST" id="calculatorForm"
+                                        onsubmit="return validateAndSubmit(event)">
 
                                         <div
                                             style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px;">
@@ -256,11 +257,11 @@
                                                             <input type="hidden" name="valorAssessoria"
                                                                 id="valorAssessoriaHidden"
                                                                 value="<%= locals.results ? locals.results.common.valorAssessoria : (locals.inputData && locals.inputData.valorAssessoria ? locals.inputData.valorAssessoria : '') %>">
-                                                            <button type="button" class="macos-btn-secondary"
-                                                                onclick="document.getElementById('assessoriaModal').style.display = 'flex'"
-                                                                style="padding: 0 12px;">
+                                                            <div class="macos-btn-secondary" role="button"
+                                                                onclick="event.stopPropagation(); event.preventDefault(); abrirModalAssessoriaV2();"
+                                                                style="padding: 0 12px; display: flex; align-items: center; justify-content: center; cursor: pointer;">
                                                                 <i class="fa-solid fa-gear"></i>
-                                                            </button>
+                                                            </div>
                                                         </div>
                                                         <!-- Inputs ocultos para enviar os parâmetros da regra -->
                                                         <input type="hidden" name="assessoriaThreshold"
@@ -447,16 +448,13 @@
                                                 <h2
                                                     style="font-size: 24px; font-weight: 700; color: var(--macos-text-primary);">
                                                     Resultados da Análise</h2>
-                                                <button
-                                                    onclick="document.getElementById('detailsModal').style.display = 'flex'"
-                                                    class="macos-btn-secondary"
+                                                <button onclick="abrirDetailsModal()" class="macos-btn-secondary"
                                                     style="padding: 12px 24px; font-size: 15px; margin-right: 12px;">
                                                     <i class="fa-solid fa-file-invoice-dollar"
                                                         style="margin-right: 8px;"></i>
                                                     Detalhamento
                                                 </button>
-                                                <button
-                                                    onclick="document.getElementById('saveModal').style.display = 'flex'"
+                                                <button type="button" onclick="abrirModalSalvar(event)"
                                                     class="macos-btn-primary"
                                                     style="padding: 12px 24px; font-size: 15px; box-shadow: 0 4px 12px rgba(255, 214, 10, 0.3);">
                                                     <i class="fa-solid fa-bookmark" style="margin-right: 8px;"></i>
@@ -517,6 +515,18 @@
                                                                 </p>
                                                             </div>
 
+                                                            <div style="margin-bottom: 16px;">
+                                                                <p
+                                                                    style="font-size: 11px; color: var(--macos-text-secondary);">
+                                                                    Valor de Venda</p>
+                                                                <p
+                                                                    style="font-size: 16px; font-weight: 600; color: #34C759;">
+                                                                    <%= parseFloat(inputData.valorVendaFinal ||
+                                                                        0).toLocaleString('pt-BR', { style: 'currency' ,
+                                                                        currency: 'BRL' }) %>
+                                                                </p>
+                                                            </div>
+
                                                             <div
                                                                 style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding-top: 16px; border-top: 1px solid var(--macos-divider);">
                                                                 <div>
@@ -534,9 +544,8 @@
                                                                         Custo/Mês</p>
                                                                     <p
                                                                         style="font-size: 14px; font-weight: 600; color: var(--macos-text-primary);">
-                                                                        <%= (s.d.custosPeriodo /
-                                                                            s.m).toLocaleString('pt-BR', {
-                                                                            style: 'currency' , currency: 'BRL' }) %>
+                                                                        <%= s.d.custoMensalRecorrente.toLocaleString('pt-BR',
+                                                                            { style: 'currency' , currency: 'BRL' }) %>
                                                                     </p>
                                                                 </div>
                                                             </div>
@@ -614,6 +623,14 @@
                                                                                         style="margin-right: 4px;"></i>
                                                                                     Editar
                                                                                 </button>
+                                                                                <button type="button"
+                                                                                    class="macos-btn-secondary"
+                                                                                    onclick="deleteCalculation(<%= calc.id %>)"
+                                                                                    style="padding: 6px 12px; font-size: 13px; color: #FF3B30 !important; border-color: rgba(255, 59, 48, 0.3);">
+                                                                                    <i class="fa-solid fa-trash"
+                                                                                        style="margin-right: 4px;"></i>
+                                                                                    Excluir
+                                                                                </button>
                                                                             </div>
                                                                         </div>
                                                                     </div>
@@ -629,17 +646,25 @@
 
             <!-- Modal Detalhamento (macOS Sonoma Style) -->
             <% if (results) { %>
-                <div id="detailsModal" class="macos-modal-overlay" style="display: none; background: rgba(0,0,0,0.5);">
-                    <div class="macos-modal" style="width: 500px; max-width: 95%;">
-                        <div class="macos-modal-header">
-                            <h3 class="macos-modal-title">Detalhamento Financeiro</h3>
-                            <button class="macos-modal-close"
-                                onclick="document.getElementById('detailsModal').style.display = 'none'">
-                                <i class="fa-solid fa-xmark" style="color: black; font-size: 14px;"></i>
+                <div id="detailsModal" class="macos-modal-overlay"
+                    style="display: none; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);">
+                    <div class="macos-window"
+                        style="width: 500px; max-width: 95%; background: var(--macos-bg-secondary); border-radius: 16px; box-shadow: 0 25px 50px rgba(0,0,0,0.4); display: flex; flex-direction: column; max-height: 90vh;">
+                        <div
+                            style="padding: 24px 28px; border-bottom: 1px solid var(--macos-divider); display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;">
+                            <h3 style="font-size: 20px; font-weight: 700; color: var(--macos-text-primary);">
+                                Detalhamento Financeiro</h3>
+                            <button onclick="fecharDetailsModal()"
+                                style="width: 32px; height: 32px; border-radius: 50%; background: var(--macos-bg-tertiary); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;"
+                                onmouseover="this.style.background='rgba(255,59,48,0.1)'; this.querySelector('i').style.color='#FF3B30';"
+                                onmouseout="this.style.background='var(--macos-bg-tertiary)'; this.querySelector('i').style.color='var(--macos-text-secondary)';">
+                                <i class="fa-solid fa-xmark"
+                                    style="color: var(--macos-text-secondary); font-size: 16px;"></i>
                             </button>
                         </div>
-                        <div class="macos-modal-body" style="padding: 24px; max-height: 70vh; overflow-y: auto;">
 
+                        <div style="padding: 28px; overflow-y: auto; flex: 1;">
+                            <!-- Conteúdo do modal mantido, apenas wrapper alterado -->
                             <div style="margin-bottom: 24px;">
                                 <h4
                                     style="font-size: 13px; font-weight: 700; color: var(--macos-text-secondary); text-transform: uppercase; margin-bottom: 12px; border-bottom: 1px solid var(--macos-divider); padding-bottom: 8px; letter-spacing: 0.5px;">
@@ -726,6 +751,21 @@
                                 </div>
                             </div>
 
+                            <div style="margin-bottom: 24px;">
+                                <h4
+                                    style="font-size: 13px; font-weight: 700; color: var(--macos-text-secondary); text-transform: uppercase; margin-bottom: 12px; border-bottom: 1px solid var(--macos-divider); padding-bottom: 8px; letter-spacing: 0.5px;">
+                                    Valor de Venda
+                                </h4>
+                                <div
+                                    style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px;">
+                                    <span style="color: var(--macos-text-secondary);">Valor de Venda Estimado</span>
+                                    <span style="font-weight: 600; color: #34C759; font-size: 16px;">
+                                        <%= parseFloat(inputData.valorVendaFinal || 0).toLocaleString('pt-BR',
+                                            {style: 'currency' , currency: 'BRL' }) %>
+                                    </span>
+                                </div>
+                            </div>
+
                             <div style="margin-bottom: 12px;">
                                 <h4
                                     style="font-size: 13px; font-weight: 700; color: var(--macos-text-secondary); text-transform: uppercase; margin-bottom: 12px; border-bottom: 1px solid var(--macos-divider); padding-bottom: 8px; letter-spacing: 0.5px;">
@@ -772,29 +812,45 @@
                                         </span>
                                 </div>
                             </div>
-
                         </div>
-                        <div class="macos-modal-footer">
+
+                        <div
+                            style="padding: 20px 28px; background: var(--macos-bg-tertiary); border-radius: 0 0 16px 16px; border-top: 1px solid var(--macos-divider); display: flex; justify-content: flex-end;">
                             <button type="button" class="macos-btn-primary"
-                                onclick="document.getElementById('detailsModal').style.display = 'none'"
-                                style="width: 100%;">Fechar</button>
+                                onclick="fecharDetailsModal()">Fechar</button>
                         </div>
                     </div>
                 </div>
                 <% } %>
 
                     <!-- Modal Salvar (macOS Sonoma Style) -->
-                    <div id="saveModal" class="macos-modal-overlay" style="display: none;">
-                        <div class="macos-modal" style="width: 440px;">
-                            <div class="macos-modal-header"
-                                style="justify-content: center; border-bottom: none; padding-bottom: 0;">
-                                <h3 class="macos-modal-title" style="font-size: 18px;">Salvar Análise</h3>
+                    <div id="saveModal" class="macos-modal-overlay"
+                        style="display: none; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 9999;">
+                        <div class="macos-window" onclick="event.stopPropagation()"
+                            style="width: 440px; background: var(--macos-bg-secondary); border-radius: 16px; box-shadow: 0 25px 50px rgba(0,0,0,0.4); display: flex; flex-direction: column;">
+                            <div
+                                style="padding: 24px 28px; border-bottom: 1px solid var(--macos-divider); display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <h3 style="font-size: 20px; font-weight: 700; color: var(--macos-text-primary);">
+                                        Salvar Análise</h3>
+                                </div>
+                                <button
+                                    onclick="const m = document.getElementById('saveModal'); m.classList.remove('active'); setTimeout(() => m.style.display = 'none', 300);"
+                                    style="width: 32px; height: 32px; border-radius: 50%; background: var(--macos-bg-tertiary); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;"
+                                    onmouseover="this.style.background='rgba(255,59,48,0.1)'; this.querySelector('i').style.color='#FF3B30';"
+                                    onmouseout="this.style.background='var(--macos-bg-tertiary)'; this.querySelector('i').style.color='var(--macos-text-secondary)';">
+                                    <i class="fa-solid fa-xmark"
+                                        style="color: var(--macos-text-secondary); font-size: 16px;"></i>
+                                </button>
                             </div>
-                            <form action="/calculadora/salvar" method="POST">
-                                <div class="macos-modal-body" style="padding-top: 8px;">
+
+                            <form action="/calculadora/salvar" method="POST"
+                                style="flex: 1; display: flex; flex-direction: column;">
+                                <div style="padding: 28px; flex: 1;">
                                     <p
-                                        style="text-align: center; color: var(--macos-text-secondary); font-size: 13px; margin-bottom: 20px;">
-                                        Dê um nome para esta oportunidade para encontrá-la facilmente depois.
+                                        style="color: var(--macos-text-secondary); font-size: 14px; margin-bottom: 24px;">
+                                        Dê um nome para esta oportunidade para encontrá-la facilmente depois no seu
+                                        histórico.
                                     </p>
 
                                     <% for (const key in inputData) { %>
@@ -807,92 +863,26 @@
                                                 <% } %>
 
                                                     <div class="macos-form-group">
-                                                        <label class="macos-form-label" style="margin-left: 4px;">Nome
-                                                            da
-                                                            Oportunidade</label>
+                                                        <label class="macos-form-label">Nome da Oportunidade</label>
                                                         <input type="text" name="calculationName" required
                                                             class="macos-input"
                                                             placeholder="Ex: Apto Centro - Leilão Caixa"
                                                             value="<%= locals.editMode ? locals.editingName : '' %>"
-                                                            style="font-size: 15px;" autofocus>
+                                                            autofocus>
                                                     </div>
                                 </div>
-                                <div class="macos-modal-footer"
-                                    style="background: var(--macos-bg-tertiary); border-top: 1px solid var(--macos-divider);">
+
+                                <div
+                                    style="padding: 20px 28px; background: var(--macos-bg-tertiary); border-radius: 0 0 16px 16px; border-top: 1px solid var(--macos-divider); display: flex; justify-content: flex-end; gap: 12px;">
                                     <button type="button" class="macos-btn-secondary"
-                                        onclick="document.getElementById('saveModal').style.display = 'none'"
-                                        style="min-width: 80px;">Cancelar</button>
-                                    <button type="submit" class="macos-btn-primary"
-                                        style="min-width: 80px;">Salvar</button>
+                                        onclick="const m = document.getElementById('saveModal'); m.classList.remove('active'); setTimeout(() => m.style.display = 'none', 300);">Cancelar</button>
+                                    <button type="submit" class="macos-btn-primary">Salvar</button>
                                 </div>
                             </form>
                         </div>
                     </div>
 
-                    <!-- Modal Configuração Assessoria -->
-                    <div id="assessoriaModal" class="macos-modal-overlay" style="display: none; z-index: 1000;">
-                        <div class="macos-modal" style="max-width: 400px;">
-                            <div class="macos-modal-header">
-                                <h3 class="macos-modal-title">Configurar Assessoria</h3>
-                                <button class="macos-modal-close"
-                                    onclick="document.getElementById('assessoriaModal').style.display = 'none'">
-                                    <i class="fa-solid fa-xmark" style="color: black; font-size: 14px;"></i>
-                                </button>
-                            </div>
-                            <div class="macos-modal-body">
-                                <p style="font-size: 13px; color: var(--macos-text-secondary); margin-bottom: 16px;">
-                                    Defina a regra de cobrança da assessoria.
-                                </p>
 
-                                <div class="macos-form-group">
-                                    <label class="macos-form-label">Valor Limite</label>
-                                    <div class="macos-input-wrapper" style="position: relative;">
-                                        <span
-                                            style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--macos-text-secondary); font-size: 14px;">R$</span>
-                                        <input type="text" id="modalAssessoriaThreshold" class="macos-input"
-                                            oninput="formatCurrencyInput(this)" style="padding-left: 36px;"
-                                            placeholder="120.000,00">
-                                    </div>
-                                    <p style="font-size: 11px; color: var(--macos-text-secondary); margin-top: 4px;">
-                                        Até este valor, será cobrada uma taxa fixa.
-                                    </p>
-                                </div>
-
-                                <div class="macos-form-group">
-                                    <label class="macos-form-label">Taxa Fixa</label>
-                                    <div class="macos-input-wrapper" style="position: relative;">
-                                        <span
-                                            style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--macos-text-secondary); font-size: 14px;">R$</span>
-                                        <input type="text" id="modalAssessoriaFeeBelow" class="macos-input"
-                                            oninput="formatCurrencyInput(this)" style="padding-left: 36px;"
-                                            placeholder="6.000,00">
-                                    </div>
-                                    <p style="font-size: 11px; color: var(--macos-text-secondary); margin-top: 4px;">
-                                        Valor cobrado se o arremate for menor ou igual ao limite.
-                                    </p>
-                                </div>
-
-                                <div class="macos-form-group">
-                                    <label class="macos-form-label">Porcentagem Acima do Limite</label>
-                                    <div class="macos-input-wrapper" style="position: relative;">
-                                        <input type="number" step="0.1" id="modalAssessoriaFeeAbovePercent"
-                                            class="macos-input" style="padding-right: 30px;" placeholder="5">
-                                        <span
-                                            style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--macos-text-secondary); font-size: 14px;">%</span>
-                                    </div>
-                                    <p style="font-size: 11px; color: var(--macos-text-secondary); margin-top: 4px;">
-                                        Porcentagem cobrada sobre o valor total se ultrapassar o limite.
-                                    </p>
-                                </div>
-                            </div>
-                            <div class="macos-modal-footer">
-                                <button type="button" class="macos-btn-secondary"
-                                    onclick="document.getElementById('assessoriaModal').style.display = 'none'">Cancelar</button>
-                                <button type="button" class="macos-btn-primary"
-                                    onclick="saveAssessoriaConfig()">Confirmar</button>
-                            </div>
-                        </div>
-                    </div>
 
                     <!-- Modal: Detalhes do Cálculo Salvo -->
                     <div id="modal-detalhes-calculo" class="hidden"
@@ -1012,49 +1002,28 @@
                             return parseFloat(value.replace(/\./g, '').replace(',', '.'));
                         }
 
+                        // Controla o submit do formulário
+                        function validateAndSubmit(event) {
+                            console.log('📋 validateAndSubmit chamado');
+                            console.log('📋 Event submitter:', event.submitter);
+
+                            // Se não houver submitter ou se for o botão de calcular, permite
+                            if (!event.submitter || event.submitter.type === 'submit') {
+                                console.log('✅ Submit permitido');
+                                return true;
+                            }
+
+                            // Caso contrário, bloqueia
+                            console.log('❌ Submit bloqueado');
+                            event.preventDefault();
+                            return false;
+                        }
+
                         // Formata float para string BRL sem o símbolo R$
                         function formatCurrencyValue(value) {
                             if (!value) return '';
                             return parseFloat(value).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                         }
-
-                        // Função para salvar a configuração do modal nos inputs ocultos
-                        function saveAssessoriaConfig() {
-                            const thresholdStr = document.getElementById('modalAssessoriaThreshold').value;
-                            const feeBelowStr = document.getElementById('modalAssessoriaFeeBelow').value;
-                            const feeAbove = document.getElementById('modalAssessoriaFeeAbovePercent').value;
-
-                            const threshold = parseCurrency(thresholdStr);
-                            const feeBelow = parseCurrency(feeBelowStr);
-
-                            document.getElementById('assessoriaThreshold').value = threshold;
-                            document.getElementById('assessoriaFeeBelow').value = feeBelow;
-                            document.getElementById('assessoriaFeeAbovePercent').value = feeAbove;
-
-                            // Atualiza o display (opcional, apenas visual)
-                            // Atualiza o display com texto mais curto
-                            const thresholdFormatted = threshold.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 });
-                            const feeBelowFormatted = feeBelow.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 });
-
-                            document.getElementById('assessoriaDisplay').value = `Até ${thresholdFormatted} = ${feeBelowFormatted} | > ${feeAbove}%`;
-
-                            // Recalcular assessoria com as novas regras (se não for manual)
-                            if (typeof updateAssessoriaFromRule === 'function') {
-                                updateAssessoriaFromRule();
-                            }
-
-                            document.getElementById('assessoriaModal').style.display = 'none';
-                        }
-
-                        // Inicializa os valores do modal com o que está nos inputs ocultos
-                        document.addEventListener('DOMContentLoaded', () => {
-                            const threshold = document.getElementById('assessoriaThreshold').value;
-                            const feeBelow = document.getElementById('assessoriaFeeBelow').value;
-
-                            document.getElementById('modalAssessoriaThreshold').value = formatCurrencyValue(threshold);
-                            document.getElementById('modalAssessoriaFeeBelow').value = formatCurrencyValue(feeBelow);
-                            document.getElementById('modalAssessoriaFeeAbovePercent').value = document.getElementById('assessoriaFeeAbovePercent').value;
-                        });
                     </script>
 
                     <script>
@@ -1123,65 +1092,136 @@
                             const formatMoney = (val) => parseFloat(val || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
                             const html = `
-                                <div style="display: grid; gap: 24px;">
+                                <div style="display: grid; gap: 20px;">
                                     <!-- Investimento -->
-                                    <div>
-                                        <h4 style="font-size: 14px; font-weight: 700; color: var(--macos-text-secondary); text-transform: uppercase; margin-bottom: 12px; border-bottom: 1px solid var(--macos-divider); padding-bottom: 8px;">
-                                            💰 Investimento
-                                        </h4>
-                                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 14px;">
-                                            <div><span style="color: var(--macos-text-secondary);">Valor Arremate:</span> <strong>${formatMoney(dados.valorArrematado)}</strong></div>
-                                            <div><span style="color: var(--macos-text-secondary);">Valor Avaliação:</span> <strong>${formatMoney(dados.valorAvaliacao)}</strong></div>
-                                            <div><span style="color: var(--macos-text-secondary);">Tipo Pagamento:</span> <strong>${dados.tipoPagamento === 'vista' ? 'À Vista' : 'Financiado'}</strong></div>
-                                            ${dados.tipoPagamento === 'financiado' ? `
-                                                <div><span style="color: var(--macos-text-secondary);">Entrada:</span> <strong>${formatMoney(dados.valorEntrada)}</strong></div>
-                                                <div><span style="color: var(--macos-text-secondary);">Valor Financiado:</span> <strong>${formatMoney(dados.valorFinanciado)}</strong></div>
-                                                <div><span style="color: var(--macos-text-secondary);">Parcela Mensal:</span> <strong>${formatMoney(dados.custoMensalFinanciamento)}</strong></div>
-                                            ` : ''}
+                                    <div style="background: var(--macos-bg-tertiary); border-radius: 12px; padding: 20px; border: 1px solid var(--macos-divider);">
+                                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px;">
+                                            <div style="width: 36px; height: 36px; border-radius: 8px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center;">
+                                                <i class="fa-solid fa-wallet" style="color: white; font-size: 16px;"></i>
+                                            </div>
+                                            <h4 style="font-size: 16px; font-weight: 600; color: var(--macos-text-primary); margin: 0;">Investimento</h4>
+                                        </div>
+                                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+                                            <div style="display: flex; flex-direction: column; gap: 4px;">
+                                                <span style="font-size: 12px; color: var(--macos-text-secondary); font-weight: 500;">Valor Arremate</span>
+                                                <strong style="font-size: 15px; color: var(--macos-text-primary);">${formatMoney(dados.valorArrematado)}</strong>
+                                            </div>
+                                            <div style="display: flex; flex-direction: column; gap: 4px;">
+                                                <span style="font-size: 12px; color: var(--macos-text-secondary); font-weight: 500;">Valor Avaliação</span>
+                                                <strong style="font-size: 15px; color: var(--macos-text-primary);">${formatMoney(dados.valorAvaliacao)}</strong>
+                                            </div>
+                                            <div style="display: flex; flex-direction: column; gap: 4px;">
+                                                <span style="font-size: 12px; color: var(--macos-text-secondary); font-weight: 500;">Tipo Pagamento</span>
+                                                <strong style="font-size: 15px; color: var(--macos-text-primary);">${(() => {
+                                    const tipo = (dados.tipoPagamento || '').toString().toLowerCase();
+                                    return tipo === 'vista' || tipo === 'à vista' ? 'À Vista' : 'Financiado';
+                                })()}</strong>
+                                            </div>
+                                            ${(() => {
+                                    const tipo = (dados.tipoPagamento || '').toString().toLowerCase();
+                                    return (tipo !== 'vista' && tipo !== 'à vista') ? `
+                                                    <div style="display: flex; flex-direction: column; gap: 4px;">
+                                                        <span style="font-size: 12px; color: var(--macos-text-secondary); font-weight: 500;">Entrada</span>
+                                                        <strong style="font-size: 15px; color: var(--macos-text-primary);">${formatMoney(dados.valorEntrada)}</strong>
+                                                    </div>
+                                                    <div style="display: flex; flex-direction: column; gap: 4px;">
+                                                        <span style="font-size: 12px; color: var(--macos-text-secondary); font-weight: 500;">Valor Financiado</span>
+                                                        <strong style="font-size: 15px; color: var(--macos-text-primary);">${formatMoney(dados.valorFinanciado)}</strong>
+                                                    </div>
+                                                    <div style="display: flex; flex-direction: column; gap: 4px;">
+                                                        <span style="font-size: 12px; color: var(--macos-text-secondary); font-weight: 500;">Parcela Mensal</span>
+                                                        <strong style="font-size: 15px; color: var(--macos-text-primary);">${formatMoney(dados.custoMensalFinanciamento)}</strong>
+                                                    </div>
+                                                ` : '';
+                                })()}
                                         </div>
                                     </div>
 
-                                    <!-- Custos -->
-                                    <div>
-                                        <h4 style="font-size: 14px; font-weight: 700; color: var(--macos-text-secondary); text-transform: uppercase; margin-bottom: 12px; border-bottom: 1px solid var(--macos-divider); padding-bottom: 8px;">
-                                            📊 Custos e Taxas
-                                        </h4>
-                                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 14px;">
-                                            <div><span style="color: var(--macos-text-secondary);">ITBI (${dados.itbi}%):</span> <strong>Base: ${dados.itbiBase === 'arremate' ? 'Arremate' : 'Avaliação'}</strong></div>
-                                            <div><span style="color: var(--macos-text-secondary);">Reforma:</span> <strong>${formatMoney(dados.reforma)}</strong></div>
-                                            <div><span style="color: var(--macos-text-secondary);">Custos Cartório:</span> <strong>${formatMoney(dados.custosCartorarios)}</strong></div>
-                                            <div><span style="color: var(--macos-text-secondary);">Débitos:</span> <strong>${formatMoney(dados.debitosPendentes)}</strong></div>
-                                            <div><span style="color: var(--macos-text-secondary);">Desocupação:</span> <strong>${formatMoney(dados.custoDesocupacao)}</strong></div>
-                                            <div><span style="color: var(--macos-text-secondary);">Custos Adicionais:</span> <strong>${formatMoney(dados.custosAdicionais)}</strong></div>
+                                    <!-- Custos e Taxas -->
+                                    <div style="background: var(--macos-bg-tertiary); border-radius: 12px; padding: 20px; border: 1px solid var(--macos-divider);">
+                                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px;">
+                                            <div style="width: 36px; height: 36px; border-radius: 8px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); display: flex; align-items: center; justify-content: center;">
+                                                <i class="fa-solid fa-receipt" style="color: white; font-size: 16px;"></i>
+                                            </div>
+                                            <h4 style="font-size: 16px; font-weight: 600; color: var(--macos-text-primary); margin: 0;">Custos e Taxas</h4>
+                                        </div>
+                                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+                                            <div style="display: flex; flex-direction: column; gap: 4px;">
+                                                <span style="font-size: 12px; color: var(--macos-text-secondary); font-weight: 500;">ITBI (${dados.itbi}%)</span>
+                                                <strong style="font-size: 15px; color: var(--macos-text-primary);">Base: ${dados.itbiBase === 'arremate' ? 'Arremate' : 'Avaliação'}</strong>
+                                            </div>
+                                            <div style="display: flex; flex-direction: column; gap: 4px;">
+                                                <span style="font-size: 12px; color: var(--macos-text-secondary); font-weight: 500;">Reforma</span>
+                                                <strong style="font-size: 15px; color: var(--macos-text-primary);">${formatMoney(dados.reforma)}</strong>
+                                            </div>
+                                            <div style="display: flex; flex-direction: column; gap: 4px;">
+                                                <span style="font-size: 12px; color: var(--macos-text-secondary); font-weight: 500;">Custos Cartório</span>
+                                                <strong style="font-size: 15px; color: var(--macos-text-primary);">${formatMoney(dados.custosCartorarios)}</strong>
+                                            </div>
+                                            <div style="display: flex; flex-direction: column; gap: 4px;">
+                                                <span style="font-size: 12px; color: var(--macos-text-secondary); font-weight: 500;">Débitos</span>
+                                                <strong style="font-size: 15px; color: var(--macos-text-primary);">${formatMoney(dados.debitosPendentes)}</strong>
+                                            </div>
+                                            <div style="display: flex; flex-direction: column; gap: 4px;">
+                                                <span style="font-size: 12px; color: var(--macos-text-secondary); font-weight: 500;">Desocupação</span>
+                                                <strong style="font-size: 15px; color: var(--macos-text-primary);">${formatMoney(dados.custoDesocupacao)}</strong>
+                                            </div>
+                                            <div style="display: flex; flex-direction: column; gap: 4px;">
+                                                <span style="font-size: 12px; color: var(--macos-text-secondary); font-weight: 500;">Custos Adicionais</span>
+                                                <strong style="font-size: 15px; color: var(--macos-text-primary);">${formatMoney(dados.custosAdicionais)}</strong>
+                                            </div>
                                         </div>
                                     </div>
 
                                     <!-- Custos Mensais -->
-                                    <div>
-                                        <h4 style="font-size: 14px; font-weight: 700; color: var(--macos-text-secondary); text-transform: uppercase; margin-bottom: 12px; border-bottom: 1px solid var(--macos-divider); padding-bottom: 8px;">
-                                            📅 Custos Mensais
-                                        </h4>
-                                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 14px;">
-                                            <div><span style="color: var(--macos-text-secondary);">Condomínio:</span> <strong>${formatMoney(dados.condominioMensal)}</strong></div>
-                                            <div><span style="color: var(--macos-text-secondary);">IPTU Mensal:</span> <strong>${formatMoney(dados.iptuMensal)}</strong></div>
-                                            <div><span style="color: var(--macos-text-secondary);">Seguro Fixo:</span> <strong>${formatMoney(dados.taxaSeguroCaixa)}</strong></div>
+                                    <div style="background: var(--macos-bg-tertiary); border-radius: 12px; padding: 20px; border: 1px solid var(--macos-divider);">
+                                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px;">
+                                            <div style="width: 36px; height: 36px; border-radius: 8px; background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); display: flex; align-items: center; justify-content: center;">
+                                                <i class="fa-solid fa-calendar-days" style="color: white; font-size: 16px;"></i>
+                                            </div>
+                                            <h4 style="font-size: 16px; font-weight: 600; color: var(--macos-text-primary); margin: 0;">Custos Mensais</h4>
+                                        </div>
+                                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+                                            <div style="display: flex; flex-direction: column; gap: 4px;">
+                                                <span style="font-size: 12px; color: var(--macos-text-secondary); font-weight: 500;">Condomínio</span>
+                                                <strong style="font-size: 15px; color: var(--macos-text-primary);">${formatMoney(dados.condominioMensal)}</strong>
+                                            </div>
+                                            <div style="display: flex; flex-direction: column; gap: 4px;">
+                                                <span style="font-size: 12px; color: var(--macos-text-secondary); font-weight: 500;">IPTU Mensal</span>
+                                                <strong style="font-size: 15px; color: var(--macos-text-primary);">${formatMoney(dados.iptuMensal)}</strong>
+                                            </div>
+                                            <div style="display: flex; flex-direction: column; gap: 4px;">
+                                                <span style="font-size: 12px; color: var(--macos-text-secondary); font-weight: 500;">Seguro Fixo</span>
+                                                <strong style="font-size: 15px; color: var(--macos-text-primary);">${formatMoney(dados.taxaSeguroCaixa)}</strong>
+                                            </div>
                                         </div>
                                     </div>
 
                                     <!-- Venda -->
-                                    <div>
-                                        <h4 style="font-size: 14px; font-weight: 700; color: var(--macos-text-secondary); text-transform: uppercase; margin-bottom: 12px; border-bottom: 1px solid var(--macos-divider); padding-bottom: 8px;">
-                                            🏷️ Venda
-                                        </h4>
-                                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 14px;">
-                                            <div><span style="color: var(--macos-text-secondary);">Valor Venda:</span> <strong>${formatMoney(dados.valorVendaFinal)}</strong></div>
-                                            <div><span style="color: var(--macos-text-secondary);">Corretagem (${dados.corretagemPercent || 6}%):</span> <strong>${(() => {
+                                    <div style="background: var(--macos-bg-tertiary); border-radius: 12px; padding: 20px; border: 1px solid var(--macos-divider);">
+                                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px;">
+                                            <div style="width: 36px; height: 36px; border-radius: 8px; background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); display: flex; align-items: center; justify-content: center;">
+                                                <i class="fa-solid fa-tag" style="color: white; font-size: 16px;"></i>
+                                            </div>
+                                            <h4 style="font-size: 16px; font-weight: 600; color: var(--macos-text-primary); margin: 0;">Venda</h4>
+                                        </div>
+                                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+                                            <div style="display: flex; flex-direction: column; gap: 4px;">
+                                                <span style="font-size: 12px; color: var(--macos-text-secondary); font-weight: 500;">Valor Venda</span>
+                                                <strong style="font-size: 15px; color: var(--macos-text-primary);">${formatMoney(dados.valorVendaFinal)}</strong>
+                                            </div>
+                                            <div style="display: flex; flex-direction: column; gap: 4px;">
+                                                <span style="font-size: 12px; color: var(--macos-text-secondary); font-weight: 500;">Corretagem (${dados.corretagemPercent || 6}%)</span>
+                                                <strong style="font-size: 15px; color: var(--macos-text-primary);">${(() => {
                                     const valorVenda = parseFloat(dados.valorVendaFinal) || 0;
                                     const corretagemPercent = parseFloat(dados.corretagemPercent) || 6;
                                     const corretagem = valorVenda * (corretagemPercent / 100);
                                     return formatMoney(corretagem);
-                                })()}</strong></div>
-                                            <div><span style="color: var(--macos-text-secondary);">IR (${((parseFloat(dados.aliquotaIRGC) || 0.15) * 100).toFixed(0)}%):</span> <strong>${(() => {
+                                })()}</strong>
+                                            </div>
+                                            <div style="display: flex; flex-direction: column; gap: 4px;">
+                                                <span style="font-size: 12px; color: var(--macos-text-secondary); font-weight: 500;">IR (${((parseFloat(dados.aliquotaIRGC) || 0.15) * 100).toFixed(0)}%)</span>
+                                                <strong style="font-size: 15px; color: var(--macos-text-primary);">${(() => {
                                     const valorVenda = parseFloat(dados.valorVendaFinal) || 0;
                                     const corretagemPercent = parseFloat(dados.corretagemPercent) || 6;
                                     const corretagem = valorVenda * (corretagemPercent / 100);
@@ -1198,8 +1238,10 @@
                                     const aliquotaIR = parseFloat(dados.aliquotaIRGC) || 0.15;
                                     const impostoRenda = lucroBruto > 0 ? lucroBruto * aliquotaIR : 0;
                                     return formatMoney(impostoRenda);
-                                })()}</strong></div>
+                                })()}</strong>
+                                            </div>
                                         </div>
+                                    </div>
                                     </div>
                                 </div>
                             `;
@@ -1210,6 +1252,7 @@
                             // Abrir modal
                             const modal = document.getElementById('modal-detalhes-calculo');
                             modal.classList.remove('hidden');
+                            modal.classList.add('active');
                             setTimeout(() => {
                                 modal.style.opacity = '1';
                                 modal.style.pointerEvents = 'auto';
@@ -1224,6 +1267,28 @@
                             modal.querySelector('.macos-window').style.transform = 'scale(0.95)';
                             setTimeout(() => {
                                 modal.classList.add('hidden');
+                                modal.classList.remove('active');
+                            }, 300);
+                        }
+
+                        // Funções para o modal de detalhes do cálculo ao vivo
+                        function abrirDetailsModal() {
+                            const modal = document.getElementById('detailsModal');
+                            modal.style.display = 'flex';
+                            modal.classList.add('active');
+                            setTimeout(() => {
+                                modal.style.opacity = '1';
+                                modal.style.pointerEvents = 'auto';
+                            }, 10);
+                        }
+
+                        function fecharDetailsModal() {
+                            const modal = document.getElementById('detailsModal');
+                            modal.style.opacity = '0';
+                            modal.style.pointerEvents = 'none';
+                            setTimeout(() => {
+                                modal.style.display = 'none';
+                                modal.classList.remove('active');
                             }, 300);
                         }
 
@@ -1246,7 +1311,7 @@
                             const dados = JSON.parse(calculo.data);
 
                             // Atualizar título
-                            document.getElementById('modal-editar-titulo').textContent = `Editar: ${calculo.name}`;
+                            document.getElementById('modal-editar-titulo').textContent = `Editar: ${calculo.name} `;
 
                             // Construir formulário
                             const formatMoney = (val) => {
@@ -1256,7 +1321,7 @@
                             };
 
                             const html = `
-                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                                < div style = "display: grid; grid-template-columns: 1fr 1fr; gap: 20px;" >
                                     <div class="macos-form-group">
                                         <label class="macos-form-label">Valor de Arremate</label>
                                         <input type="text" id="edit-valorArrematado" name="valorArrematado" value="${formatMoney(dados.valorArrematado)}" class="macos-input currency-input" required>
@@ -1305,8 +1370,8 @@
                                         <label class="macos-form-label">Corretagem (%)</label>
                                         <input type="number" step="0.1" id="edit-corretagemPercent" value="${dados.corretagemPercent || 6}" class="macos-input">
                                     </div>
-                                </div>
-                            `;
+                                </div >
+                                `;
 
                             document.getElementById('modal-editar-conteudo').innerHTML = html;
 
@@ -1398,6 +1463,28 @@
                             }
                         }
 
+                        async function deleteCalculation(id) {
+                            if (!confirm('Tem certeza que deseja excluir este cálculo? Esta ação não pode ser desfeita.')) return;
+
+                            try {
+                                const response = await fetch(`/api/saved-calculations/${id}`, {
+                                    method: 'DELETE'
+                                });
+
+                                if (response.ok) {
+                                    // Remove o elemento da lista visualmente ou recarrega
+                                    // Para simplicidade e consistência, vamos recarregar
+                                    location.reload();
+                                } else {
+                                    const data = await response.json();
+                                    alert('Erro ao excluir: ' + (data.error || 'Erro desconhecido'));
+                                }
+                            } catch (error) {
+                                console.error('Erro:', error);
+                                alert('Erro ao processar a exclusão.');
+                            }
+                        }
+
                         // Fechar modal ao clicar fora
                         document.getElementById('modal-editar-calculo')?.addEventListener('click', (e) => {
                             if (e.target.id === 'modal-editar-calculo') {
@@ -1409,6 +1496,59 @@
                         document.getElementById('modal-detalhes-calculo')?.addEventListener('click', (e) => {
                             if (e.target.id === 'modal-detalhes-calculo') {
                                 fecharDetalhesCalculo();
+                            }
+                        });
+
+                        // Fechar saveModal ao clicar fora
+                        // Função Global para Abrir Modal de Salvar
+                        window.abrirModalSalvar = function (event) {
+                            if (event) {
+                                event.preventDefault();
+                                event.stopPropagation();
+                                event.stopImmediatePropagation();
+                            }
+
+                            const modal = document.getElementById('saveModal');
+                            if (!modal) return;
+
+                            // Adiciona um listener temporário no documento para bloquear todos os cliques
+                            const blockClicks = (e) => {
+                                if (!modal.contains(e.target)) {
+                                    e.stopPropagation();
+                                    e.stopImmediatePropagation();
+                                }
+                            };
+
+                            // Adiciona o bloqueador na fase de captura (antes de qualquer outro listener)
+                            document.addEventListener('click', blockClicks, true);
+
+                            // Remove o bloqueador após 500ms
+                            setTimeout(() => {
+                                document.removeEventListener('click', blockClicks, true);
+                            }, 500);
+
+                            // Mostra o modal usando a classe 'active' (conforme CSS)
+                            modal.style.display = 'flex';
+                            setTimeout(() => {
+                                modal.classList.add('active');
+                            }, 10);
+
+                            // Foca no input após o modal aparecer
+                            setTimeout(() => {
+                                const input = modal.querySelector('input[name="calculationName"]');
+                                if (input) input.focus();
+                            }, 100);
+                        };
+
+                        // Fechar saveModal ao clicar fora
+                        document.getElementById('saveModal')?.addEventListener('click', (e) => {
+                            // Apenas fecha se clicar exatamente no overlay (fundo)
+                            if (e.target.id === 'saveModal') {
+                                const modal = document.getElementById('saveModal');
+                                modal.classList.remove('active');
+                                setTimeout(() => {
+                                    modal.style.display = 'none';
+                                }, 300); // Aguarda a animação de fade out
                             }
                         });
                     </script>
@@ -1523,7 +1663,7 @@
 
                                 // Helper para encontrar o input visível baseado no name do hidden
                                 const getVisibleInput = (name) => {
-                                    const hidden = document.querySelector(`input[name="${name}"]`);
+                                    const hidden = document.querySelector(`input[name = "${name}"]`);
                                     return hidden ? hidden.previousElementSibling : null;
                                 };
 
@@ -1550,6 +1690,160 @@
                                 updateField(parcelaVisible, financiado * 0.0105);
                             }
                         });
+                    </script>
+
+                    <!-- Modal Configuração Assessoria (V2 - Moved to End of Body) -->
+                    <div id="assessoriaModalV2" class="macos-modal-overlay"
+                        style="display: none; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 99999;">
+                        <div class="macos-window" onclick="event.stopPropagation()"
+                            style="width: 400px; background: var(--macos-bg-secondary); border-radius: 16px; box-shadow: 0 25px 50px rgba(0,0,0,0.4); display: flex; flex-direction: column;">
+                            <div
+                                style="padding: 24px 28px; border-bottom: 1px solid var(--macos-divider); display: flex; justify-content: space-between; align-items: center;">
+                                <h3 style="font-size: 20px; font-weight: 700; color: var(--macos-text-primary);">
+                                    Configurar Assessoria</h3>
+                                <button onclick="fecharModalAssessoriaV2()"
+                                    style="width: 32px; height: 32px; border-radius: 50%; background: var(--macos-bg-tertiary); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s;"
+                                    onmouseover="this.style.background='rgba(255,59,48,0.1)'; this.querySelector('i').style.color='#FF3B30';"
+                                    onmouseout="this.style.background='var(--macos-bg-tertiary)'; this.querySelector('i').style.color='var(--macos-text-secondary)';">
+                                    <i class="fa-solid fa-xmark"
+                                        style="color: var(--macos-text-secondary); font-size: 16px;"></i>
+                                </button>
+                            </div>
+
+                            <div style="padding: 28px; flex: 1;">
+                                <p style="font-size: 14px; color: var(--macos-text-secondary); margin-bottom: 24px;">
+                                    Defina a regra de cobrança da assessoria.</p>
+
+                                <div style="display: grid; gap: 20px;">
+                                    <div class="macos-form-group">
+                                        <label class="macos-form-label">Valor Limite</label>
+                                        <div class="macos-input-wrapper" style="position: relative;">
+                                            <span
+                                                style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--macos-text-secondary); font-size: 14px;">R$</span>
+                                            <input type="text" id="modalAssessoriaThreshold" class="macos-input"
+                                                oninput="formatCurrencyInput(this)" style="padding-left: 36px;"
+                                                placeholder="120.000,00">
+                                        </div>
+                                        <p
+                                            style="font-size: 12px; color: var(--macos-text-secondary); margin-top: 6px;">
+                                            Até este valor, será cobrada uma taxa fixa.</p>
+                                    </div>
+
+                                    <div class="macos-form-group">
+                                        <label class="macos-form-label">Taxa Fixa</label>
+                                        <div class="macos-input-wrapper" style="position: relative;">
+                                            <span
+                                                style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--macos-text-secondary); font-size: 14px;">R$</span>
+                                            <input type="text" id="modalAssessoriaFeeBelow" class="macos-input"
+                                                oninput="formatCurrencyInput(this)" style="padding-left: 36px;"
+                                                placeholder="6.000,00">
+                                        </div>
+                                        <p
+                                            style="font-size: 12px; color: var(--macos-text-secondary); margin-top: 6px;">
+                                            Valor cobrado se o arremate for ≤ limite.</p>
+                                    </div>
+
+                                    <div class="macos-form-group">
+                                        <label class="macos-form-label">Porcentagem Acima do Limite</label>
+                                        <div class="macos-input-wrapper" style="position: relative;">
+                                            <input type="number" step="0.1" id="modalAssessoriaFeeAbovePercent"
+                                                class="macos-input" style="padding-right: 30px;" placeholder="5">
+                                            <span
+                                                style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--macos-text-secondary); font-size: 14px;">%</span>
+                                        </div>
+                                        <p
+                                            style="font-size: 12px; color: var(--macos-text-secondary); margin-top: 6px;">
+                                            % sobre o total se ultrapassar o limite.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div
+                                style="padding: 20px 28px; background: var(--macos-bg-tertiary); border-radius: 0 0 16px 16px; border-top: 1px solid var(--macos-divider); display: flex; justify-content: flex-end; gap: 12px;">
+                                <button type="button" class="macos-btn-secondary"
+                                    onclick="fecharModalAssessoriaV2()">Cancelar</button>
+                                <button type="button" class="macos-btn-primary"
+                                    onclick="saveAssessoriaConfigV2()">Confirmar</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <script>
+                        function abrirModalAssessoriaV2() {
+                            console.log('🔵 abrirModalAssessoriaV2 CHAMADA');
+                            const modal = document.getElementById('assessoriaModalV2');
+                            console.log('🔵 Modal encontrado:', modal);
+
+                            if (!modal) {
+                                console.error('❌ Modal assessoriaModalV2 não encontrado!');
+                                return;
+                            }
+
+                            modal.style.display = 'flex';
+                            // Force reflow to ensure the display change is applied before adding the class
+                            modal.offsetHeight;
+                            // Add active class to trigger opacity: 1
+                            modal.classList.add('active');
+                            console.log('🔵 Modal display definido como flex e classe active adicionada');
+
+                            // Sync current values
+                            const threshold = document.getElementById('assessoriaThreshold').value;
+                            const feeBelow = document.getElementById('assessoriaFeeBelow').value;
+
+                            console.log('🔵 Valores - threshold:', threshold, 'feeBelow:', feeBelow);
+
+                            if (window.formatCurrencyValue) {
+                                document.getElementById('modalAssessoriaThreshold').value = formatCurrencyValue(threshold);
+                                document.getElementById('modalAssessoriaFeeBelow').value = formatCurrencyValue(feeBelow);
+                            }
+                            document.getElementById('modalAssessoriaFeeAbovePercent').value = document.getElementById('assessoriaFeeAbovePercent').value;
+
+                            console.log('🔵 Modal aberto com sucesso');
+
+                            // Observer para detectar mudanças no estilo
+                            const observer = new MutationObserver((mutations) => {
+                                mutations.forEach((mutation) => {
+                                    if (mutation.type === 'attributes' && mutation.attributeName === 'style') {
+                                        console.log('⚠️ ESTILO DO MODAL MUDOU!');
+                                        console.log('⚠️ Novo display:', modal.style.display);
+                                        console.trace('Stack trace da mudança:');
+                                    }
+                                });
+                            });
+
+                            observer.observe(modal, { attributes: true, attributeFilter: ['style'] });
+
+                            // Desconecta após 5 segundos
+                            setTimeout(() => observer.disconnect(), 5000);
+                        }
+
+                        function fecharModalAssessoriaV2() {
+                            console.log('🔴 fecharModalAssessoriaV2 CHAMADA');
+                            console.trace('Stack trace do fechamento:');
+                            const modal = document.getElementById('assessoriaModalV2');
+                            modal.classList.remove('active');
+                            modal.style.display = 'none';
+                        }
+
+                        function saveAssessoriaConfigV2() {
+                            const thresholdStr = document.getElementById('modalAssessoriaThreshold').value;
+                            const feeBelowStr = document.getElementById('modalAssessoriaFeeBelow').value;
+                            const feeAbove = document.getElementById('modalAssessoriaFeeAbovePercent').value;
+
+                            const threshold = parseCurrency(thresholdStr);
+                            const feeBelow = parseCurrency(feeBelowStr);
+
+                            document.getElementById('assessoriaThreshold').value = threshold;
+                            document.getElementById('assessoriaFeeBelow').value = feeBelow;
+                            document.getElementById('assessoriaFeeAbovePercent').value = feeAbove;
+
+                            // Recalcular assessoria com as novas regras (se não for manual)
+                            if (typeof updateAssessoriaFromRule === 'function') {
+                                updateAssessoriaFromRule();
+                            }
+
+                            fecharModalAssessoriaV2();
+                        }
                     </script>
 </body>
 

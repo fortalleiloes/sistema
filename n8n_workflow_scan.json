@@ -1,0 +1,110 @@
+{
+    "name": "Análise Scan (Gemini Multimodal)",
+    "nodes": [
+        {
+            "parameters": {
+                "httpMethod": "POST",
+                "path": "analise-juridica",
+                "responseMode": "responseNode",
+                "options": {
+                    "binaryData": true
+                }
+            },
+            "id": "webhook-scan",
+            "name": "Receber Arquivos",
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 1,
+            "position": [
+                100,
+                100
+            ]
+        },
+        {
+            "parameters": {
+                "modelName": "models/gemini-1.5-pro",
+                "options": {}
+            },
+            "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+            "typeVersion": 1,
+            "position": [
+                400,
+                340
+            ],
+            "id": "gemini-model",
+            "name": "Google Gemini",
+            "credentials": {
+                "googlePalmApi": {
+                    "id": "yE4jnPRHSnUY1JHk",
+                    "name": "Google Gemini(PaLM) Api account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "promptType": "define",
+                "text": "Analise os documentos PDF anexos (que podem ser imagens escaneadas) e gere o relatório jurídico de viabilidade.",
+                "options": {
+                    "systemMessage": "Você é um Advogado Especialista em Leilões.\nAnalise os PDFs (images/scans) com sua visão computacional.\nExtraia dados do Edital e Matrícula.\nResponda em Markdown.\nSe a imagem for ilegível, avise."
+                }
+            },
+            "id": "agent-scan",
+            "name": "Agente Multimodal",
+            "type": "@n8n/n8n-nodes-langchain.agent",
+            "typeVersion": 1.6,
+            "position": [
+                400,
+                100
+            ]
+        },
+        {
+            "parameters": {
+                "respondWith": "json",
+                "responseBody": "={\n  \"analysis\": \"={{ $json.output }}\"\n}",
+                "options": {}
+            },
+            "id": "respond-scan",
+            "name": "Responder",
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1,
+            "position": [
+                740,
+                100
+            ]
+        }
+    ],
+    "connections": {
+        "Receber Arquivos": {
+            "main": [
+                [
+                    {
+                        "node": "Agente Multimodal",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Google Gemini": {
+            "ai_languageModel": [
+                [
+                    {
+                        "node": "Agente Multimodal",
+                        "type": "ai_languageModel",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Agente Multimodal": {
+            "main": [
+                [
+                    {
+                        "node": "Responder",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}

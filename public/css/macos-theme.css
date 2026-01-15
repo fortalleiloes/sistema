@@ -12,6 +12,14 @@
     box-sizing: border-box;
 }
 
+/* Capitalizar primeira letra em todos os inputs de texto */
+input[type="text"],
+input[type="email"],
+input[type="search"],
+textarea {
+    text-transform: capitalize;
+}
+
 /* ============================================
    2. VARIÁVEIS DO TEMA macOS
    ============================================ */
@@ -750,4 +758,33 @@ html.light ::-webkit-scrollbar-thumb {
 
 html.light ::-webkit-scrollbar-thumb:hover {
     background: rgba(0, 0, 0, 0.3);
+}
+
+/* ============================================
+   15. MODAIS macOS
+   ============================================ */
+.macos-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 2000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.macos-modal-overlay.active {
+    display: flex;
+    opacity: 1;
+}
+
+.macos-modal-overlay.active .macos-window {
+    animation: macos-scale-in 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }

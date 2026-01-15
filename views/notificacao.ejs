@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <title>Notificação Extrajudicial - Fortal</title>
+    <%- include('partials/head') %>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900;300&display=swap"
+            rel="stylesheet">
+        <style>
+            /* Shared Styles */
+            :root {
+                --font-primary: 'Inter', sans-serif;
+            }
+
+            body {
+                font-family: var(--font-primary);
+            }
+
+            /* Screen Only Styles */
+            .page-container {
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 24px;
+            }
+
+            .step-card {
+                background: white;
+                border-radius: 12px;
+                padding: 24px;
+                margin-bottom: 24px;
+                border: 1px solid #e5e7eb;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            }
+
+            .step-title {
+                font-size: 1.1rem;
+                font-weight: 600;
+                margin-bottom: 1rem;
+                color: #1f2937;
+            }
+
+            /* Dark Mode */
+            html.dark .step-card {
+                background: #1f2937;
+                border-color: #374151;
+            }
+
+            html.dark .step-title {
+                color: white;
+            }
+
+            html.dark input,
+            html.dark select {
+                background-color: #374151;
+                border-color: #4b5563;
+                color: white;
+            }
+
+            /* Print/PDF Styles */
+            @media print {
+
+                .macos-toolbar,
+                .macos-sidebar,
+                .page-container,
+                .no-print,
+                header,
+                aside {
+                    display: none !important;
+                }
+
+                .macos-main-content {
+                    margin: 0 !important;
+                    padding: 0 !important;
+                    width: 100% !important;
+                    height: 100% !important;
+                }
+
+                @page {
+                    size: A4 portrait;
+                    margin: 1cm 2cm;
+                    /* Compact but elegant margins */
+                }
+
+                html,
+                body {
+                    background: white;
+                    margin: 0;
+                    padding: 0;
+                    -webkit-print-color-adjust: exact !important;
+                    print-color-adjust: exact !important;
+                    height: 100%;
+                }
+
+                #pdf-content {
+                    display: block !important;
+                    visibility: visible !important;
+                    position: relative !important;
+                    top: 0 !important;
+                    left: 0 !important;
+                    width: 100% !important;
+                }
+            }
+
+            /* PDF Content Styling (Hidden on screen) */
+            #pdf-content {
+                display: none;
+                font-family: 'Inter', sans-serif !important;
+                font-size: 10pt;
+                line-height: 1.5;
+                /* Good readability but compact */
+                color: black;
+                padding: 0;
+                width: 100%;
+                margin: 0 auto;
+            }
+
+            /* HEADER LAYOUT */
+            .doc-header-container {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                /* Center initially, logo will offset */
+                gap: 24px;
+                margin-bottom: 5px;
+                padding-bottom: 12px;
+                position: relative;
+            }
+
+            /* Logo acts as an element in the flex flow */
+            .doc-header-logo img {
+                max-height: 55px;
+                width: auto;
+                display: block;
+            }
+
+            .doc-header-title h1 {
+                font-size: 15pt;
+                font-weight: 900;
+                /* Extra Bold */
+                text-transform: uppercase;
+                margin: 0;
+                text-align: left;
+                /* Align text left next to logo */
+                line-height: 1.1;
+                color: black;
+            }
+
+            .doc-header-line {
+                width: 100%;
+                height: 2px;
+                background-color: #8b5cf6;
+                /* Purple line */
+                margin-top: 0;
+                margin-bottom: 2.5rem;
+                border: none;
+            }
+
+            /* BODY COPY */
+            .doc-body {
+                text-align: justify;
+                margin-bottom: 2rem;
+                font-size: 9.5pt;
+                /* Slightly smaller to guarantee fit */
+                font-weight: 400;
+            }
+
+            .doc-body p {
+                margin-bottom: 1rem;
+                /* Spacing between paragraphs */
+            }
+
+            /* FOOTER */
+            .doc-footer {
+                margin-top: 3rem;
+                text-align: left;
+                font-size: 9.5pt;
+                line-height: 1.4;
+            }
+
+            .footer-company-name {
+                text-transform: uppercase;
+                font-weight: 900;
+                margin-bottom: 0.2rem;
+            }
+
+            .footer-contact {
+                font-weight: 700;
+            }
+        </style>
+</head>
+
+<body class="bg-gray-50 dark:bg-gray-900 min-h-screen transition-colors duration-200">
+    <%- include('partials/macos-toolbar', { title: 'Notificação Extrajudicial' , profile_pic_url: user.profile_pic_url
+        }) %>
+        <%- include('partials/macos-sidebar', { user: user }) %>
+
+            <main class="macos-main-content">
+                <!-- Input Section (Screen) -->
+                <div class="page-container no-print">
+                    <div class="flex justify-between items-center mb-6">
+                        <h1 class="text-2xl font-bold dark:text-white">Gerador de Notificação (Amigável)</h1>
+                        <button onclick="window.print()"
+                            class="bg-gray-900 text-white px-6 py-2 rounded-lg font-bold hover:bg-gray-800 flex items-center gap-2">
+                            <i class="fa-solid fa-print"></i> Imprimir / Salvar PDF
+                        </button>
+                    </div>
+
+                    <!-- Step 1: Company Info -->
+                    <div
+                        class="step-card bg-white dark:bg-gray-800 dark:border-gray-700 transition-colors duration-200 mb-4">
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="step-title m-0">1. Dados do Notificante (Empresa/Investidor)</h2>
+                        </div>
+
+                        <!-- Saved Companies Manager -->
+                        <div
+                            class="mb-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 flex gap-2 items-end">
+                            <div class="flex-grow">
+                                <label
+                                    class="block text-xs font-bold text-gray-500 dark:text-gray-300 uppercase tracking-wide mb-1">
+                                    <i class="fa-solid fa-building"></i> Perfis Salvos (Empresas)
+                                </label>
+                                <select id="selectSavedCompany"
+                                    class="w-full p-2 border rounded text-sm bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white"
+                                    onchange="loadCompanyProfile(this.value)">
+                                    <option value="">-- Selecione ou Cadastre Nova --</option>
+                                </select>
+                            </div>
+                            <button onclick="saveCompanyProfile()"
+                                class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-bold rounded shadow-sm whitespace-nowrap transition-colors flex items-center gap-2">
+                                <i class="fa-solid fa-save"></i> Salvar Perfil
+                            </button>
+                            <button onclick="deleteCompanyProfile()"
+                                class="px-3 py-2 bg-red-100 dark:bg-red-900 hover:bg-red-200 dark:hover:bg-red-800 text-red-600 dark:text-red-200 rounded shadow-sm transition-colors"
+                                title="Excluir Empresa Selecionada">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Nome do
+                                    Notificante / Empresa</label>
+                                <input type="text" id="inputNomeNotificante"
+                                    class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                    placeholder="Seu Nome ou Razão Social" oninput="updatePDF()">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">CPF / CNPJ
+                                    (Opcional)</label>
+                                <input type="text" id="inputCpfNotificante"
+                                    class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                    placeholder="000.000.000-00" oninput="updatePDF()">
+                            </div>
+                            <div class="col-span-2">
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Endereço
+                                    Completo</label>
+                                <input type="text" id="inputEnderecoNotificante"
+                                    class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                    placeholder="Rua..., Nº..., Bairro..., Cidade/UF" oninput="updatePDF()">
+                            </div>
+                            <!-- Contact Fields -->
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Telefone
+                                    (Assinatura)</label>
+                                <input type="text" id="inputTelefoneNotificante"
+                                    class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                    placeholder="(85) 99999-9999" oninput="updatePDF()">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">E-mail
+                                    (Assinatura)</label>
+                                <input type="text" id="inputEmailNotificante"
+                                    class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                    placeholder="email@empresa.com" oninput="updatePDF()">
+                            </div>
+                        </div>
+
+                        <!-- Logo Upload -->
+                        <div class="mt-4 border-t border-gray-100 dark:border-gray-600 pt-4">
+                            <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">Logo da
+                                Empresa</label>
+                            <div class="flex items-center gap-4">
+                                <div id="dropzone_fileLogo"
+                                    class="flex-grow border border-dashed border-gray-400 dark:border-gray-600 p-4 rounded text-center cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 outline-none transition-all"
+                                    tabindex="0" onclick="document.getElementById('fileLogo').click()">
+                                    <p class="text-sm font-bold text-gray-600 dark:text-gray-300">Clique para selecionar
+                                        Logo</p>
+                                    <input type="file" id="fileLogo" class="hidden" accept="image/*"
+                                        onchange="handleLogoUpload(this)">
+                                </div>
+                                <div id="logoPreviewWrapper"
+                                    class="hidden w-24 h-24 border rounded flex items-center justify-center bg-white p-2 relative">
+                                    <img id="previewLogo" class="max-w-full max-h-full object-contain">
+                                    <button onclick="removeLogo()"
+                                        class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs shadow hover:bg-red-600"><i
+                                            class="fa-solid fa-xmark"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Notified Info -->
+                    <div
+                        class="step-card bg-white dark:bg-gray-800 dark:border-gray-700 transition-colors duration-200 mb-4">
+                        <h2 class="step-title">2. Dados do Notificado (Ocupante)</h2>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Nome (ou Ao
+                                    Ocupante)</label>
+                                <input type="text" id="inputNomeNotificado"
+                                    class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                    value="Ao Ocupante" placeholder="Ao Sr(a)..." oninput="updatePDF()">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Endereço do
+                                    Imóvel (Rua, Nº, Bairro)</label>
+                                <input type="text" id="inputEnderecoImovel"
+                                    class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                    placeholder="Rua X, 123, Bairro Y" oninput="updatePDF()">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Cidade/UF do
+                                    Imóvel</label>
+                                <input type="text" id="inputCidadeImovel"
+                                    class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                    placeholder="Fortaleza/CE" oninput="updatePDF()">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 3: Property Details -->
+                    <div
+                        class="step-card bg-white dark:bg-gray-800 dark:border-gray-700 transition-colors duration-200 mb-4">
+                        <h2 class="step-title">3. Detalhes do Imóvel para Texto</h2>
+                        <div class="grid grid-cols-3 gap-4">
+                            <div>
+                                <label
+                                    class="block text-xs font-medium text-gray-700 dark:text-gray-300">Matrícula</label>
+                                <input type="text" id="inputMatricula"
+                                    class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                    placeholder="00000" oninput="updatePDF()">
+                            </div>
+                            <div class="col-span-2">
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Cartório de
+                                    Registro (Completo)</label>
+                                <input type="text" id="inputCartorio"
+                                    class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                    placeholder="2º OFÍCIO DE REGISTRO DE IMÓVEIS DE PACAJUS/CE" oninput="updatePDF()">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PDF Template (Print Only) -->
+                <div id="pdf-content">
+                    <!-- HEADER -->
+                    <div class="doc-header-container">
+                        <div class="doc-header-logo">
+                            <img id="pdfLogo" src="" style="display: none;">
+                        </div>
+                        <div class="doc-header-title">
+                            <h1>NOTIFICAÇÃO PARA DESOCUPAÇÃO DE<br>IMÓVEL DE FORMA AMIGÁVEL</h1>
+                        </div>
+                    </div>
+                    <hr class="doc-header-line">
+
+                    <!-- BODY -->
+                    <div class="doc-body">
+                        <p>Prezada <strong id="pdfNomeNotificado" style="text-transform: uppercase;">RAPHAELA RAMOS DE
+                                VASCONCELOS</strong>,</p>
+
+                        <p>Espero que esta mensagem o encontre bem.</p>
+
+                        <p>Informamos que <strong id="pdfNomeNotificante">Francisco Tiago Costa Moreira</strong>,
+                            recentemente, adquiriu o imóvel localizado à <span id="pdfEnderecoImovelInline">Rua José
+                                Arteiro de Sousa, 174, Pedra Branca</span>, <strong
+                                style="text-transform: uppercase;">MATRÍCULA <span id="pdfMatricula">9679</span> DO
+                                <span id="pdfCartorio">2º OFÍCIO DE REGISTRO DE IMÓVEIS DE PACAJUS/CE</span></strong>,
+                            onde você atualmente reside.</p>
+
+                        <p>Com isso, gostaríamos de tratar de forma amigável a questão da desocupação, de modo que
+                            possamos encontrar uma solução que seja conveniente para ambos, sem a necessidade de
+                            recorrer a medidas judiciais.</p>
+
+                        <p>Gostaríamos de apresentar algumas possibilidades para facilitar esse processo, e ficaremos à
+                            disposição para ajustá-las a depender das suas necessidades.</p>
+
+                        <p>Nosso objetivo é garantir que a transição seja tranquila e justa para todos. Após a
+                            desocupação, podemos formalizar um termo que regulamente a situação de maneira clara, sem a
+                            necessidade de formalidades excessivas. O importante é que todos os aspectos do contrato
+                            sejam encerrados de forma amigável e sem pendências.</p>
+
+                        <p>Nossa intenção é que possamos resolver essa questão de forma amigável, sem pressões, e com o
+                            máximo de respeito pelas necessidades de ambos.</p>
+
+                        <p>Se algum dos pontos apresentados não for conveniente ou se vocês tiverem sugestões, estamos
+                            completamente aberto para negociarmos conforme for necessário.</p>
+
+                        <p>Agradecemos a sua compreensão e colaboração.</p>
+
+                        <p>Ficamos à disposição para conversarmos sobre esses pontos e encontrar a melhor solução para
+                            todos.</p>
+
+                        <p>Atenciosamente,</p>
+                    </div>
+
+                    <!-- FOOTER -->
+                    <div class="doc-footer">
+                        <div class="footer-company-name" id="pdfNomeNotificanteSign">FORTAL LEILÕES LTDA</div>
+                        <div class="footer-contact" id="pdfTelefone">85 99222-9293 ou 85 99858-6661</div>
+                        <div class="footer-contact" id="pdfEmail" style="text-transform: lowercase;">
+                            fortal.tributos@gmail.com</div>
+                    </div>
+                </div>
+            </main>
+
+            <script>
+        // --- COMPANY MANAGEMENT LOGIC ---
+        let currentLogoBase64 = null;
+
+        function getSavedProfiles() {
+            try { return JSON.parse(localStorage.getItem('savedCompanies') || '[]'); } catch (e) { return []; }
+        }
+
+        function refreshCompanySelect() {
+            const saved = getSavedProfiles();
+            const select = document.getElementById('selectSavedCompany');
+            const currentVal = select.value;
+            select.innerHTML = '<option value="">-- Selecione ou Cadastre Nova --</option>';
+            saved.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.id;
+                opt.innerText = c.name;
+                select.appendChild(opt);
+            });
+            if (currentVal && saved.find(c => c.id === currentVal)) select.value = currentVal;
+        }
+
+        function saveCompanyProfile() {
+            const nome = document.getElementById('inputNomeNotificante').value;
+            const cpf = document.getElementById('inputCpfNotificante').value;
+            const endereco = document.getElementById('inputEnderecoNotificante').value;
+            const telefone = document.getElementById('inputTelefoneNotificante').value;
+            const email = document.getElementById('inputEmailNotificante').value;
+            
+            if (!nome) { alert("Preencha ao menos o Nome da Empresa/Notificante para salvar."); return; }
+
+            let saved = getSavedProfiles();
+            const select = document.getElementById('selectSavedCompany');
+            let id = select.value;
+
+            const newProfile = { id: id || Date.now().toString(), name: nome, cpf, endereco, telefone, email, logo: currentLogoBase64 };
+
+            if (id) {
+                const index = saved.findIndex(c => c.id === id);
+                if (index !== -1) {
+                    if (!confirm("Atualizar perfil existente?")) return;
+                    saved[index] = newProfile;
+                }
+            } else {
+                saved.push(newProfile);
+                id = newProfile.id;
+            }
+
+            localStorage.setItem('savedCompanies', JSON.stringify(saved));
+            refreshCompanySelect();
+            select.value = id;
+            alert("Perfil salvo com sucesso!");
+        }
+
+        function deleteCompanyProfile() {
+            const id = document.getElementById('selectSavedCompany').value;
+            if (!id) return;
+            if (!confirm("Excluir este perfil?")) return;
+
+            let saved = getSavedProfiles();
+            saved = saved.filter(c => c.id !== id);
+            localStorage.setItem('savedCompanies', JSON.stringify(saved));
+            refreshCompanySelect();
+            loadCompanyProfile(null);
+        }
+
+        function loadCompanyProfile(id) {
+            if (!id) {
+                document.querySelectorAll('input').forEach(i => i.value = '');
+                document.getElementById('inputNomeNotificado').value = 'Ao Ocupante'; // Reset default
+                removeLogo();
+                updatePDF();
+                return;
+            }
+            const saved = getSavedProfiles();
+            const profile = saved.find(c => c.id === id);
+            if (profile) {
+                document.getElementById('inputNomeNotificante').value = profile.name || '';
+                document.getElementById('inputCpfNotificante').value = profile.cpf || '';
+                document.getElementById('inputEnderecoNotificante').value = profile.endereco || '';
+                document.getElementById('inputTelefoneNotificante').value = profile.telefone || '';
+                document.getElementById('inputEmailNotificante').value = profile.email || '';
+                if (profile.logo) {
+                    currentLogoBase64 = profile.logo;
+                    const prev = document.getElementById('previewLogo');
+                    prev.src = profile.logo;
+                    document.getElementById('logoPreviewWrapper').classList.remove('hidden');
+                } else {
+                    removeLogo();
+                }
+                updatePDF();
+            }
+        }
+
+        function handleLogoUpload(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    currentLogoBase64 = e.target.result;
+                    const prev = document.getElementById('previewLogo');
+                    prev.src = currentLogoBase64;
+                    document.getElementById('logoPreviewWrapper').classList.remove('hidden');
+                    updatePDF();
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function removeLogo() {
+            currentLogoBase64 = null;
+            document.getElementById('fileLogo').value = "";
+            document.getElementById('logoPreviewWrapper').classList.add('hidden');
+            updatePDF();
+        }
+
+        function updatePDF() {
+            const nomeNotificante = document.getElementById('inputNomeNotificante').value || 'Nome do Notificante';
+            document.getElementById('pdfNomeNotificante').innerText = nomeNotificante;
+            document.getElementById('pdfNomeNotificanteSign').innerText = nomeNotificante;
+            
+            document.getElementById('pdfTelefone').innerText = document.getElementById('inputTelefoneNotificante').value || '';
+            document.getElementById('pdfEmail').innerText = document.getElementById('inputEmailNotificante').value || '';
+
+            document.getElementById('pdfNomeNotificado').innerText = document.getElementById('inputNomeNotificado').value || 'Ao Ocupante';
+
+            const endImovel = document.getElementById('inputEnderecoImovel').value || 'Endereço do Imóvel';
+            const cidImovel = document.getElementById('inputCidadeImovel').value || '';
+            document.getElementById('pdfEnderecoImovelInline').innerText = endImovel + (cidImovel ? `, ${cidImovel}` : '');
+
+            document.getElementById('pdfMatricula').innerText = document.getElementById('inputMatricula').value || '_______';
+            document.getElementById('pdfCartorio').innerText = document.getElementById('inputCartorio').value || '_______';
+
+            const pdfLogo = document.getElementById('pdfLogo');
+            if (currentLogoBase64) {
+                pdfLogo.src = currentLogoBase64;
+                pdfLogo.style.display = 'block';
+            } else {
+                pdfLogo.style.display = 'none';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            refreshCompanySelect();
+            updatePDF();
+        });
+            </script>
+</body>
+
+</html>

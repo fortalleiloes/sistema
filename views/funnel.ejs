@@ -69,6 +69,7 @@
         /* Custom Range Slider */
         input[type=range] {
             -webkit-appearance: none;
+            appearance: none;
             width: 100%;
             background: transparent;
         }
@@ -221,8 +222,82 @@
                 </button>
             </div>
 
-            <!-- STEP 4: FINANCIALS (Was Step 3) -->
+            <!-- STEP 4: INTERESSE (NEW) -->
             <div class="step-content" data-step="4">
+                <h2 class="text-2xl font-bold mb-2 text-white">Como podemos te ajudar?</h2>
+                <p class="text-slate-400 mb-8">Escolha a opção que melhor se adapta à sua necessidade.</p>
+
+                <div class="grid grid-cols-1 gap-4">
+                    <!-- Assessoria -->
+                    <label onclick="handleInterestClick(this, 'assessoria')"
+                        class="option-card cursor-pointer p-6 rounded-2xl bg-slate-800 border border-slate-700 flex items-center gap-4 group">
+                        <input type="radio" name="interesse" value="assessoria" class="hidden">
+                        <div
+                            class="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center group-hover:bg-blue-500/20 transition-colors">
+                            <i class="fa-solid fa-handshake text-blue-400 text-xl"></i>
+                        </div>
+                        <div>
+                            <span class="block font-bold text-lg text-white">Assessoria Singular</span>
+                            <span class="text-sm text-slate-400">Acompanhamento presencial da equipe (Fortaleza e
+                                região).</span>
+                        </div>
+                    </label>
+
+                    <!-- Consultoria -->
+                    <label onclick="handleInterestClick(this, 'consultoria')"
+                        class="option-card cursor-pointer p-6 rounded-2xl bg-slate-800 border border-slate-700 flex items-center gap-4 group">
+                        <input type="radio" name="interesse" value="consultoria" class="hidden">
+                        <div
+                            class="w-12 h-12 rounded-full bg-indigo-500/10 flex items-center justify-center group-hover:bg-indigo-500/20 transition-colors">
+                            <i class="fa-solid fa-headset text-indigo-400 text-xl"></i>
+                        </div>
+                        <div>
+                            <span class="block font-bold text-lg text-white">Consultoria Online</span>
+                            <span class="text-sm text-slate-400">Acompanhamento realizado online pela nossa
+                                equipe.</span>
+                        </div>
+                    </label>
+
+                    <!-- Mentoria -->
+                    <label onclick="handleInterestClick(this, 'mentoria')"
+                        class="option-card cursor-pointer p-6 rounded-2xl bg-slate-800 border border-slate-700 flex items-center gap-4 group">
+                        <input type="radio" name="interesse" value="mentoria" class="hidden">
+                        <div
+                            class="w-12 h-12 rounded-full bg-purple-500/10 flex items-center justify-center group-hover:bg-purple-500/20 transition-colors">
+                            <i class="fa-solid fa-graduation-cap text-purple-400 text-xl"></i>
+                        </div>
+                        <div>
+                            <span class="block font-bold text-lg text-white">Mentoria Online</span>
+                            <span class="text-sm text-slate-400">Vídeo aulas passo a passo para arrematar.</span>
+                            <!-- Removed manual link, now handled by card click -->
+                            <span class="text-xs text-yellow-500 mt-1 block">Clique para saber mais <i
+                                    class="fa-solid fa-external-link-alt ml-1"></i></span>
+                        </div>
+                    </label>
+
+                    <!-- Parcerias/Eventos -->
+                    <label onclick="handleInterestClick(this, 'parcerias')"
+                        class="option-card cursor-pointer p-6 rounded-2xl bg-slate-800 border border-slate-700 flex items-center gap-4 group">
+                        <input type="radio" name="interesse" value="parcerias" class="hidden">
+                        <div
+                            class="w-12 h-12 rounded-full bg-green-500/10 flex items-center justify-center group-hover:bg-green-500/20 transition-colors">
+                            <i class="fa-solid fa-users text-green-400 text-xl"></i>
+                        </div>
+                        <div>
+                            <span class="block font-bold text-lg text-white">Parcerias e Eventos</span>
+                            <span class="text-sm text-slate-400">Tenho interesse em parcerias ou eventos.</span>
+                        </div>
+                    </label>
+                </div>
+
+                <button type="button" onclick="prevStep(3)"
+                    class="mt-8 text-slate-500 hover:text-white text-sm font-medium flex items-center gap-2">
+                    <i class="fa-solid fa-arrow-left"></i> Voltar
+                </button>
+            </div>
+
+            <!-- STEP 5: FINANCIALS (Was Step 4) -->
+            <div class="step-content" data-step="5">
                 <h2 class="text-2xl font-bold mb-2 text-white">Capacidade Financeira</h2>
                 <p class="text-slate-400 mb-8">Quanto você tem disponível para investir ou dar de entrada?</p>
 
@@ -237,29 +312,38 @@
                     <p class="text-sm font-medium text-slate-300 mb-4">Como prefere pagar?</p>
                     <div class="flex gap-4">
                         <label
-                            class="flex-1 option-card cursor-pointer p-4 rounded-xl bg-slate-800 border border-slate-700 text-center flex flex-col items-center justify-center h-32 group hover:bg-slate-700 transition-all relative overflow-hidden"
+                            class="flex-1 option-card cursor-pointer p-4 rounded-xl bg-slate-800 border border-slate-700 text-center flex flex-col items-center justify-center h-40 group hover:bg-slate-700 transition-all relative overflow-hidden"
                             onclick="selectPayment(this)">
                             <input type="radio" name="preferencia_pgto" value="vista" class="hidden">
                             <div
-                                class="w-12 h-12 rounded-full bg-green-500/10 flex items-center justify-center mb-3 group-hover:bg-green-500/20 transition-colors icon-container">
+                                class="absolute top-0 right-0 bg-yellow-500 text-black text-[10px] font-bold px-2 py-1 rounded-bl-lg">
+                                RECOMENDADO
+                            </div>
+                            <div
+                                class="w-12 h-12 rounded-full bg-green-500/10 flex items-center justify-center mb-2 group-hover:bg-green-500/20 transition-colors icon-container">
                                 <i class="fa-solid fa-money-bill-wave text-green-500 text-xl"></i>
                             </div>
                             <span class="block font-bold text-white text-lg">À Vista</span>
+                            <span class="text-[10px] text-green-400 font-medium mt-1">+ Descontos</span>
+                            <span class="text-[10px] text-slate-400 leading-tight block mt-0.5">Sem juros abusivos e
+                                maior agilidade.</span>
                             <div
                                 class="absolute inset-0 bg-green-500/10 opacity-0 transition-opacity selection-overlay">
                             </div>
                         </label>
                         <label
-                            class="flex-1 option-card cursor-pointer p-4 rounded-xl bg-slate-800 border border-slate-700 text-center flex flex-col items-center justify-center h-32 group hover:bg-slate-700 transition-all relative overflow-hidden"
+                            class="flex-1 option-card cursor-pointer p-4 rounded-xl bg-slate-800 border border-slate-700 text-center flex flex-col items-center justify-center h-40 group hover:bg-slate-700 transition-all relative overflow-hidden"
                             onclick="selectPayment(this)">
                             <input type="radio" name="preferencia_pgto" value="financiado" class="hidden">
                             <div
-                                class="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center mb-3 group-hover:bg-blue-500/20 transition-colors icon-container">
+                                class="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center mb-2 group-hover:bg-blue-500/20 transition-colors icon-container">
                                 <i class="fa-solid fa-building-columns text-blue-500 text-xl"></i>
                             </div>
                             <span class="block font-bold text-white text-lg">Financiado</span>
-                            <div
-                                class="absolute inset-0 bg-green-500/10 opacity-0 transition-opacity selection-overlay">
+                            <span class="text-[10px] text-slate-500 font-medium mt-1">Via Banco</span>
+                            <span class="text-[10px] text-slate-400 leading-tight block mt-0.5">Pode ter taxas e análise
+                                demorada.</span>
+                            <div class="absolute inset-0 bg-blue-500/10 opacity-0 transition-opacity selection-overlay">
                             </div>
                         </label>
                     </div>
@@ -272,17 +356,17 @@
                 </div>
 
                 <div class="flex justify-between items-center mt-8">
-                    <button type="button" onclick="prevStep(3)"
+                    <button type="button" onclick="prevStep(4)"
                         class="text-slate-500 hover:text-white text-sm font-medium">Voltar</button>
-                    <button type="button" onclick="validateStep4()"
+                    <button type="button" onclick="validateStepFinance()"
                         class="bg-white text-black px-6 py-3 rounded-xl font-bold hover:bg-slate-200 transition-colors">
                         Próximo <i class="fa-solid fa-arrow-right ml-2 text-xs"></i>
                     </button>
                 </div>
             </div>
 
-            <!-- STEP 5: QUALIFICATION (Was Step 4) -->
-            <div class="step-content" data-step="5">
+            <!-- STEP 6: QUALIFICATION (Was Step 5) -->
+            <div class="step-content" data-step="6">
                 <h2 class="text-2xl font-bold mb-2 text-white">Análise de Crédito</h2>
                 <p class="text-slate-400 mb-8">Essa informação é sigilosa e usada apenas para filtrar oportunidades de
                     financiamento.</p>
@@ -292,27 +376,27 @@
                 <div class="grid grid-cols-2 gap-4 mb-8">
                     <label
                         class="option-card cursor-pointer p-6 rounded-2xl bg-slate-800 border border-slate-700 text-center">
-                        <input type="radio" name="restricao_nome" value="true" class="hidden" onchange="autoNext(6)">
+                        <input type="radio" name="restricao_nome" value="true" class="hidden" onchange="autoNext(7)">
                         <span class="block text-2xl mb-2">🚫</span>
                         <span class="font-bold text-white">Sim, possuo</span>
                     </label>
 
                     <label
                         class="option-card cursor-pointer p-6 rounded-2xl bg-slate-800 border border-slate-700 text-center">
-                        <input type="radio" name="restricao_nome" value="false" class="hidden" onchange="autoNext(6)">
+                        <input type="radio" name="restricao_nome" value="false" class="hidden" onchange="autoNext(7)">
                         <span class="block text-2xl mb-2">✅</span>
                         <span class="font-bold text-white">Não, nome limpo</span>
                     </label>
                 </div>
 
                 <div class="flex justify-between items-center mt-8">
-                    <button type="button" onclick="prevStep(4)"
+                    <button type="button" onclick="prevStep(5)"
                         class="text-slate-500 hover:text-white text-sm font-medium">Voltar</button>
                 </div>
             </div>
 
-            <!-- STEP 6: CONTACT (Was Step 5) -->
-            <div class="step-content" data-step="6">
+            <!-- STEP 7: CONTACT (Was Step 6) -->
+            <div class="step-content" data-step="7">
                 <h2 class="text-2xl font-bold mb-2 text-white">Último passo!</h2>
                 <p class="text-slate-400 mb-8">Onde enviamos as oportunidades selecionadas para seu perfil?</p>
 
@@ -381,7 +465,7 @@
                     <i id="btnSpinner" class="fa-solid fa-circle-notch fa-spin hidden"></i>
                 </button>
 
-                <button type="button" onclick="prevStep(4)"
+                <button type="button" id="btnBackContact" onclick="handleBackContact()"
                     class="w-full mt-4 text-slate-500 hover:text-white text-sm font-medium">Voltar</button>
             </div>
 

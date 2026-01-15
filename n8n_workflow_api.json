@@ -1,0 +1,92 @@
+{
+    "name": "Gemini API Debug",
+    "nodes": [
+        {
+            "parameters": {
+                "httpMethod": "POST",
+                "path": "analise-juridica",
+                "responseMode": "responseNode",
+                "options": {
+                    "binaryData": true
+                }
+            },
+            "id": "webhook-api",
+            "name": "Receber Arquivos",
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 1,
+            "position": [
+                100,
+                100
+            ]
+        },
+        {
+            "parameters": {
+                "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent",
+                "sendQuery": true,
+                "queryParameters": {
+                    "key": "SUA_API_KEY_AQUI"
+                },
+                "method": "POST",
+                "sendBody": true,
+                "contentType": "json",
+                "bodyParameters": {
+                    "parameters": [
+                        {
+                            "name": "contents",
+                            "value": "={{ [\n  {\n    \"parts\": [\n      { \"text\": \"Analise documentos. Se for imagem, use OCR.\" },\n      {\n        \"inline_data\": {\n          \"mime_type\": \"application/pdf\",\n          \"data\": $binary.edital.data\n        }\n      }\n    ]\n  }\n] }}"
+                        }
+                    ]
+                },
+                "options": {}
+            },
+            "id": "http-gemini",
+            "name": "Chamar Gemini API",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.1,
+            "position": [
+                400,
+                100
+            ],
+            "continueOnFail": true
+        },
+        {
+            "parameters": {
+                "respondWith": "json",
+                "responseBody": "={\n  \"analysis\": \"={{ $json.error ? ('ERRO API GOOGLE: ' + $json.error.message) : ($json.candidates ? $json.candidates[0].content.parts[0].text : 'Resposta desconhecida da API') }}\"\n}",
+                "options": {}
+            },
+            "id": "respond-api",
+            "name": "Responder",
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1,
+            "position": [
+                700,
+                100
+            ]
+        }
+    ],
+    "connections": {
+        "Receber Arquivos": {
+            "main": [
+                [
+                    {
+                        "node": "Chamar Gemini API",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Chamar Gemini API": {
+            "main": [
+                [
+                    {
+                        "node": "Responder",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}

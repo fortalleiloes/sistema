@@ -92,6 +92,22 @@ document.addEventListener('click', (e) => {
     }
 });
 
+// Habilitar capitalização automática em todos os inputs e textareas
+document.addEventListener('DOMContentLoaded', () => {
+    const enableAutocapitalize = () => {
+        document.querySelectorAll('input[type="text"], input[type="email"], input[type="search"], textarea').forEach(element => {
+            element.setAttribute('autocapitalize', 'words');
+        });
+    };
+
+    // Executar imediatamente
+    enableAutocapitalize();
+
+    // Observar mudanças no DOM para novos inputs
+    const observer = new MutationObserver(enableAutocapitalize);
+    observer.observe(document.body, { childList: true, subtree: true });
+});
+
 // Menu Navigation (only if menu items exist)
 if (menuItems.length > 0) {
     menuItems.forEach(item => {

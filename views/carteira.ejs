@@ -48,6 +48,14 @@
                 background: rgba(255, 149, 0, 0.1);
                 color: #FF9500;
             }
+
+            .text-success {
+                color: #34C759 !important;
+            }
+
+            .text-danger {
+                color: #FF3B30 !important;
+            }
         </style>
 </head>
 
@@ -163,9 +171,19 @@
                                                     <% } %>
                                             </div>
                                         </div>
-                                        <span class="status-badge status-<%= cliente.status %>">
-                                            <%= cliente.status %>
-                                        </span>
+                                        <div
+                                            style="display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
+                                            <span class="status-badge status-<%= cliente.status %>">
+                                                <%= cliente.status %>
+                                            </span>
+                                            <button
+                                                onclick="excluirCliente(event, '<%= cliente.id %>', '<%= cliente.nome %>')"
+                                                style="background: transparent; border: none; color: #FF3B30; font-size: 14px; cursor: pointer; opacity: 0.6; transition: opacity 0.2s;"
+                                                onmouseover="this.style.opacity='1'"
+                                                onmouseout="this.style.opacity='0.6'" title="Excluir Cliente">
+                                                <i class="fa-solid fa-trash"></i>
+                                            </button>
+                                        </div>
                                     </div>
 
                                     <div
@@ -202,8 +220,8 @@
                                                 style="font-size: 11px; color: var(--macos-text-secondary); text-transform: uppercase; font-weight: 600; margin-bottom: 4px;">
                                                 ROI Médio
                                             </p>
-                                            <p
-                                                style="font-size: 16px; font-weight: 700; color: <%= (cliente.roi_medio || 0) >= 0 ? '#34C759' : '#FF3B30' %>;">
+                                            <p class="<%= (cliente.roi_medio || 0) >= 0 ? 'text-success' : 'text-danger' %>"
+                                                style="font-size: 16px; font-weight: 700;">
                                                 <%= (cliente.roi_medio || 0).toFixed(1) %>%
                                             </p>
                                         </div>
@@ -214,8 +232,8 @@
                                                 style="font-size: 11px; color: var(--macos-text-secondary); text-transform: uppercase; font-weight: 600; margin-bottom: 4px;">
                                                 Lucro Est.
                                             </p>
-                                            <p
-                                                style="font-size: 16px; font-weight: 700; color: <%= (cliente.lucro_estimado || 0) >= 0 ? '#34C759' : '#FF3B30' %>;">
+                                            <p class="<%= (cliente.lucro_estimado || 0) >= 0 ? 'text-success' : 'text-danger' %>"
+                                                style="font-size: 16px; font-weight: 700;">
                                                 <%= (cliente.lucro_estimado || 0).toLocaleString('pt-BR',
                                                     {style: 'currency' , currency: 'BRL' , minimumFractionDigits: 0,
                                                     maximumFractionDigits: 0}) %>
@@ -431,6 +449,31 @@
                         fecharModalNovoCliente();
                     }
                 });
+
+                async function excluirCliente(event, id, nome) {
+                    event.stopPropagation(); // Prevents card click navigation
+
+                    if (!confirm(`Tem certeza que deseja excluir o cliente "${nome}"? Esta ação não pode ser desfeita.`)) {
+                        return;
+                    }
+
+                    try {
+                        const response = await fetch(`/api/clientes/${id}`, {
+                            method: 'DELETE'
+                        });
+
+                        const result = await response.json();
+
+                        if (result.success) {
+                            window.location.reload();
+                        } else {
+                            alert('Erro ao excluir: ' + result.error);
+                        }
+                    } catch (error) {
+                        console.error('Erro:', error);
+                        alert('Erro ao excluir cliente.');
+                    }
+                }
             </script>
 
             <script src="/js/app.js"></script>

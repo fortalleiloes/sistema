@@ -47,7 +47,10 @@ function initTrafficLights() {
     // Botão de fechar (vermelho) - Volta para home
     const closeButtons = document.querySelectorAll('.macos-traffic-light.close');
     closeButtons.forEach(btn => {
-        btn.addEventListener('click', () => {
+        btn.addEventListener('click', (e) => {
+            // Ignora se estiver dentro de um modal
+            if (btn.closest('.macos-modal-overlay')) return;
+
             if (window.location.pathname !== '/') {
                 window.location.href = '/';
             }
@@ -58,7 +61,10 @@ function initTrafficLights() {
     // Botão de minimizar (amarelo) - Scroll para topo
     const minimizeButtons = document.querySelectorAll('.macos-traffic-light.minimize');
     minimizeButtons.forEach(btn => {
-        btn.addEventListener('click', () => {
+        btn.addEventListener('click', (e) => {
+            // Ignora se estiver dentro de um modal - mas permite se quisermos minimizar o modal (futuro)
+            if (btn.closest('.macos-modal-overlay')) return;
+
             window.scrollTo({ top: 0, behavior: 'smooth' });
         });
         btn.style.cursor = 'pointer';
@@ -67,7 +73,10 @@ function initTrafficLights() {
     // Botão de maximizar (verde) - Toggle fullscreen
     const maximizeButtons = document.querySelectorAll('.macos-traffic-light.maximize');
     maximizeButtons.forEach(btn => {
-        btn.addEventListener('click', () => {
+        btn.addEventListener('click', (e) => {
+            // Ignora se estiver dentro de um modal
+            if (btn.closest('.macos-modal-overlay')) return;
+
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen();
             } else {
@@ -126,13 +135,27 @@ function initSidebarActiveState() {
 }
 
 // ============================================
-// 5. INICIALIZAR TUDO
+// 5. HABILITAR AUTOCAPITALIZE
+// ============================================
+function enableAutocapitalize() {
+    document.querySelectorAll('input[type="text"], input[type="email"], input[type="search"], textarea').forEach(element => {
+        element.setAttribute('autocapitalize', 'words');
+    });
+}
+
+// ============================================
+// 6. INICIALIZAR TUDO
 // ============================================
 document.addEventListener('DOMContentLoaded', () => {
     initThemeToggle();
     initTrafficLights();
     initProfilePopup();
     initSidebarActiveState();
+    enableAutocapitalize();
+
+    // Observar mudanças no DOM para novos inputs
+    const observer = new MutationObserver(enableAutocapitalize);
+    observer.observe(document.body, { childList: true, subtree: true });
 
     console.log('🍎 macOS UI initialized');
 });

@@ -1,0 +1,109 @@
+{
+    "name": "Análise Jurídica - Resiliente",
+    "nodes": [
+        {
+            "parameters": {
+                "httpMethod": "POST",
+                "path": "analise-juridica",
+                "responseMode": "responseNode",
+                "options": {}
+            },
+            "id": "webhook-text",
+            "name": "Receber Texto",
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 1,
+            "position": [
+                100,
+                100
+            ]
+        },
+        {
+            "parameters": {
+                "promptType": "define",
+                "text": "=Analise abaixo o conteúdo extraído dos PDFs.\n\n=== EDITAL ===\n{{ $json.edital_texto }}\n\n=== MATRÍCULA ===\n{{ $json.matricula_texto }}\n\n--------------------------\nGere o relatório jurídico conforme orientado.",
+                "options": {
+                    "systemMessage": "Você é um Advogado Especialista em Leilões de Imóveis.\n\nSEU OBJETIVO:\nAnalisar minunciosamente os textos fornecidos e gerar um relatório jurídico de viabilidade.\n\nESTRUTURA DA RESPOSTA (EM MARKDOWN):\n\n# Análise Jurídica de Viabilidade\n\n## 1. Resumo do Imóvel\n- **Endereço Completo:**\n- **Tipo:** (Casa, Apt, Terreno)\n- **Ocupação:** (Ocupado/Desocupado conforme edital)\n\n## 2. Análise da Matrícula\n- **Proprietário Atual:**\n- **Ônus e Gravames:** (Listar hipotecas, penhoras, etc. e se serão baixados)\n- **Risco Jurídico:** (Baixo/Médio/Alto e justificativa)\n\n## 3. Análise do Edital\n- **Datas do Leilão:**\n- **Comissão:**\n- **Pagamento:** (Descontos, Parcelamento)\n- **Débitos:** (Condomínio/IPTU)\n\n## 4. CONCLUSÃO DO ESPECIALISTA\n(Opinião final: É seguro arrematar?)"
+                }
+            },
+            "id": "agente-ia",
+            "name": "Agente IA",
+            "type": "@n8n/n8n-nodes-langchain.agent",
+            "typeVersion": 1.6,
+            "position": [
+                350,
+                100
+            ],
+            "onError": "continueErrorOutput"
+        },
+        {
+            "parameters": {
+                "respondWith": "json",
+                "responseBody": "={\n  \"analysis\": \"{{ $json.output ? $json.output : ('Erro na IA: ' + ($json.error ? $json.error.message : 'Sem resposta gerada')) }}\"\n}",
+                "options": {}
+            },
+            "id": "responder",
+            "name": "Responder",
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1,
+            "position": [
+                700,
+                100
+            ]
+        },
+        {
+            "parameters": {
+                "modelName": "models/gemini-1.5-pro",
+                "options": {}
+            },
+            "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+            "typeVersion": 1,
+            "position": [
+                350,
+                320
+            ],
+            "id": "modelo-gemini",
+            "name": "Google Gemini",
+            "credentials": {
+                "googlePalmApi": {
+                    "id": "yE4jnPRHSnUY1JHk",
+                    "name": "Google Gemini(PaLM) Api account"
+                }
+            }
+        }
+    ],
+    "connections": {
+        "Receber Texto": {
+            "main": [
+                [
+                    {
+                        "node": "Agente IA",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Agente IA": {
+            "main": [
+                [
+                    {
+                        "node": "Responder",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Google Gemini": {
+            "ai_languageModel": [
+                [
+                    {
+                        "node": "Agente IA",
+                        "type": "ai_languageModel",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}

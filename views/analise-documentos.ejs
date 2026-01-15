@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <title>Análise de Documentos - Fortal</title>
+    <%- include('partials/head') %>
+        <style>
+            .dropzone-area {
+                border: 2px dashed var(--macos-divider);
+                border-radius: 12px;
+                padding: 32px;
+                text-align: center;
+                transition: all 0.2s;
+                background: var(--macos-bg-tertiary);
+                cursor: pointer;
+                position: relative;
+            }
+
+            .dropzone-area:hover,
+            .dropzone-area.dragover {
+                border-color: var(--macos-accent);
+                background: rgba(0, 122, 255, 0.05);
+            }
+
+            .dropzone-icon {
+                font-size: 32px;
+                color: var(--macos-text-secondary);
+                margin-bottom: 12px;
+            }
+
+            .file-info {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                padding: 12px;
+                background: var(--macos-bg-secondary);
+                border: 1px solid var(--macos-divider);
+                border-radius: 8px;
+                margin-top: 12px;
+            }
+
+            .loading-overlay {
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(255, 255, 255, 0.8);
+                backdrop-filter: blur(4px);
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                z-index: 50;
+                border-radius: 12px;
+            }
+
+            /* Markdown Content Styles */
+            .markdown-content h1 {
+                font-size: 1.5em;
+                font-weight: bold;
+                margin-bottom: 0.5em;
+                margin-top: 1em;
+            }
+
+            .markdown-content h2 {
+                font-size: 1.3em;
+                font-weight: bold;
+                margin-bottom: 0.5em;
+                margin-top: 1em;
+            }
+
+            .markdown-content h3 {
+                font-size: 1.1em;
+                font-weight: bold;
+                margin-bottom: 0.5em;
+                margin-top: 1em;
+            }
+
+            .markdown-content p {
+                margin-bottom: 0.8em;
+                line-height: 1.5;
+            }
+
+            .markdown-content ul {
+                list-style-type: disc;
+                padding-left: 20px;
+                margin-bottom: 1em;
+            }
+
+            .markdown-content ol {
+                list-style-type: decimal;
+                padding-left: 20px;
+                margin-bottom: 1em;
+            }
+
+            .markdown-content li {
+                margin-bottom: 0.2em;
+            }
+
+            .markdown-content strong {
+                font-weight: 600;
+                color: var(--macos-text-primary);
+            }
+        </style>
+</head>
+
+<body class="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
+    <%- include('partials/macos-toolbar', { title: 'Análise de Documentos' }) %>
+        <%- include('partials/macos-sidebar', { user: user }) %>
+
+            <main class="macos-main-content">
+                <div class="page-container" style="max-width: 1000px; margin: 0 auto; padding: 24px;">
+
+                    <div class="flex justify-between items-center mb-6">
+                        <div>
+                            <h1 class="text-2xl font-bold dark:text-white">Análise Jurídica com IA</h1>
+                            <p class="text-gray-500 dark:text-gray-400 text-sm">Envie o Edital e a Matrícula para gerar
+                                um estudo automático.</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        <!-- Edital Upload -->
+                        <div class="macos-card p-6 relative">
+                            <h3 class="font-semibold mb-4 dark:text-white">1. Edital do Leilão (PDF)</h3>
+                            <div class="dropzone-area" id="dropzone-edital"
+                                onclick="document.getElementById('file-edital').click()">
+                                <i class="fa-regular fa-file-pdf dropzone-icon"></i>
+                                <p class="text-sm text-gray-600 dark:text-gray-300">Clique ou arraste o Edital aqui</p>
+                                <input type="file" id="file-edital" class="hidden" accept=".pdf"
+                                    onchange="handleFileSelect('edital', this)">
+                            </div>
+                            <div id="preview-edital" class="hidden"></div>
+                        </div>
+
+                        <!-- Matricula Upload -->
+                        <div class="macos-card p-6 relative">
+                            <h3 class="font-semibold mb-4 dark:text-white">2. Matrícula do Imóvel (PDF)</h3>
+                            <div class="dropzone-area" id="dropzone-matricula"
+                                onclick="document.getElementById('file-matricula').click()">
+                                <i class="fa-regular fa-file-lines dropzone-icon"></i>
+                                <p class="text-sm text-gray-600 dark:text-gray-300">Clique ou arraste a Matrícula aqui
+                                </p>
+                                <input type="file" id="file-matricula" class="hidden" accept=".pdf"
+                                    onchange="handleFileSelect('matricula', this)">
+                            </div>
+                            <div id="preview-matricula" class="hidden"></div>
+                        </div>
+                    </div>
+
+                    <!-- Action Button -->
+                    <div class="flex justify-center mb-8">
+                        <button onclick="startAnalysis()" id="btn-analyze"
+                            class="macos-btn-primary px-8 py-3 text-lg font-semibold flex items-center gap-3 opacity-50 cursor-not-allowed"
+                            disabled>
+                            <i class="fa-solid fa-wand-magic-sparkles"></i>
+                            Gerar Estudo de Viabilidade
+                        </button>
+                    </div>
+
+                    <!-- Results Section -->
+                    <div id="result-section" class="hidden macos-card p-8 animate-fade-in relative min-h-[200px]">
+                        <div
+                            class="flex justify-between items-center mb-6 border-b border-gray-200 dark:border-gray-700 pb-4">
+                            <h2 class="text-xl font-bold dark:text-white"><i
+                                    class="fa-solid fa-scale-balanced mr-2 text-blue-500"></i> Análise Jurídica</h2>
+                            <div class="flex gap-2">
+                                <button onclick="window.print()" class="macos-btn-secondary text-sm"><i
+                                        class="fa-solid fa-print mr-1"></i> Imprimir</button>
+                                <button onclick="copyAnalysis()" class="macos-btn-secondary text-sm"><i
+                                        class="fa-regular fa-copy mr-1"></i> Copiar</button>
+                            </div>
+                        </div>
+
+                        <div id="analysis-content"
+                            class="markdown-content text-gray-800 dark:text-gray-200 leading-relaxed">
+                            <!-- Content will be injected here -->
+                        </div>
+
+                        <!-- Loading Overlay within result card -->
+                        <div id="loading-overlay" class="loading-overlay hidden">
+                            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+                            <p class="font-medium text-gray-700 dark:text-gray-300">Analisando documentos com IA...</p>
+                            <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">Isso pode levar alguns minutos.</p>
+                        </div>
+                    </div>
+
+                </div>
+            </main>
+
+            <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+            <script>
+                const files = {
+                    edital: null,
+                    matricula: null
+                };
+
+                function handleFileSelect(type, input) {
+                    if (input.files && input.files[0]) {
+                        const file = input.files[0];
+                        files[type] = file;
+
+                        // Update UI
+                        const dropzone = document.getElementById(`dropzone-${type}`);
+                        const preview = document.getElementById(`preview-${type}`);
+
+                        dropzone.classList.add('hidden');
+                        preview.classList.remove('hidden');
+                        preview.innerHTML = `
+                    <div class="file-info animate-scale-in">
+                        <i class="fa-solid fa-check-circle text-green-500 text-xl"></i>
+                        <div class="flex-grow min-w-0">
+                            <p class="font-medium truncate text-sm">${file.name}</p>
+                            <p class="text-xs text-gray-500">${(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                        </div>
+                        <button onclick="resetFile('${type}')" class="text-gray-400 hover:text-red-500 p-2">
+                            <i class="fa-solid fa-times"></i>
+                        </button>
+                    </div>
+                `;
+
+                        checkForm();
+                    }
+                }
+
+                function resetFile(type) {
+                    files[type] = null;
+                    document.getElementById(`file-${type}`).value = '';
+                    document.getElementById(`dropzone-${type}`).classList.remove('hidden');
+                    document.getElementById(`preview-${type}`).classList.add('hidden');
+                    checkForm();
+                }
+
+                function checkForm() {
+                    const btn = document.getElementById('btn-analyze');
+                    if (files.edital && files.matricula) {
+                        btn.disabled = false;
+                        btn.classList.remove('opacity-50', 'cursor-not-allowed');
+                        btn.classList.add('shadow-lg', 'hover:scale-105', 'transition-transform');
+                    } else {
+                        btn.disabled = true;
+                        btn.classList.add('opacity-50', 'cursor-not-allowed');
+                        btn.classList.remove('shadow-lg', 'hover:scale-105', 'transition-transform');
+                    }
+                }
+
+                async function startAnalysis() {
+                    if (!files.edital || !files.matricula) return;
+
+                    const resultSection = document.getElementById('result-section');
+                    const loadingOverlay = document.getElementById('loading-overlay');
+                    const analysisContent = document.getElementById('analysis-content');
+                    const btn = document.getElementById('btn-analyze');
+
+                    // Show loading state
+                    resultSection.classList.remove('hidden');
+                    loadingOverlay.classList.remove('hidden');
+                    analysisContent.innerHTML = ''; // Clear previous
+                    btn.disabled = true;
+                    btn.classList.add('opacity-50');
+
+                    // Scroll to result
+                    resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+                    const formData = new FormData();
+                    formData.append('edital', files.edital);
+                    formData.append('matricula', files.matricula);
+
+                    try {
+                        const response = await fetch('/api/analise-documentos/process', {
+                            method: 'POST',
+                            body: formData
+                        });
+
+                        let data;
+                        try {
+                            data = await response.json();
+                        } catch (e) {
+                            // Se não for JSON (ex: erro fatal do servidor)
+                            throw new Error(`Erro ${response.status}: ${response.statusText}`);
+                        }
+
+                        if (!response.ok) {
+                            throw new Error(data.error || `Erro do Servidor (${response.status})`);
+                        }
+
+                        if (data.error) throw new Error(data.error);
+
+                        // Render Markdown content
+                        // Assuming the n8n webhook returns { analysis: "markdown string" }
+                        // fallback to data.output or just the entire body if simpler
+                        const markdownText = data.analysis || data.output || data.text || "Análise concluída, mas nenhum texto foi retornado.";
+
+                        analysisContent.innerHTML = marked.parse(markdownText);
+
+                    } catch (error) {
+                        console.error(error);
+                        analysisContent.innerHTML = `
+                    <div class="p-4 bg-red-50 text-red-700 rounded-lg flex items-center gap-3">
+                        <i class="fa-solid fa-triangle-exclamation text-xl"></i>
+                        <div>
+                            <p class="font-bold">Erro na Análise</p>
+                            <p class="text-sm">${error.message}</p>
+                        </div>
+                    </div>
+                `;
+                    } finally {
+                        loadingOverlay.classList.add('hidden');
+                        btn.disabled = false;
+                        btn.classList.remove('opacity-50');
+                    }
+                }
+
+                function copyAnalysis() {
+                    const content = document.getElementById('analysis-content').innerText;
+                    navigator.clipboard.writeText(content).then(() => {
+                        alert('Análise copiada para a área de transferência!');
+                    });
+                }
+            </script>
+</body>
+
+</html>

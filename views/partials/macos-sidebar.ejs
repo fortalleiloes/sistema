@@ -16,68 +16,89 @@
 
     <!-- Navegação Principal -->
     <nav style="padding: 12px 8px;">
-        <!-- Ferramentas -->
+        <!-- Principal -->
         <div class="macos-sidebar-section">
-            <div class="macos-sidebar-section-title">Ferramentas</div>
-
+            <div class="macos-sidebar-section-title">Principal</div>
             <a href="/" class="macos-sidebar-item">
-                <span class="macos-sidebar-item-icon">
-                    <i class="fa-solid fa-chart-pie"></i>
-                </span>
+                <span class="macos-sidebar-item-icon"><i class="fa-solid fa-chart-pie"></i></span>
                 <span class="macos-sidebar-item-text">Dashboard</span>
             </a>
+        </div>
 
-            <a href="/leads" class="macos-sidebar-item">
-                <span class="macos-sidebar-item-icon">
-                    <i class="fa-solid fa-filter-circle-dollar"></i>
-                </span>
-                <span class="macos-sidebar-item-text">Novos Leads</span>
-            </a>
-
-            <a href="/carteira" class="macos-sidebar-item">
-                <span class="macos-sidebar-item-icon">
-                    <i class="fa-solid fa-users"></i>
-                </span>
-                <span class="macos-sidebar-item-text">Meus Clientes</span>
-            </a>
+        <!-- Passo 1: Análise -->
+        <div class="macos-sidebar-section">
+            <div class="macos-sidebar-section-title">Análise de Viabilidade</div>
 
             <a href="/calculadora" class="macos-sidebar-item">
-                <span class="macos-sidebar-item-icon">
-                    <i class="fa-solid fa-calculator"></i>
-                </span>
+                <span class="macos-sidebar-item-icon"><i class="fa-solid fa-calculator"></i></span>
                 <span class="macos-sidebar-item-text">Calculadora</span>
             </a>
 
+            <a href="/oportunidades" class="macos-sidebar-item">
+                <span class="macos-sidebar-item-icon"><i class="fa-solid fa-gem"></i></span>
+                <span class="macos-sidebar-item-text">Oportunidades</span>
+            </a>
+        </div>
+
+        <!-- Passo 2: Venda -->
+        <div class="macos-sidebar-section">
+            <div class="macos-sidebar-section-title">Marketing & Vendas</div>
+
             <a href="/da-vinci" class="macos-sidebar-item">
-                <span class="macos-sidebar-item-icon">
-                    <i class="fa-solid fa-file-signature"></i>
-                </span>
+                <span class="macos-sidebar-item-icon"><i class="fa-solid fa-file-signature"></i></span>
                 <span class="macos-sidebar-item-text">Gerador de Proposta</span>
             </a>
 
             <a href="/layout" class="macos-sidebar-item">
-                <span class="macos-sidebar-item-icon">
-                    <i class="fa-brands fa-instagram"></i>
-                </span>
+                <span class="macos-sidebar-item-icon"><i class="fa-brands fa-instagram"></i></span>
                 <span class="macos-sidebar-item-text">Gerador de Stories</span>
             </a>
+        </div>
 
-            <a href="/oportunidades" class="macos-sidebar-item">
-                <span class="macos-sidebar-item-icon">
-                    <i class="fa-solid fa-gem"></i>
-                </span>
-                <span class="macos-sidebar-item-text">Banco de Oportunidades</span>
+        <!-- Documentos / Jurídico -->
+        <div class="macos-sidebar-section">
+            <div class="macos-sidebar-section-title">Jurídico & Docs</div>
+
+            <a href="/notificacao" class="macos-sidebar-item">
+                <span class="macos-sidebar-item-icon"><i class="fa-solid fa-scale-balanced"></i></span>
+                <span class="macos-sidebar-item-text">Notificação Extrajudicial</span>
             </a>
 
-            <% if (user && user.isAdmin) { %>
+            <a href="/analise-documentos" class="macos-sidebar-item">
+                <span class="macos-sidebar-item-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></span>
+                <span class="macos-sidebar-item-text">Análise Jurídica IA</span>
+            </a>
+        </div>
+
+        <!-- Passo 3: Gestão -->
+        <div class="macos-sidebar-section">
+            <div class="macos-sidebar-section-title">Gestão & CRM</div>
+
+            <a href="/leads" class="macos-sidebar-item">
+                <span class="macos-sidebar-item-icon"><i class="fa-solid fa-filter-circle-dollar"></i></span>
+                <span class="macos-sidebar-item-text">Novos Leads</span>
+            </a>
+
+            <a href="/carteira" class="macos-sidebar-item">
+                <span class="macos-sidebar-item-icon"><i class="fa-solid fa-users"></i></span>
+                <span class="macos-sidebar-item-text">Meus Clientes</span>
+            </a>
+
+            <a href="/historico" class="macos-sidebar-item">
+                <span class="macos-sidebar-item-icon"><i class="fa-solid fa-clock-rotate-left"></i></span>
+                <span class="macos-sidebar-item-text">Meus Arremates</span>
+            </a>
+        </div>
+
+        <% if (user && user.isAdmin) { %>
+            <div class="macos-sidebar-section">
+                <div class="macos-sidebar-section-title">Administração</div>
                 <a href="/admin/invites" class="macos-sidebar-item">
-                    <span class="macos-sidebar-item-icon">
-                        <i class="fa-solid fa-paper-plane"></i>
-                    </span>
+                    <span class="macos-sidebar-item-icon"><i class="fa-solid fa-paper-plane"></i></span>
                     <span class="macos-sidebar-item-text">Gerenciar Convites</span>
                 </a>
-                <% } %>
-        </div>
+            </div>
+            <% } %>
     </nav>
 </aside>
 

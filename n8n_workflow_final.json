@@ -1,0 +1,49 @@
+{
+    "name": "Debug Final - Bypass IA",
+    "nodes": [
+        {
+            "parameters": {
+                "httpMethod": "POST",
+                "path": "analise-juridica",
+                "responseMode": "responseNode",
+                "options": {}
+            },
+            "id": "webhook-debug",
+            "name": "Receber Texto",
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 1,
+            "position": [
+                100,
+                100
+            ]
+        },
+        {
+            "parameters": {
+                "respondWith": "json",
+                "responseBody": "={\n  \"analysis\": \"# SISTEMA FUNCIONANDO! 🚀\\n\\nO n8n recebeu os textos corretamente:\\n\\n- Edital: {{ $json.edital_texto ? $json.edital_texto.substring(0, 100) + '...' : 'Vazio' }}\\n- Matrícula: {{ $json.matricula_texto ? $json.matricula_texto.substring(0, 100) + '...' : 'Vazio' }}\\n\\nSe você lê isso, a conexão Servidor->n8n está 100%. O problema anterior é o Gemini (IA) demorando ou falhando.\"\n}",
+                "options": {}
+            },
+            "id": "responder-debug",
+            "name": "Responder",
+            "type": "n8n-nodes-base.respondToWebhook",
+            "typeVersion": 1,
+            "position": [
+                350,
+                100
+            ]
+        }
+    ],
+    "connections": {
+        "Receber Texto": {
+            "main": [
+                [
+                    {
+                        "node": "Responder",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    }
+}

@@ -1,7 +1,7 @@
 
 // Funnel Logic
 let currentStep = 1;
-const totalSteps = 6;
+const totalSteps = 7;
 
 // JQuery Masks
 $(document).ready(function () {
@@ -36,7 +36,7 @@ function autoNext(next) {
     }, 300);
 }
 
-function validateStep4() {
+function validateStepFinance() {
     const capital = $('#capital_input').val();
     const pgto = $('input[name="preferencia_pgto"]:checked').val();
 
@@ -48,7 +48,7 @@ function validateStep4() {
         alert('Por favor, selecione uma forma de pagamento.');
         return;
     }
-    nextStep(5);
+    nextStep(6);
 }
 
 function selectPayment(element) {
@@ -63,6 +63,36 @@ function selectPayment(element) {
     // Add selected state to clicked element
     $(element).removeClass('border-slate-700').addClass('border-green-500 bg-slate-700/50');
     $(element).find('.selection-overlay').removeClass('opacity-0').addClass('opacity-100');
+}
+
+// Handle Interest Selection with Click (avoids popup blockers)
+function handleInterestClick(element, value) {
+    // Ensure radio is checked
+    const radio = $(element).find('input[type="radio"]');
+    radio.prop('checked', true);
+
+    // Visual feedback
+    $(element).addClass('border-gold-primary bg-slate-700/50');
+    setTimeout(() => $(element).removeClass('border-gold-primary bg-slate-700/50'), 300);
+
+    if (value === 'mentoria') {
+        window.open('https://www.paulinhodosleiloes.com.br', '_blank');
+        setTimeout(() => nextStep(7), 500); // Go to Contact
+    } else if (value === 'parcerias') {
+        setTimeout(() => nextStep(7), 300); // Go to Contact
+    } else {
+        setTimeout(() => nextStep(5), 300); // Go to Finance
+    }
+}
+
+function handleBackContact() {
+    const interest = $('input[name="interesse"]:checked').val();
+
+    if (interest === 'parcerias') {
+        prevStep(4); // Back to Interest
+    } else {
+        prevStep(6); // Back to Credit Analysis (Normal flow)
+    }
 }
 
 // Form Submission

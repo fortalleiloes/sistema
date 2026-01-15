@@ -124,6 +124,19 @@
                                                                     <%= lead.restricao_nome ? 'Restrição Ativa'
                                                                         : 'Nome Limpo' %>
                                                                 </span>
+
+                                                                <% if (lead.interesse && lead.interesse
+                                                                    !=='nao_informado' ) { %>
+                                                                    <span
+                                                                        class="text-xs text-[var(--macos-text-primary)] capitalize mt-1 border-t border-[var(--macos-divider)] pt-1">
+                                                                        <i
+                                                                            class="fa-solid fa-bullseye text-purple-500 mr-1"></i>
+                                                                        <%= lead.interesse==='parcerias'
+                                                                            ? 'Parcerias/Eventos' :
+                                                                            lead.interesse.charAt(0).toUpperCase() +
+                                                                            lead.interesse.slice(1) %>
+                                                                    </span>
+                                                                    <% } %>
                                                 </div>
                                             </td>
 

@@ -140,6 +140,9 @@ class ViabilityCalculator {
 
         const custosPeriodo = this._round(custosManutencao);
 
+        // Custo mensal recorrente (média mensal para exibição)
+        const custoMensalRecorrente = this._round(custosManutencao / months);
+
         // Investimento Total (Cash Out acumulado)
         // Na planilha: Investimento Total (Base) + Custos Operacionais
         const investimentoTotal = this._round(investimentoBase + custosPeriodo);
@@ -181,6 +184,7 @@ class ViabilityCalculator {
 
         return {
             custosPeriodo,
+            custoMensalRecorrente,
             investimentoTotal,
             resultadoBruto, // Retorna o lucro bruto
             resultadoLiquido,

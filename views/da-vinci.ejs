@@ -4,279 +4,424 @@
 <head>
     <title>Gerador de Proposta - Fortal</title>
     <%- include('partials/head') %>
-        <%- include('partials/head') %>
-            <link rel="preconnect" href="https://fonts.googleapis.com">
-            <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-            <link
-                href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Merriweather:ital,wght@0,300;0,700;1,300&display=swap"
-                rel="stylesheet">
-            <style>
-                /* PREMIUM PDF DESIGN SYSTEM (Da Vinci 2.0) */
-                /* FORCE SITE FONT GLOBAL OVERRIDE */
-                :root {
-                    --font-primary: var(--macos-font-system);
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Merriweather:ital,wght@0,300;0,700;1,300&display=swap"
+            rel="stylesheet">
+        <style>
+            .screen-only-hide {
+                display: none !important;
+                visibility: hidden !important;
+                opacity: 0 !important;
+                height: 0 !important;
+                width: 0 !important;
+                overflow: hidden !important;
+                position: absolute !important;
+                z-index: -9999 !important;
+                pointer-events: none !important;
+                top: -9999px !important;
+                left: -9999px !important;
+            }
+
+            @media print {
+                .screen-only-hide {
+                    display: block !important;
+                    visibility: visible !important;
+                    opacity: 1 !important;
+                    height: auto !important;
+                    width: 100% !important;
+                    position: absolute !important;
+                    z-index: 9999 !important;
+                    top: 0 !important;
+                    left: 0 !important;
+                }
+            }
+
+            /* PREMIUM PDF DESIGN SYSTEM (Da Vinci 2.0) */
+            /* FORCE SITE FONT GLOBAL OVERRIDE */
+            :root {
+                --font-primary: var(--macos-font-system);
+            }
+
+            body,
+            .font-serif,
+            .pdf-serif,
+            .font-sans,
+            .pdf-sans,
+            p,
+            div,
+            span,
+            strong,
+            b {
+                font-family: var(--macos-font-system) !important;
+                letter-spacing: -0.02em;
+            }
+
+            h1,
+            h2,
+            h3,
+            h4,
+            h5,
+            h6 {
+                font-family: var(--macos-font-heading) !important;
+            }
+
+            /* Base PDF Font Settings */
+            .pdf-sans {
+                font-family: var(--macos-font-system) !important;
+            }
+
+            .pdf-serif {
+                font-family: var(--macos-font-heading) !important;
+            }
+
+            /* Screen Only Styles */
+            .page-container {
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 24px;
+            }
+
+            .step-card {
+                background: white;
+                border-radius: 12px;
+                padding: 24px;
+                margin-bottom: 24px;
+                border: 1px solid #e5e7eb;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            }
+
+            .step-header {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                margin-bottom: 20px;
+                border-bottom: 1px solid #f3f4f6;
+                padding-bottom: 12px;
+            }
+
+            .step-number {
+                background: #FFD60A;
+                color: #000000;
+                width: 32px;
+                height: 32px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: 800;
+                flex-shrink: 0;
+            }
+
+            .step-title {
+                font-size: 1.1rem;
+                font-weight: 600;
+                color: #1f2937;
+                margin: 0;
+                line-height: 1.2;
+            }
+
+            /* Dark Mode Overrides */
+            html.dark .step-card {
+                background: #1f2937;
+                border-color: #374151;
+            }
+
+            html.dark .step-title {
+                color: #ffffff;
+            }
+
+            html.dark .step-header {
+                border-bottom-color: #374151;
+            }
+
+            html.dark input[type="text"],
+            html.dark input[type="number"],
+            html.dark select {
+                background-color: #374151;
+                border-color: #4b5563;
+                color: white;
+            }
+
+            html.dark input::placeholder {
+                color: #9ca3af;
+            }
+
+            html.dark label,
+            html.dark .text-gray-600,
+            html.dark .text-gray-700 {
+                color: #d1d5db !important;
+            }
+
+            html.dark .bg-blue-50 {
+                background-color: rgba(30, 58, 138, 0.2);
+            }
+
+            html.dark .border-blue-100 {
+                border-color: #1e40af;
+            }
+
+            html.dark .text-blue-900 {
+                color: #dbeafe;
+            }
+
+            html.dark .hover\:bg-gray-50:hover {
+                background-color: #374151;
+            }
+
+            /* LIVE PREVIEW STYLES (Screen Only) */
+            @media screen {
+                #pdf-content {
+                    position: absolute;
+                    left: -9999px;
+                    visibility: hidden;
                 }
 
-                body,
-                .font-serif,
-                .pdf-serif,
-                .font-sans,
-                .pdf-sans,
-                p,
-                div,
-                span,
-                strong,
-                b {
-                    font-family: var(--macos-font-system) !important;
-                    letter-spacing: -0.02em;
+                #pdf-preview-container {
+                    display: block;
                 }
+            }
 
-                h1,
-                h2,
-                h3,
-                h4,
-                h5,
-                h6 {
-                    font-family: var(--macos-font-heading) !important;
-                }
 
-                /* Base PDF Font Settings */
-                .pdf-sans {
-                    font-family: var(--macos-font-system) !important;
-                }
 
-                .pdf-serif {
-                    font-family: var(--macos-font-heading) !important;
-                }
 
-                /* Screen Only Styles */
-                .page-container {
-                    max-width: 1200px;
-                    margin: 0 auto;
-                    padding: 24px;
-                }
+            /* PRINT & PDF STYLES and CORE SHEET DEFINITION */
+            .pdf-sheet {
+                /* GEOMETRY */
+                width: 210mm !important;
+                height: 296mm !important;
+                /* Reducing 1mm to prevent overflow causing blank pages */
+                min-height: 296mm !important;
+                max-height: 296mm !important;
 
-                .step-card {
-                    background: white;
-                    border-radius: 12px;
-                    padding: 24px;
-                    margin-bottom: 24px;
-                    border: 1px solid #e5e7eb;
-                    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-                }
+                /* APPEARANCE */
+                background-color: white !important;
+                border-left: 8px solid #FFD60A !important;
+                /* PREMIUM SPINE */
+                padding: 40px 40px 40px 40px !important;
+                /* Standard Internal Padding */
+                margin: 0 auto;
+                position: relative;
+                box-sizing: border-box;
+                overflow: hidden !important;
+                /* STRICT SAFETY */
+                display: block;
 
-                .step-header {
-                    display: flex;
-                    align-items: center;
-                    gap: 12px;
-                    margin-bottom: 20px;
-                    border-bottom: 1px solid #f3f4f6;
-                    padding-bottom: 12px;
-                }
+                /* PRINT BEHAVIOR */
+                page-break-after: always;
+                break-after: page;
+                break-inside: avoid-page;
+                page-break-inside: avoid;
+            }
 
-                .step-number {
-                    background: #FFD60A;
-                    color: #000000;
-                    width: 32px;
-                    height: 32px;
-                    border-radius: 50%;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    font-weight: 800;
-                    flex-shrink: 0;
-                }
+            /* Specific Adjustment for Cover (Page 1) content centering if needed */
+            .pdf-sheet.cover-page {
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+            }
 
-                .step-title {
-                    font-size: 1.1rem;
-                    font-weight: 600;
-                    color: #1f2937;
+            /* Legacy compatibility just in case */
+            .pdf-content-page {
+                display: none;
+                /* Deprecated in favor of pdf-sheet */
+            }
+
+            /* Professional Footer */
+            .pdf-footer {
+                position: absolute;
+                bottom: 25px;
+                left: 40px;
+                right: 40px;
+                border-top: 1px solid #f3f4f6;
+                padding-top: 12px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                font-family: 'Inter', sans-serif;
+            }
+
+            .pdf-footer-info {
+                font-size: 8px;
+                color: #9CA3AF;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+                font-weight: 600;
+            }
+
+            .pdf-footer-page {
+                font-size: 9px;
+                color: #111;
+                font-weight: 700;
+                background: #FFD60A;
+                padding: 2px 8px;
+                border-radius: 4px;
+            }
+
+            .pdf-footer-page::after {
+                content: counter(reportPage);
+            }
+
+            body {
+                counter-reset: reportPage;
+            }
+
+            .pdf-content-page .brand-header {
+                margin-top: 0 !important;
+            }
+
+            .page-break-after-always {
+                page-break-after: always;
+                break-after: page;
+                break-inside: avoid;
+                display: block;
+                position: relative;
+                width: 100% !important;
+                max-width: 210mm !important;
+                height: 296mm;
+                /* Ajuste para evitar criação de folha branca extra */
+                padding: 0;
+                /* Aumentar margem interna para segurança */
+                margin: 0 auto;
+                box-sizing: border-box;
+                background-color: white;
+                overflow: hidden;
+            }
+
+            .force-print-bg {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                background-repeat: repeat !important;
+                z-index: 0 !important;
+            }
+
+            /* Forçar capitalização em todo o conteúdo PDF */
+            #pdf-content span,
+            #pdf-content p,
+            #pdf-content div,
+            #pdf-content td {
+                text-transform: capitalize !important;
+            }
+
+            /* Exceções para capitalização (URLs, emails, etc se necessário) */
+            .lowercase-force {
+                text-transform: lowercase !important;
+            }
+
+            /* Typography */
+            .brand-title {
+                font-family: 'Playfair Display', serif;
+                font-weight: 700;
+                color: #000;
+            }
+
+            /* Design Components */
+            .brand-header {
+                margin-bottom: 2rem;
+                position: relative;
+            }
+
+            .brand-header-line {
+                width: 60px;
+                height: 4px;
+                background: #FFD60A;
+                margin-top: 10px;
+                border-radius: 2px;
+            }
+
+            .brand-header-title {
+                font-family: 'Playfair Display', serif;
+                font-size: 2rem;
+                font-weight: 700;
+                color: #111;
+                line-height: 1.1;
+                margin: 0;
+            }
+
+            .brand-card {
+                background: rgba(255, 255, 255, 0.95);
+                border: 1px solid #e5e5e5;
+                border-radius: 12px;
+                padding: 16px;
+                position: relative;
+                z-index: 10;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+                backdrop-filter: blur(5px);
+            }
+
+            .brand-tag {
+                background: #000;
+                color: #fff;
+                font-size: 0.65rem;
+                font-weight: 800;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                padding: 4px 8px;
+                border-radius: 4px;
+            }
+
+            .brand-highlight-text {
+                background: linear-gradient(180deg, transparent 65%, #FFD60A 65%);
+                display: inline;
+                padding-right: 2px;
+                padding-left: 2px;
+            }
+
+            /* PRINT RESET */
+            @media print {
+                @page {
                     margin: 0;
-                    line-height: 1.2;
+                    size: A4 portrait;
                 }
 
-                /* Dark Mode Overrides */
-                html.dark .step-card {
-                    background: #1f2937;
-                    border-color: #374151;
+                html,
+                body {
+                    margin: 0 !important;
+                    background: white !important;
+                    -webkit-print-color-adjust: exact !important;
+                    print-color-adjust: exact !important;
                 }
 
-                html.dark .step-title {
-                    color: #ffffff;
+                * {
+                    -webkit-print-color-adjust: exact !important;
+                    print-color-adjust: exact !important;
                 }
 
-                html.dark .step-header {
-                    border-bottom-color: #374151;
+                .macos-toolbar,
+                .macos-sidebar,
+                .page-container,
+                .no-print,
+                #pdf-content-preview-wrapper,
+                header,
+                aside {
+                    display: none !important;
                 }
 
-                html.dark input[type="text"],
-                html.dark input[type="number"],
-                html.dark select {
-                    background-color: #374151;
-                    border-color: #4b5563;
-                    color: white;
+                .macos-main-content,
+                main,
+                #pdf-content {
+                    display: block !important;
+                    margin: 0 !important;
+                    padding: 0 !important;
+                    width: 100% !important;
+                    position: static !important;
+                    left: auto !important;
+                    visibility: visible !important;
                 }
 
-                html.dark input::placeholder {
-                    color: #9ca3af;
+                #pdf-preview-container,
+                .page-badge {
+                    display: none !important;
                 }
 
-                html.dark label,
-                html.dark .text-gray-600,
-                html.dark .text-gray-700 {
-                    color: #d1d5db !important;
+                .pdf-sheet {
+                    margin: 0 !important;
+                    box-shadow: none !important;
+                    page-break-after: always !important;
                 }
-
-                html.dark .bg-blue-50 {
-                    background-color: rgba(30, 58, 138, 0.2);
-                }
-
-                html.dark .border-blue-100 {
-                    border-color: #1e40af;
-                }
-
-                html.dark .text-blue-900 {
-                    color: #dbeafe;
-                }
-
-                html.dark .hover\:bg-gray-50:hover {
-                    background-color: #374151;
-                }
-
-                /* PRINT & PDF STYLES */
-                @media print {
-                    @page {
-                        margin: 0;
-                        size: auto;
-                    }
-
-                    html,
-                    body {
-                        margin: 0 !important;
-                        padding: 0 !important;
-                        background: white !important;
-                        color: #111 !important;
-                        width: 100%;
-                        height: 100%;
-                        -webkit-print-color-adjust: exact;
-                        print-color-adjust: exact;
-                        font-family: 'Inter', sans-serif;
-                    }
-
-                    /* Hide UI */
-                    .macos-toolbar,
-                    .macos-sidebar,
-                    header,
-                    aside,
-                    .no-print,
-                    .page-container {
-                        display: none !important;
-                    }
-
-                    /* Reset Main */
-                    .macos-main-content,
-                    main {
-                        display: block !important;
-                        margin: 0 !important;
-                        padding: 0 !important;
-                        position: static !important;
-                        overflow: visible !important;
-                    }
-
-                    /* PDF Content Wrapper */
-                    #pdf-content {
-                        display: block !important;
-                        visibility: visible !important;
-                        position: absolute !important;
-                        left: 0 !important;
-                        top: 0 !important;
-                        width: 100% !important;
-                        background: white !important;
-                        z-index: 9999;
-                    }
-
-                    /* Core Layout Classes */
-                    .page-break-after-always {
-                        page-break-after: always;
-                        break-after: page;
-                        break-inside: avoid;
-                        display: block;
-                        position: relative;
-                        width: 210mm;
-                        min-height: 297mm;
-                        padding: 40px;
-                        margin: 0 auto;
-                        box-sizing: border-box;
-                        background-color: white;
-                        /* Ensure white bg */
-                    }
-
-                    .force-print-bg {
-                        -webkit-print-color-adjust: exact !important;
-                        print-color-adjust: exact !important;
-                        background-repeat: repeat !important;
-                        z-index: 0 !important;
-                    }
-
-                    /* Typography */
-                    .brand-title {
-                        font-family: 'Playfair Display', serif;
-                        font-weight: 700;
-                        color: #000;
-                    }
-
-                    /* Design Components */
-                    .brand-header {
-                        margin-bottom: 2.5rem;
-                        position: relative;
-                    }
-
-                    .brand-header-line {
-                        width: 60px;
-                        height: 4px;
-                        background: #FFD60A;
-                        margin-top: 10px;
-                        border-radius: 2px;
-                    }
-
-                    .brand-header-title {
-                        font-family: 'Playfair Display', serif;
-                        font-size: 2.5rem;
-                        font-weight: 700;
-                        color: #111;
-                        line-height: 1.1;
-                    }
-
-                    .brand-card {
-                        background: rgba(255, 255, 255, 0.95);
-                        border: 1px solid #e5e5e5;
-                        border-radius: 12px;
-                        padding: 20px;
-                        position: relative;
-                        z-index: 10;
-                        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
-                        backdrop-filter: blur(5px);
-                    }
-
-                    .brand-tag {
-                        background: #000;
-                        color: #fff;
-                        font-size: 0.65rem;
-                        font-weight: 800;
-                        text-transform: uppercase;
-                        letter-spacing: 0.05em;
-                        padding: 4px 8px;
-                        border-radius: 4px;
-                    }
-
-                    .brand-highlight-text {
-                        background: linear-gradient(180deg, transparent 65%, #FFD60A 65%);
-                        display: inline;
-                        padding-right: 2px;
-                        padding-left: 2px;
-                    }
-                }
-            </style>
+            }
+        </style>
 </head>
 
 <body class="bg-gray-50 dark:bg-gray-900 min-h-screen transition-colors duration-200">
@@ -302,6 +447,8 @@
                                 Seus dados são salvos automaticamente no navegador
                             </p>
                         </div>
+
+
                         <div style="display: flex; gap: 12px;">
                             <button type="button" onclick="salvarRascunho()" class="macos-btn-primary"
                                 style="display: flex; align-items: center; gap: 8px;">
@@ -328,6 +475,15 @@
                         <div class="step-header border-b border-gray-100 dark:border-gray-700">
                             <div class="step-number">1</div>
                             <h2 class="step-title dark:text-white">Dados Gerais e Imagens</h2>
+                        </div>
+
+
+                        <div class="mb-4">
+                            <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Nome do
+                                Cliente</label>
+                            <input type="text" id="inputCliente"
+                                class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                                placeholder="Ex: João Silva">
                         </div>
 
                         <div class="grid grid-cols-2 gap-4 mb-4">
@@ -358,7 +514,7 @@
                                     Aberta</label>
                                 <input type="text" id="inputLicitacao"
                                     class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
-                                    placeholder="Ex: DD/MM/AAAA às HHh">
+                                    placeholder="DD/MM/AAAA Às HH:mm" maxlength="19" oninput="maskDateHour(this)">
                             </div>
                         </div>
 
@@ -402,7 +558,7 @@
                                 <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Condomínio
                                     (R$)</label>
                                 <input type="text" id="inputCondominio"
-                                    class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
+                                    class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400 currency-input"
                                     placeholder="Ex: R$ 0,00">
                             </div>
                         </div>
@@ -596,25 +752,67 @@
                                             <% } %>
                             </select>
                         </div>
+
+                        <div
+                            class="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-3">
+                                <i class="fa-solid fa-keyboard mr-2"></i>Ou preencha manualmente:
+                            </label>
+                            <div class="grid grid-cols-3 gap-4">
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Valor
+                                        do Arremate (R$)</label>
+                                    <input type="text" id="inputValorArremate"
+                                        class="w-full p-2 border rounded dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:placeholder-gray-400 currency-input"
+                                        placeholder="Ex: R$ 100.000,00" oninput="updateManualFinancialData()">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Valor
+                                        de Avaliação (R$)</label>
+                                    <input type="text" id="inputValorAvaliacao"
+                                        class="w-full p-2 border rounded dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:placeholder-gray-400 currency-input"
+                                        placeholder="Ex: R$ 150.000,00" oninput="updateManualFinancialData()">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Valor
+                                        de Venda (R$)</label>
+                                    <input type="text" id="inputValorVenda"
+                                        class="w-full p-2 border rounded dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:placeholder-gray-400 currency-input"
+                                        placeholder="Ex: R$ 180.000,00" oninput="updateManualFinancialData()">
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="flex justify-end mb-12">
-                        <button onclick="window.print()"
-                            class="bg-gray-900 text-white px-8 py-3 rounded-lg font-bold hover:bg-gray-800 flex items-center gap-2">
-                            <i class="fa-solid fa-file-pdf"></i>
-                            Gerar PDF Completo
-                        </button>
+
+
+                    <!-- PDF PREVIEW SECTION -->
+                    <div class="mb-12">
+                        <div class="flex justify-between items-center mb-6">
+                            <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
+                                <i class="fa-solid fa-eye mr-2"></i>Prévia do PDF (6 Páginas)
+                            </h2>
+                            <button onclick="window.print()"
+                                class="bg-gray-900 text-white px-8 py-3 rounded-lg font-bold hover:bg-gray-800 flex items-center gap-2">
+                                <i class="fa-solid fa-file-pdf"></i>
+                                Gerar PDF Completo
+                            </button>
+                        </div>
+
+                        <div id="pdf-preview-container" class="space-y-8" style="max-width: 900px; margin: 0 auto;">
+                            <!-- As 4 páginas do PDF serão exibidas aqui -->
+                        </div>
                     </div>
                 </div>
 
-                <!-- HIDDEN PDF TEMPLATE -->
-                <div id="pdf-content" class="hidden font-sans text-black">
+                <!-- PDF CONTENT (Visible on screen for preview, used for print) -->
+                <div id="pdf-content" class="font-sans text-black" style="display: block;">
 
                     <!-- PAGE 1: CAPA PREMIUM -->
-                    <div
-                        class="w-[210mm] min-h-[297mm] bg-white p-[40px] mx-auto relative page-break-after-always flex flex-col justify-center">
+                    <div contenteditable="true" spellcheck="false"
+                        class="pdf-sheet cover-page flex flex-col justify-center">
                         <div class="absolute inset-0 opacity-[0.1] pointer-events-none force-print-bg pdf-watermark-bg"
-                            style="background-image: url('/images/logo-placeholder-watermark.png'); background-repeat: repeat; background-size: 80px;">
+                            style="background-image: url('/images/logo-fortal.png'); background-repeat: repeat; background-size: 20% auto;">
                         </div>
 
                         <div class="relative z-10 w-full flex flex-col h-full py-12">
@@ -623,6 +821,8 @@
                                 <div>
                                     <p class="text-xs font-bold tracking-[0.2em] uppercase text-gray-400 mb-2">Relatório
                                         de Oportunidade</p>
+                                    <p class="text-sm font-medium text-gray-500 mb-1">Preparado para:</p>
+                                    <p class="text-lg font-bold text-black mb-3" id="pdfCliente">Nome do Cliente</p>
                                     <div class="max-w-[450px]">
                                         <h1 class="text-4xl font-serif font-black text-black leading-tight break-words"
                                             id="pdfNomeImovel">Nome do Imóvel Premium</h1>
@@ -637,32 +837,32 @@
                             </div>
 
                             <!-- Main Image -->
-                            <div class="flex-grow flex items-center justify-center mb-12">
-                                <div class="w-full h-[500px] p-2 bg-white border border-gray-100 shadow-2xl relative">
+                            <div class="flex items-center justify-center mb-4">
+                                <div class="w-full h-[400px] p-2 bg-white border border-gray-100 shadow-2xl relative">
                                     <div class="w-full h-full overflow-hidden relative grayscale-[10%] contrast-[1.1]">
                                         <img id="pdfImage" src="" class="w-full h-full object-cover">
                                     </div>
                                     <!-- Badge Processo -->
                                     <div class="absolute top-6 right-6 bg-black text-white px-4 py-2 shadow-lg">
                                         <p class="text-[10px] uppercase tracking-widest font-bold mb-0.5 opacity-70">
-                                            Processo</p>
+                                            Número do Bem</p>
                                         <p class="font-mono font-bold text-sm" id="pdfBem">00000.0000</p>
                                     </div>
                                 </div>
                             </div>
 
                             <!-- Footer Prices -->
-                            <!-- Footer Prices (Redesigned) -->
+                            <!-- Footer Prices (Redesigned - Standardized) -->
                             <div
                                 class="bg-gray-50 border border-gray-100 p-6 rounded-xl flex items-center justify-between shadow-sm">
                                 <!-- Market Value -->
                                 <div>
-                                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">
-                                        Avaliação de Mercado</p>
-                                    <div class="flex items-baseline gap-2">
-                                        <p class="text-2xl font-serif font-bold text-gray-500" id="pdfAvaliacao">R$ 0,00
-                                        </p>
-                                    </div>
+                                    <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">
+                                        Avaliação de Mercado
+                                    </p>
+                                    <p class="text-3xl font-serif font-black text-gray-900" id="pdfAvaliacao">
+                                        R$ 0,00
+                                    </p>
                                 </div>
 
                                 <!-- Separator Arrow -->
@@ -670,15 +870,12 @@
                                     <i class="fa-solid fa-arrow-right text-xl"></i>
                                 </div>
 
-                                <!-- Bid Value (Highlight) -->
+                                <!-- Bid Value -->
                                 <div class="text-right">
-                                    <p
-                                        class="text-[10px] font-bold text-black uppercase tracking-widest mb-1 flex items-center justify-end gap-2">
-                                        <span class="w-2 h-2 bg-[#FFD60A] rounded-full animate-pulse"></span>
+                                    <p class="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">
                                         Oportunidade (Lance)
                                     </p>
-                                    <p class="text-4xl font-serif font-black text-black tracking-tight bg-[#FFD60A] px-2 py-0.5 transform -rotate-1 inline-block shadow-sm"
-                                        id="pdfLance">
+                                    <p class="text-3xl font-serif font-black text-gray-900" id="pdfLance">
                                         R$ 0,00
                                     </p>
                                 </div>
@@ -687,9 +884,9 @@
                     </div>
 
                     <!-- PAGE 2: INFORMAÇÕES -->
-                    <div class="w-[210mm] min-h-[297mm] bg-white p-[40px] mx-auto relative page-break-after-always">
+                    <div class="pdf-sheet" contenteditable="true" spellcheck="false">
                         <div class="absolute inset-0 opacity-[0.1] pointer-events-none force-print-bg pdf-watermark-bg"
-                            style="background-image: url('/images/logo-placeholder-watermark.png'); background-repeat: repeat; background-size: 80px;">
+                            style="background-image: url('/images/logo-fortal.png'); background-repeat: repeat; background-size: 20% auto;">
                         </div>
 
                         <div class="brand-header">
@@ -708,8 +905,8 @@
                         </div>
 
                         <!-- Map Container -->
-                        <div class="brand-card p-2 mb-8 !bg-white">
-                            <div class="w-full h-[280px] bg-gray-100 rounded-lg overflow-hidden relative">
+                        <div class="brand-card p-2 mb-4 !bg-white">
+                            <div class="w-full h-[200px] bg-gray-100 rounded-lg overflow-hidden relative">
                                 <img id="pdfMapImage" src="" class="w-full h-full object-cover">
                                 <div class="absolute inset-0 border border-black/5 pointer-events-none rounded-lg">
                                 </div>
@@ -718,82 +915,109 @@
 
                         <!-- Grid Info -->
                         <!-- Grid Info -->
-                        <div class="grid grid-cols-2 gap-5">
-                            <div id="cardMetragem" class="brand-card flex items-center gap-5">
+                        <div class="grid grid-cols-2 gap-4">
+                            <!-- Metragem -->
+                            <div id="cardMetragem"
+                                class="brand-card flex items-center gap-4 p-4 bg-gray-50 border border-gray-200 shadow-sm rounded-xl">
                                 <div
-                                    class="w-10 h-10 rounded-full bg-black flex items-center justify-center text-[#FFD60A] text-lg">
+                                    class="w-12 h-12 rounded-full bg-black flex items-center justify-center text-[#FFD60A] text-2xl flex-shrink-0 shadow-md">
                                     <i class="fa-solid fa-ruler-combined"></i>
                                 </div>
                                 <div>
-                                    <p class="text-[10px] text-gray-500 uppercase font-bold tracking-wider">Área</p>
-                                    <p class="text-lg font-bold text-gray-900" id="pdfMetragem">-- m²</p>
+                                    <p
+                                        class="text-xs text-black uppercase font-extrabold tracking-widest mb-1 opacity-80">
+                                        Área Privativa</p>
+                                    <p class="text-2xl font-black text-gray-900 leading-none" id="pdfMetragem">-- m²</p>
                                 </div>
                             </div>
 
-                            <div id="cardQuartos" class="brand-card flex items-center gap-5">
+                            <!-- Quartos -->
+                            <div id="cardQuartos"
+                                class="brand-card flex items-center gap-4 p-4 bg-gray-50 border border-gray-200 shadow-sm rounded-xl">
                                 <div
-                                    class="w-10 h-10 rounded-full bg-black flex items-center justify-center text-[#FFD60A] text-lg">
+                                    class="w-12 h-12 rounded-full bg-black flex items-center justify-center text-[#FFD60A] text-2xl flex-shrink-0 shadow-md">
                                     <i class="fa-solid fa-bed"></i>
                                 </div>
                                 <div>
-                                    <p class="text-[10px] text-gray-500 uppercase font-bold tracking-wider">Quartos</p>
-                                    <p class="text-lg font-bold text-gray-900" id="pdfQuartos">--</p>
+                                    <p
+                                        class="text-xs text-black uppercase font-extrabold tracking-widest mb-1 opacity-80">
+                                        Dormitórios</p>
+                                    <p class="text-2xl font-black text-gray-900 leading-none" id="pdfQuartos">--</p>
                                 </div>
                             </div>
 
-                            <div id="cardBanheiros" class="brand-card flex items-center gap-5">
+                            <!-- Banheiros -->
+                            <div id="cardBanheiros"
+                                class="brand-card flex items-center gap-4 p-4 bg-gray-50 border border-gray-200 shadow-sm rounded-xl">
                                 <div
-                                    class="w-10 h-10 rounded-full bg-black flex items-center justify-center text-[#FFD60A] text-lg">
+                                    class="w-12 h-12 rounded-full bg-black flex items-center justify-center text-[#FFD60A] text-2xl flex-shrink-0 shadow-md">
                                     <i class="fa-solid fa-shower"></i>
                                 </div>
                                 <div>
-                                    <p class="text-[10px] text-gray-500 uppercase font-bold tracking-wider">Banheiros
-                                    </p>
-                                    <p class="text-lg font-bold text-gray-900" id="pdfBanheiros">--</p>
+                                    <p
+                                        class="text-xs text-black uppercase font-extrabold tracking-widest mb-1 opacity-80">
+                                        Banheiros</p>
+                                    <p class="text-2xl font-black text-gray-900 leading-none" id="pdfBanheiros">--</p>
                                 </div>
                             </div>
 
-                            <div id="cardVaga" class="brand-card flex items-center gap-5">
+                            <!-- Vagas -->
+                            <div id="cardVaga"
+                                class="brand-card flex items-center gap-4 p-4 bg-gray-50 border border-gray-200 shadow-sm rounded-xl">
                                 <div
-                                    class="w-10 h-10 rounded-full bg-black flex items-center justify-center text-[#FFD60A] text-lg">
+                                    class="w-12 h-12 rounded-full bg-black flex items-center justify-center text-[#FFD60A] text-2xl flex-shrink-0 shadow-md">
                                     <i class="fa-solid fa-car"></i>
                                 </div>
                                 <div>
-                                    <p class="text-[10px] text-gray-500 uppercase font-bold tracking-wider">Vagas</p>
-                                    <p class="text-lg font-bold text-gray-900" id="pdfVaga">--</p>
+                                    <p
+                                        class="text-xs text-black uppercase font-extrabold tracking-widest mb-1 opacity-80">
+                                        Vagas de Garagem</p>
+                                    <p class="text-2xl font-black text-gray-900 leading-none" id="pdfVaga">--</p>
                                 </div>
                             </div>
 
-                            <div id="cardApto" class="brand-card flex items-center gap-5 col-span-2">
+                            <!-- Complemento -->
+                            <div id="cardApto"
+                                class="brand-card flex items-center gap-4 p-4 bg-gray-50 border border-gray-200 shadow-sm rounded-xl col-span-2">
                                 <div
-                                    class="w-10 h-10 rounded-full bg-black flex items-center justify-center text-[#FFD60A] text-lg">
+                                    class="w-12 h-12 rounded-full bg-black flex items-center justify-center text-[#FFD60A] text-2xl flex-shrink-0 shadow-md">
                                     <i class="fa-solid fa-building"></i>
                                 </div>
                                 <div>
-                                    <p class="text-[10px] text-gray-500 uppercase font-bold tracking-wider">Complemento
-                                    </p>
-                                    <p class="text-lg font-bold text-gray-900" id="pdfApto">Apto --</p>
+                                    <p
+                                        class="text-xs text-black uppercase font-extrabold tracking-widest mb-1 opacity-80">
+                                        Complemento / Unidade</p>
+                                    <p class="text-2xl font-black text-gray-900 leading-none" id="pdfApto">Apto --</p>
                                 </div>
+
                             </div>
 
-                            <div id="cardCondominio" class="brand-card flex items-center gap-5 col-span-2">
+                            <!-- Condomínio -->
+                            <div id="cardCondominio"
+                                class="brand-card flex items-center gap-4 p-4 bg-gray-50 border border-gray-200 shadow-sm rounded-xl col-span-2">
                                 <div
-                                    class="w-10 h-10 rounded-full bg-black flex items-center justify-center text-[#FFD60A] text-lg">
+                                    class="w-12 h-12 rounded-full bg-black flex items-center justify-center text-[#FFD60A] text-2xl flex-shrink-0 shadow-md">
                                     <i class="fa-solid fa-money-bill-wave"></i>
                                 </div>
                                 <div>
-                                    <p class="text-[10px] text-gray-500 uppercase font-bold tracking-wider">Condomínio
+                                    <p
+                                        class="text-xs text-black uppercase font-extrabold tracking-widest mb-1 opacity-80">
+                                        Condomínio Mensal</p>
+                                    <p class="text-2xl font-black text-gray-900 leading-none" id="pdfCondominio">R$ --
                                     </p>
-                                    <p class="text-lg font-bold text-gray-900" id="pdfCondominio">R$ --</p>
                                 </div>
                             </div>
+                        </div>
+                        <div class="pdf-footer">
+                            <div class="pdf-footer-info">Relatório de Análise • Uso Exclusivo</div>
+                            <div class="pdf-footer-page"></div>
                         </div>
                     </div>
 
                     <!-- PAGE 3: MERCADO -->
-                    <div class="w-[210mm] min-h-[297mm] bg-white p-[40px] mx-auto relative page-break-after-always">
+                    <div class="pdf-sheet" contenteditable="true" spellcheck="false">
                         <div class="absolute inset-0 opacity-[0.1] pointer-events-none force-print-bg pdf-watermark-bg"
-                            style="background-image: url('/images/logo-placeholder-watermark.png'); background-repeat: repeat; background-size: 80px;">
+                            style="background-image: url('/images/logo-fortal.png'); background-repeat: repeat; background-size: 20% auto;">
                         </div>
 
                         <div class="brand-header">
@@ -801,23 +1025,27 @@
                             <div class="brand-header-line"></div>
                         </div>
 
-                        <div class="space-y-6">
-                            <div class="brand-card !p-0 overflow-hidden h-[250px]">
+                        <div class="space-y-4">
+                            <div class="brand-card !p-0 overflow-hidden h-[210px]">
                                 <img id="pdfMkt1" src="" class="w-full h-full object-cover">
                             </div>
-                            <div class="brand-card !p-0 overflow-hidden h-[250px]">
+                            <div class="brand-card !p-0 overflow-hidden h-[210px]">
                                 <img id="pdfMkt2" src="" class="w-full h-full object-cover">
                             </div>
-                            <div class="brand-card !p-0 overflow-hidden h-[250px]">
+                            <div class="brand-card !p-0 overflow-hidden h-[210px]">
                                 <img id="pdfMkt3" src="" class="w-full h-full object-cover">
                             </div>
+                        </div>
+                        <div class="pdf-footer">
+                            <div class="pdf-footer-info">Relatório de Análise • Uso Exclusivo</div>
+                            <div class="pdf-footer-page"></div>
                         </div>
                     </div>
 
                     <!-- PAGE 4: VIABILIDADE FINANCEIRA (REDESIGNED) -->
-                    <div class="w-[210mm] min-h-[297mm] bg-white p-[40px] mx-auto relative page-break-after-always">
+                    <div class="pdf-sheet" contenteditable="true" spellcheck="false">
                         <div class="absolute inset-0 opacity-[0.1] pointer-events-none force-print-bg pdf-watermark-bg"
-                            style="background-image: url('/images/logo-placeholder-watermark.png'); background-repeat: repeat; background-size: 80px;">
+                            style="background-image: url('/images/logo-fortal.png'); background-repeat: repeat; background-size: 20% auto;">
                         </div>
 
                         <div class="brand-header">
@@ -827,16 +1055,25 @@
 
                         <!-- DYNAMIC CONTENT CONTAINER -->
                         <div id="pdfViabilityContent" class="space-y-6">
-                            <!-- Filled by JS -->
+                            <div
+                                class="h-96 flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg bg-gray-50">
+                                <i class="fa-solid fa-calculator text-4xl text-gray-300 mb-4"></i>
+                                <p class="text-gray-500 font-bold mb-2">Nenhum cálculo selecionado</p>
+                                <p class="text-sm text-gray-400 text-center max-w-xs">Use o menu "Importar de um cálculo
+                                    salvo" no topo da página para gerar o estudo financeiro.</p>
+                            </div>
                         </div>
 
+                        <div class="pdf-footer">
+                            <div class="pdf-footer-info">Relatório de Análise • Uso Exclusivo</div>
+                            <div class="pdf-footer-page"></div>
+                        </div>
                     </div>
 
                     <!-- PAGE 5: CONCLUSÃO -->
-                    <div
-                        class="w-[210mm] min-h-[297mm] bg-white p-[40px] mx-auto relative page-break-after-always flex flex-col justify-between">
+                    <div class="pdf-sheet" contenteditable="true" spellcheck="false">
                         <div class="absolute inset-0 opacity-[0.1] pointer-events-none force-print-bg pdf-watermark-bg"
-                            style="background-image: url('/images/logo-placeholder-watermark.png'); background-repeat: repeat; background-size: 80px;">
+                            style="background-image: url('/images/logo-fortal.png'); background-repeat: repeat; background-size: 20% auto;">
                         </div>
 
                         <div>
@@ -853,7 +1090,8 @@
                                                 <i class="fa-solid fa-check"></i>
                                             </div>
                                             <div>
-                                                <p class="font-bold text-gray-900 text-sm mb-1">Consulta com Corretores
+                                                <p class="font-bold text-gray-900 text-sm mb-1">Consulta com
+                                                    Corretores
                                                 </p>
                                                 <p class="text-xs text-gray-500">Validação de preço e liquidez com
                                                     especialistas locais.</p>
@@ -869,7 +1107,8 @@
                                             </div>
                                             <div>
                                                 <p class="font-bold text-gray-900 text-sm mb-1">Vistoria Técnica</p>
-                                                <p class="text-xs text-gray-500">Avaliação presencial ou por imagens do
+                                                <p class="text-xs text-gray-500">Avaliação presencial ou por imagens
+                                                    do
                                                     estado do imóvel.</p>
                                             </div>
                                         </div>
@@ -882,7 +1121,8 @@
                                                 <i class="fa-solid fa-check"></i>
                                             </div>
                                             <div>
-                                                <p class="font-bold text-gray-900 text-sm mb-1">Comparativo em Sites</p>
+                                                <p class="font-bold text-gray-900 text-sm mb-1">Comparativo em Sites
+                                                </p>
                                                 <p class="text-xs text-gray-500">Análise de ofertas similares nos
                                                     principais portais.</p>
                                             </div>
@@ -896,7 +1136,8 @@
                                                 <i class="fa-solid fa-check"></i>
                                             </div>
                                             <div>
-                                                <p class="font-bold text-gray-900 text-sm mb-1">Análise Documental</p>
+                                                <p class="font-bold text-gray-900 text-sm mb-1">Análise Documental
+                                                </p>
                                                 <p class="text-xs text-gray-500">Conferência da matrícula, edital e
                                                     certidões.</p>
                                             </div>
@@ -911,7 +1152,8 @@
                                             </div>
                                             <div>
                                                 <p class="font-bold text-gray-900 text-sm mb-1">Análise Jurídica</p>
-                                                <p class="text-xs text-gray-500">Auditoria processual para segurança da
+                                                <p class="text-xs text-gray-500">Auditoria processual para segurança
+                                                    da
                                                     arrematação.</p>
                                             </div>
                                         </div>
@@ -924,57 +1166,124 @@
                                                 <i class="fa-solid fa-check"></i>
                                             </div>
                                             <div>
-                                                <p class="font-bold text-gray-900 text-sm mb-1">Levantamento de Débitos
+                                                <p class="font-bold text-gray-900 text-sm mb-1">Levantamento de
+                                                    Débitos
                                                 </p>
-                                                <p class="text-xs text-gray-500">Apuração de IPTU, condomínio e outras
+                                                <p class="text-xs text-gray-500">Apuração de IPTU, condomínio e
+                                                    outras
                                                     dívidas.</p>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-
-                            <div class="brand-header mt-8">
-                                <h2 class="brand-header-title">Considerações Finais</h2>
-                                <div class="brand-header-line"></div>
-                            </div>
-
-                            <div class="brand-card">
-                                <p class="text-justify text-lg leading-relaxed text-gray-800 font-serif">
-                                    Este investimento apresenta um potencial significativo de retorno, considerando a
-                                    valorização da região e os custos envolvidos. A <span id="pdfCompanyInText"
-                                        class="font-bold brand-highlight-text">Sua Empresa</span> está à disposição para
-                                    esclarecer quaisquer dúvidas e prosseguir com a estratégia de arrematação.
-                                </p>
-                            </div>
                         </div>
-
-                        <!-- Footer -->
-                        <!-- Footer -->
-                        <div class="brand-card bg-gray-50 border border-gray-100 !p-6 mt-8">
-                            <div class="flex justify-between items-center">
-                                <div>
-                                    <p class="text-xs text-gray-400 uppercase font-bold tracking-widest mb-1">Elaborado
-                                        Por</p>
-                                    <p class="text-xl font-bold font-serif text-gray-900" id="pdfCreci">Sua Empresa</p>
-                                </div>
-                                <div class="text-right">
-                                    <div class="flex items-center gap-2 justify-end mb-1 text-gray-600">
-                                        <i class="fa-brands fa-instagram text-gray-400"></i>
-                                        <span class="text-sm font-medium" id="pdfInstagram">@seuinsta</span>
-                                    </div>
-                                    <p class="text-[10px] text-gray-400" id="pdfFooter">Todos os direitos reservados.
-                                    </p>
-                                </div>
-                            </div>
+                        <div class="pdf-footer">
+                            <div class="pdf-footer-info">Relatório de Análise • Uso Exclusivo</div>
+                            <div class="pdf-footer-page"></div>
                         </div>
                     </div>
-                </div>
+
+                    <!-- PAGE 6: CONSIDERAÇÕES FINAIS -->
+                    <div class="pdf-sheet flex flex-col" contenteditable="true" spellcheck="false">
+                        <div class="absolute inset-0 opacity-[0.1] pointer-events-none force-print-bg pdf-watermark-bg"
+                            style="background-image: url('/images/logo-fortal.png'); background-repeat: repeat; background-size: 20% auto;">
+                        </div>
+
+                        <div class="brand-header">
+                            <h2 class="brand-header-title">Considerações Finais</h2>
+                            <div class="brand-header-line"></div>
+                        </div>
+
+                        <div class="brand-card mb-8">
+                            <p class="text-justify text-lg leading-relaxed text-gray-800 font-serif">
+                                Este investimento apresenta um potencial significativo de retorno, considerando a
+                                valorização da região e os custos envolvidos. A <span
+                                    class="font-bold brand-highlight-text">nossa equipe</span> está à disposição para
+                                esclarecer quaisquer dúvidas e prosseguir com a estratégia de arrematação com total
+                                segurança jurídica e técnica.
+                            </p>
+                        </div>
+
+                        <!-- Footer Section (Premium Redesign) -->
+                        <div class="mt-auto mb-12">
+                            <div class="border-t border-gray-100 mb-8 w-full"></div>
+
+                            <div class="flex items-center justify-between">
+                                <!-- Left: Company Identity -->
+                                <div class="flex items-center gap-6">
+                                    <!-- Logo Box - Premium Look -->
+                                    <div
+                                        class="w-20 h-20 bg-gray-900 rounded-xl flex items-center justify-center shadow-lg transform -rotate-2 border border-gray-700">
+                                        <i class="fa-solid fa-city text-3xl text-[#FFD60A]"></i>
+                                    </div>
+
+                                    <div class="flex flex-col justify-center">
+                                        <div class="flex items-center gap-2 mb-1.5">
+                                            <div class="h-[2px] w-6 bg-[#FFD60A]"></div>
+                                            <p class="text-[10px] uppercase font-bold text-gray-400 tracking-[0.25em]">
+                                                Responsável Técnico</p>
+                                        </div>
+
+                                        <h3 class="text-3xl font-serif font-black text-gray-900 leading-none tracking-tight mb-3"
+                                            id="pdfCreci">
+                                            Nome da Empresa
+                                        </h3>
+
+                                        <!-- Social & Contact Badge -->
+                                        <div class="flex items-center gap-3">
+                                            <span
+                                                class="bg-gray-50 px-3 py-1.5 rounded-full text-xs font-bold text-gray-600 border border-gray-200 flex items-center gap-2 shadow-sm">
+                                                <i class="fa-brands fa-instagram text-pink-600"></i>
+                                                <span id="pdfInstagram">@instagram</span>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Right: Official Disclaimer (Stamp style) -->
+                                <div class="text-right max-w-[300px]">
+                                    <div
+                                        class="inline-block border border-dashed border-gray-300 p-4 rounded-lg bg-gray-50/50">
+                                        <p class="text-[9px] text-gray-500 leading-relaxed font-medium text-justify">
+                                            <i class="fa-solid fa-lock mr-1 text-gray-400"></i>
+                                            <strong>CONFIDENCIAL:</strong> Documento de uso exclusivo do destinatário. A
+                                            reprodução parcial ou total deste material sem autorização prévia é
+                                            estritamente proibida.
+                                        </p>
+                                        <p class="text-[8px] text-gray-400 text-center mt-2 pt-2 border-t border-gray-200"
+                                            id="pdfFooter">Todos os direitos reservados.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="pdf-footer">
+                            <div class="pdf-footer-info">Relatório de Análise • Uso Exclusivo</div>
+                            <div class="pdf-footer-page"></div>
+                        </div>
+                    </div>
             </main>
 
             <script>
+                // Máscara para Data e Hora: DD/MM/AAAA Às HH:mm
+                window.maskDateHour = (input) => {
+                    let v = input.value.replace(/\D/g, ""); // Remove tudo que não é dígito
+                    v = v.substring(0, 12); // Limita a 12 dígitos (DDMMAAAAHHmm)
+
+                    let formatted = "";
+                    if (v.length > 0) formatted += v.substring(0, 2);
+                    if (v.length > 2) formatted += "/" + v.substring(2, 4);
+                    if (v.length > 4) formatted += "/" + v.substring(4, 8);
+                    if (v.length > 8) formatted += " Às " + v.substring(8, 10);
+                    if (v.length > 10) formatted += ":" + v.substring(10, 12);
+
+                    input.value = formatted;
+                };
+
                 // Sync Inputs to PDF Text with Logic to Hide Empty Fields
-                const fields = ['Nome', 'Bem', 'Licitacao', 'Endereco', 'Apto', 'Metragem', 'Quartos', 'Banheiros', 'Vaga', 'Condominio', 'Instagram', 'Creci', 'Footer'];
+                const fields = ['Cliente', 'Nome', 'Bem', 'Licitacao', 'Endereco', 'Apto', 'Metragem', 'Quartos', 'Banheiros', 'Vaga', 'Condominio', 'Instagram', 'Creci', 'Footer'];
+
 
                 // Fields that trigger card hiding if empty
                 const optionalFields = {
@@ -1000,6 +1309,14 @@
                     }
                 };
 
+                // Campos que precisam de unidades/sufixos
+                const fieldSuffixes = {
+                    'Metragem': ' m²',
+                    'Quartos': '', // Rótulo visual pode já existir, mas se for texto corrido: ' Quartos'
+                    'Banheiros': '',
+                    'Vaga': ''
+                };
+
                 fields.forEach(id => {
                     const input = document.getElementById('input' + id);
                     if (input) {
@@ -1007,12 +1324,28 @@
                         updateFieldVisibility(id, input.value);
 
                         input.addEventListener('input', (e) => {
-                            const val = e.target.value;
+                            let val = e.target.value;
 
-                            // 1. Update Text
+                            // 1. Update Text with Suffixes and Capitalization logic
                             // Special handling for 'Nome' which updates Title and Subtitle areas if needed
                             const target = document.getElementById('pdf' + (id === 'Nome' ? 'NomeImovel' : id));
-                            if (target) target.innerText = val;
+
+                            if (target) {
+                                // Adicionar sufixo se existir e se houver valor
+                                let displayVal = val;
+
+                                // Force Capitalization for Names
+                                if ((id === 'Cliente' || id === 'Nome') && displayVal) {
+                                    displayVal = displayVal.toLowerCase().replace(/(?:^|\s)\S/g, function (a) { return a.toUpperCase(); });
+                                }
+
+                                // Handling específico para evitar duplicação de unidades se o usuário digitar
+                                if (id === 'Metragem' && val && !val.toLowerCase().includes('m')) {
+                                    displayVal += ' m²';
+                                }
+
+                                target.innerText = displayVal;
+                            }
 
                             // 2. Handle Creci/Company Name special update in text body
                             if (id === 'Creci') {
@@ -1279,6 +1612,82 @@
 
                 document.addEventListener('DOMContentLoaded', refreshCompanySelect);
 
+                // Initialize PDF Preview
+                function initializePDFPreview() {
+                    const pdfContent = document.getElementById('pdf-content');
+                    const previewContainer = document.getElementById('pdf-preview-container');
+
+                    if (!pdfContent || !previewContainer) return;
+
+                    // Get all PDF sheets (pages)
+                    const pages = pdfContent.querySelectorAll('.pdf-sheet');
+
+                    // Clear preview container
+                    previewContainer.innerHTML = '';
+
+                    // Clone each page into the preview
+                    pages.forEach((page, index) => {
+                        const pageWrapper = document.createElement('div');
+                        pageWrapper.className = 'pdf-preview-page';
+                        // Fix for layout: Scale wrapper to match the scaled content size 
+                        // A4 (210mm x 297mm) * 0.85 scale
+                        pageWrapper.style.cssText = `
+                            width: calc(210mm * 0.85); 
+                            height: calc(297mm * 0.85);
+                            background: white;
+                            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+                            border-radius: 8px;
+                            overflow: hidden;
+                            position: relative;
+                            margin: 0 auto; 
+                        `;
+
+                        // Add page number badge
+                        const badge = document.createElement('div');
+                        badge.className = 'page-badge';
+                        badge.style.cssText = `
+                            position: absolute;
+                            top: 16px;
+                            right: 16px;
+                            background: #FFD60A;
+                            color: #000;
+                            padding: 6px 12px;
+                            border-radius: 20px;
+                            font-weight: bold;
+                            font-size: 12px;
+                            z-index: 1000;
+                            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+                        `;
+                        badge.textContent = `Página ${index + 1} de ${pages.length}`;
+
+                        // Clone the page
+                        const clonedPage = page.cloneNode(true);
+                        // Reset margins and apply strict scaling from top-left
+                        clonedPage.style.cssText = `
+                            transform: scale(0.85);
+                            transform-origin: top left;
+                            margin: 0;
+                            width: 210mm;
+                            height: 297mm;
+                        `;
+
+                        pageWrapper.appendChild(badge);
+                        pageWrapper.appendChild(clonedPage);
+                        previewContainer.appendChild(pageWrapper);
+                    });
+                }
+
+                // Initialize preview on load and when data changes
+                document.addEventListener('DOMContentLoaded', () => {
+                    // Initialize financial data with default values
+                    setTimeout(() => {
+                        updateManualFinancialData();
+                        initializePDFPreview();
+                    }, 500);
+                });
+
+
+
                 // --- Watermark Logic Refactored ---
                 function applyWatermarkFromBase64(base64) {
                     const img = new Image();
@@ -1340,6 +1749,113 @@
 
                 // Format Currency Helper
                 const fmt = (v) => parseFloat(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+                // Parse currency input to number
+                const parseCurrency = (str) => {
+                    if (!str) return 0;
+                    return parseFloat(str.replace(/[^\d,]/g, '').replace(',', '.')) || 0;
+                };
+
+                // Update PDF with manual financial data
+                function updateManualFinancialData() {
+                    const valorArremate = parseCurrency(document.getElementById('inputValorArremate')?.value || '0');
+                    const valorAvaliacao = parseCurrency(document.getElementById('inputValorAvaliacao')?.value || '0');
+                    const valorVenda = parseCurrency(document.getElementById('inputValorVenda')?.value || '0');
+
+                    // Update PDF header values (target SOURCE elements in #pdf-content, not preview)
+                    const pdfLance = document.querySelector('#pdf-content #pdfLance');
+                    const pdfAvaliacao = document.querySelector('#pdf-content #pdfAvaliacao');
+
+                    if (pdfLance) pdfLance.innerText = fmt(valorArremate);
+                    if (pdfAvaliacao) pdfAvaliacao.innerText = fmt(valorAvaliacao);
+
+                    // Simple viability calculation
+                    if (valorArremate > 0) {
+                        const leiloeiro = valorArremate * 0.05;
+                        const itbi = valorArremate * 0.03;
+                        const assessoria = 6000;
+                        const condominio = parseCurrency(document.getElementById('inputCondominio')?.value || '0');
+                        const cartorio = 3000; // Custos cartorários estimados
+                        const seguro = 190;
+                        const desocupacao = 0; // Pode ser ajustado se necessário
+
+                        // Cálculo do investimento total (12 meses)
+                        const custosMensais = condominio;
+                        const investTotal = valorArremate + leiloeiro + itbi + assessoria + cartorio + seguro + desocupacao + (custosMensais * 12);
+
+                        const vendaFinal = valorVenda > 0 ? valorVenda : valorAvaliacao;
+                        const corretagem = vendaFinal * 0.06;
+                        const lucro = vendaFinal - corretagem - investTotal;
+                        const imposto = lucro > 0 ? lucro * 0.15 : 0;
+                        const lucroLiquido = lucro - imposto;
+                        const roi = investTotal > 0 ? (lucroLiquido / investTotal) * 100 : 0;
+
+                        // Update PDF viability content (target the SOURCE element in #pdf-content, not the preview)
+                        const container = document.querySelector('#pdf-content #pdfViabilityContent');
+                        if (container) {
+                            container.innerHTML = `
+                                <div class="grid grid-cols-3 gap-4 mb-6">
+                                    <div class="bg-gray-50 rounded p-3 border border-gray-200">
+                                        <p class="text-[9px] uppercase font-bold text-gray-500 tracking-wider">Investimento Total</p>
+                                        <p class="text-xl font-bold text-gray-900 tracking-tight mt-1">${fmt(investTotal)}</p>
+                                        <p class="text-[9px] text-gray-400 mt-0.5">Base 12 Meses</p>
+                                    </div>
+                                    <div class="bg-gray-50 rounded p-3 border border-gray-200">
+                                        <p class="text-[9px] uppercase font-bold text-gray-500 tracking-wider">Venda Estimada</p>
+                                        <p class="text-xl font-bold text-gray-900 tracking-tight mt-1">${fmt(vendaFinal)}</p>
+                                        <p class="text-[9px] text-gray-400 mt-0.5">Valor de Mercado</p>
+                                    </div>
+                                    <div class="bg-gray-900 rounded p-3 border border-gray-900">
+                                        <p class="text-[9px] uppercase font-bold text-gray-400 tracking-wider">Lucro Líquido</p>
+                                        <p class="text-2xl font-black text-[#FFD60A] tracking-tight mt-0 leading-none">${fmt(lucroLiquido)}</p>
+                                        <p class="text-[10px] text-white font-bold mt-1">ROI ${roi.toFixed(1)}%</p>
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-2 gap-8 mb-6">
+                                    <div>
+                                        <h3 class="text-[10px] font-black uppercase tracking-widest border-b border-gray-200 pb-1 mb-2">Custos de Aquisição</h3>
+                                        <table class="w-full text-xs">
+                                            <tbody class="divide-y divide-gray-50">
+                                                <tr><td class="py-1.5 text-gray-500 font-medium">Lance Arrematação</td><td class="py-1.5 text-right font-mono font-bold text-gray-800">${fmt(valorArremate)}</td></tr>
+                                                <tr><td class="py-1.5 text-gray-500 font-medium">Comissão (5%)</td><td class="py-1.5 text-right font-mono font-bold text-gray-800">${fmt(leiloeiro)}</td></tr>
+                                                <tr><td class="py-1.5 text-gray-500 font-medium">ITBI (3%)</td><td class="py-1.5 text-right font-mono font-bold text-gray-800">${fmt(itbi)}</td></tr>
+                                                <tr><td class="py-1.5 text-gray-500 font-medium">Assessoria</td><td class="py-1.5 text-right font-mono font-bold text-gray-800">${fmt(assessoria)}</td></tr>
+                                                <tr><td class="py-1.5 text-gray-500 font-medium">Cartório</td><td class="py-1.5 text-right font-mono font-bold text-gray-800">${fmt(cartorio)}</td></tr>
+                                                <tr><td class="py-1.5 text-gray-500 font-medium">Seguro</td><td class="py-1.5 text-right font-mono font-bold text-gray-800">${fmt(seguro)}</td></tr>
+                                                <tr><td class="py-1.5 text-gray-500 font-medium">Cond./IPTU (12m)</td><td class="py-1.5 text-right font-mono font-bold text-gray-800">${fmt(condominio * 12)}</td></tr>
+                                            </tbody>
+                                            <tfoot class="border-t border-gray-200">
+                                                <tr><td class="py-2 text-[10px] font-bold uppercase">Total Saídas</td><td class="py-2 text-right font-mono font-bold">${fmt(investTotal)}</td></tr>
+                                            </tfoot>
+                                        </table>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-[10px] font-black uppercase tracking-widest border-b border-gray-200 pb-1 mb-2">Retorno Financeiro</h3>
+                                        <table class="w-full text-xs">
+                                            <tbody class="divide-y divide-gray-50">
+                                                <tr><td class="py-1.5 text-gray-500 font-medium">Valor de Venda</td><td class="py-1.5 text-right font-mono font-bold text-blue-700">${fmt(vendaFinal)}</td></tr>
+                                                <tr><td class="py-1.5 text-gray-500 font-medium">Corretagem (6%)</td><td class="py-1.5 text-right font-mono font-bold text-red-500">-${fmt(corretagem)}</td></tr>
+                                                <tr><td class="py-1.5 text-gray-500 font-medium">Imposto Lucro (15%)</td><td class="py-1.5 text-right font-mono font-bold text-red-500">-${fmt(imposto)}</td></tr>
+                                                <tr><td class="py-1.5 text-gray-500 font-medium">Recuperação Capital</td><td class="py-1.5 text-right font-mono font-bold text-gray-400">-${fmt(investTotal)}</td></tr>
+                                            </tbody>
+                                            <tfoot class="border-t border-gray-200">
+                                                <tr><td class="py-2 text-[10px] font-black uppercase text-gray-900">Resultado Líquido</td><td class="py-2 text-right font-mono font-black text-lg text-gray-900">${fmt(lucroLiquido)}</td></tr>
+                                            </tfoot>
+                                        </table>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                    }
+                }
+
+                // Refresh PDF preview after manual data update
+                const originalUpdateManual = updateManualFinancialData;
+                window.updateManualFinancialData = function () {
+                    originalUpdateManual();
+                    setTimeout(() => initializePDFPreview(), 100);
+                };
 
                 // NEW STRATEGY: Fetch from API on demand
                 async function loadCalculationData(select) {
@@ -1438,179 +1954,198 @@
                         const debitos = num(data.debitosPendentes);
                         const desocupacao = num(data.custoDesocupacao);
                         const seguro = 190;
+                        const outros = num(data.custosAdicionais); // Add support for 'custosAdicionais' if present in data
 
                         // Monthly Recurrent
                         const cond = num(data.condominioMensal);
                         const iptuMo = num(data.iptuMensal);
                         const custoMensal = cond + iptuMo;
-                        const iptu12 = iptuMo * 12;
 
-                        // Totals
-                        const investTotalBasico = vlrArremate + leiloeiro + itbi + cartorio + reforma + debitos;
+                        // Costs Base (Fixed)
+                        const investTotalBasico = vlrArremate + leiloeiro + itbi + cartorio + reforma + debitos + outros;
 
-                        const op06 = custoMensal * 6;
-                        const op12 = custoMensal * 12;
-
-                        const invest6 = investTotalBasico + op06 + desocupacao + seguro + assessoria;
-                        const invest12 = investTotalBasico + op12 + desocupacao + seguro + assessoria;
-
-                        // Projections
+                        // Projections Base
                         const venda = num(data.valorVendaFinal) > 0 ? num(data.valorVendaFinal) : vlrAvaliacao;
                         const corretagem = venda * 0.06;
 
-                        const bruto6 = venda - corretagem - invest6;
+                        // Calculate 12 Month Base values for Details Section
+                        const op12 = custoMensal * 12;
+                        const invest12 = investTotalBasico + op12 + desocupacao + seguro + assessoria;
                         const bruto12 = venda - corretagem - invest12;
-
-                        const imposto6 = bruto6 > 0 ? bruto6 * 0.15 : 0;
                         const imposto12 = bruto12 > 0 ? bruto12 * 0.15 : 0;
 
-                        const liq6 = bruto6 - imposto6;
-                        const liq12 = bruto12 - imposto12;
+                        // GENERATE SCENARIOS (4, 8, 12, 16 Months)
+                        const scenarios = [
+                            { m: 4, label: 'Venda Rápida' },
+                            { m: 8, label: 'Venda Média' },
+                            { m: 12, label: 'Venda Longa' },
+                            { m: 16, label: 'Venda Tardia' }
+                        ];
 
-                        const roiLiq6 = invest6 > 0 ? (liq6 / invest6) * 100 : 0;
-                        const roiLiq12 = invest12 > 0 ? (liq12 / invest12) * 100 : 0;
+                        let scenariosHTML = '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px;">';
 
-                        // Margin Gross
-                        const marginGross = investTotalBasico > 0 ? ((venda - investTotalBasico) / investTotalBasico * 100) : 0;
+                        scenarios.forEach(s => {
+                            const opCost = custoMensal * s.m;
 
-                        // Variables for new HTML structure
-                        const lance = vlrArremate;
-                        const comissao = leiloeiro;
+                            // Calculate Total Invested for this scenario
+                            // Formula: Base + Operational(Months) + Desocupacao + Seguro + Assessoria
+                            const investTotal = investTotalBasico + opCost + desocupacao + seguro + assessoria;
 
-
-                        // 4. GENERATE DASHBOARD HTML
-
-                        // Pre-calculate 12-month cards
-                        let cardsHTML = '';
-                        for (let m = 1; m <= 12; m++) {
-                            const opCost = custoMensal * m;
-                            const totalInvest = investTotalBasico + opCost + desocupacao + seguro + assessoria;
-                            const bruto = venda - corretagem - totalInvest;
-                            // const imposto = bruto > 0 ? bruto * 0.15 : 0;
-                            // Simplification: Standard 15% on gain
+                            const bruto = venda - corretagem - investTotal;
                             const imposto = bruto > 0 ? bruto * 0.15 : 0;
                             const liq = bruto - imposto;
-                            const roi = totalInvest > 0 ? (liq / totalInvest) * 100 : 0;
+                            const roi = investTotal > 0 ? (liq / investTotal) * 100 : 0;
+                            const isPositive = liq > 0;
+                            const color = isPositive ? '#34C759' : '#FF3B30';
+                            const borderColor = isPositive ? 'rgba(52, 199, 89, 0.2)' : 'rgba(255, 59, 48, 0.2)';
 
-                            const isHighlight = (m === 6 || m === 12);
-                            const extraClass = isHighlight ? 'ring-2 ring-[#FFD60A] bg-[#FFFBEB]' : 'bg-white';
-                            const roiTagClass = roi >= 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
-
-                            // Use formatting carefully
-                            const liqFmt = fmt(liq);
-                            const roiFmt = roi.toFixed(1);
-
-                            cardsHTML += `
-                            <div class="brand-card flex flex-col justify-between !p-4 ${extraClass}">
-                                <div class="flex justify-between items-center mb-2">
-                                    <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Mês ${m}</span>
-                                    <span class="text-[10px] font-bold px-1.5 py-0.5 rounded ${roiTagClass}">
-                                        ROI ${roiFmt}%
-                                    </span>
-                                </div>
-                                <p class="text-lg font-serif font-bold ${liq >= 0 ? 'text-gray-900' : 'text-red-600'} tracking-tight">
-                                    ${liqFmt}
-                                </p>
-                            </div>`;
-                        }
-
-                        const dashboardHTML = `
-                            <!-- Resumo Principal -->
-                            <div class="grid grid-cols-2 gap-6 p-6 bg-black rounded-2xl shadow-xl mb-8 force-print-bg">
-                                <div>
-                                    <p class="text-gray-400 text-xs font-bold uppercase tracking-widest mb-1">Investimento Total Estimado</p>
-                                    <p class="text-4xl font-black text-[#FFD60A] pdf-sans tracking-tight">${fmt(investTotalBasico)}</p>
-                                    <p class="text-gray-500 text-xs mt-2 font-medium">+ Encargos e Custos Operacionais</p>
-                                </div>
-                                <div class="border-l border-gray-800 pl-6">
-                                     <p class="text-gray-400 text-xs font-bold uppercase tracking-widest mb-1">Potencial de Venda (Estimado)</p>
-                                    <p class="text-3xl font-bold text-white pdf-sans tracking-tight">${fmt(venda)}</p>
-                                    <div class="mt-3 flex items-center gap-2">
-                                        <span class="bg-gray-800 text-white text-[10px] font-bold px-2 py-1 rounded">Margem Bruta ${marginGross.toFixed(0)}%</span>
+                            // Generate Card HTML (Exact replica of Calculadora Visuals)
+                            scenariosHTML += `
+                                <div style="background: #fff; border-radius: 12px; padding: 20px; position: relative; overflow: hidden; border: 1px solid ${borderColor}; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+                                    <div style="position: absolute; top: 0; left: 0; right: 0; height: 4px; background: ${color};"></div>
+                                    
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                                        <span style="font-size: 10px; font-weight: 700; text-transform: uppercase; color: #6b7280; letter-spacing: 0.5px;">
+                                            ${s.label}
+                                        </span>
+                                        <span style="background: #f3f4f6; padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: 600; color: #374151;">
+                                            ${s.m} Meses
+                                        </span>
                                     </div>
-                                </div>
-                            </div>
 
-                            <div class="grid grid-cols-2 gap-8">
-                                <!-- Coluna 1: Custos de Aquisição -->
-                                <div>
-                                    <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2 border-b border-gray-200 pb-2">
-                                        <i class="fa-solid fa-wallet text-gray-400"></i> Custos de Aquisição
-                                    </h3>
-                                    <div class="space-y-3">
-                                        <div class="flex justify-between items-center text-sm p-3 bg-gray-50 rounded-lg border border-gray-100">
-                                            <span class="text-gray-600 font-medium">Valor Arremate</span>
-                                            <span class="font-bold text-gray-900">${fmt(vlrArremate)}</span>
+                                    <div style="margin-bottom: 16px;">
+                                        <p style="font-size: 11px; color: #6b7280; margin-bottom: 2px;">Lucro Líquido</p>
+                                        <h3 style="font-size: 24px; font-weight: 700; color: ${color}; letter-spacing: -0.5px; margin: 0;">
+                                            ${fmt(liq)}
+                                        </h3>
+                                    </div>
+
+                                    <div style="margin-bottom: 12px;">
+                                        <p style="font-size: 10px; color: #6b7280; margin-bottom: 1px;">Total Investido</p>
+                                        <p style="font-size: 14px; font-weight: 600; color: #111827; margin: 0;">
+                                            ${fmt(investTotal)}
+                                        </p>
+                                    </div>
+
+                                    <div style="margin-bottom: 16px;">
+                                        <p style="font-size: 10px; color: #6b7280; margin-bottom: 1px;">Valor de Venda</p>
+                                        <p style="font-size: 14px; font-weight: 600; color: #34C759; margin: 0;">
+                                            ${fmt(venda)}
+                                        </p>
+                                    </div>
+
+                                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding-top: 12px; border-top: 1px solid #e5e7eb;">
+                                        <div>
+                                            <p style="font-size: 10px; color: #6b7280; margin-bottom: 1px;">ROI</p>
+                                            <p style="font-size: 12px; font-weight: 700; color: ${color}; margin: 0;">
+                                                ${roi.toFixed(2)}%
+                                            </p>
                                         </div>
-                                        <div class="flex justify-between items-center text-sm p-3 bg-gray-50 rounded-lg border border-gray-100">
-                                            <span class="text-gray-600 font-medium">Leiloeiro (5%)</span>
-                                            <span class="font-bold text-gray-900">${fmt(leiloeiro)}</span>
-                                        </div>
-                                        <div class="flex justify-between items-center text-sm p-3 bg-gray-50 rounded-lg border border-gray-100">
-                                            <span class="text-gray-600 font-medium">Assessoria</span>
-                                            <span class="font-bold text-gray-900">${fmt(assessoria)}</span>
-                                        </div>
-                                        <div class="flex justify-between items-center text-sm p-3 bg-gray-50 rounded-lg border border-gray-100">
-                                            <span class="text-gray-600 font-medium">ITBI (${(itbiPercent * 100).toFixed(1)}%)</span>
-                                            <span class="font-bold text-gray-900">${fmt(itbi)}</span>
-                                        </div>
-                                        <div class="flex justify-between items-center text-sm p-3 bg-gray-50 rounded-lg border border-gray-100">
-                                            <span class="text-gray-600 font-medium">Cartório e Registro</span>
-                                            <span class="font-bold text-gray-900">${fmt(cartorio)}</span>
+                                        <div style="text-align: right;">
+                                            <p style="font-size: 10px; color: #6b7280; margin-bottom: 1px;">Custo/Mês</p>
+                                            <p style="font-size: 12px; font-weight: 600; color: #111827; margin: 0;">
+                                                ${fmt(custoMensal)}
+                                            </p>
                                         </div>
                                     </div>
                                 </div>
+                            `;
+                        });
 
-                                <!-- Coluna 2: Custos Pós-Leilão e Operacionais -->
-                                <div>
-                                    <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2 border-b border-gray-200 pb-2">
-                                        <i class="fa-solid fa-tools text-gray-400"></i> Custos Pós-Leilão
-                                    </h3>
-                                    <div class="space-y-3">
-                                         <div class="flex justify-between items-center text-sm p-3 bg-gray-50 rounded-lg border border-gray-100">
-                                            <span class="text-gray-600 font-medium">Regularização / Débitos</span>
-                                            <span class="font-bold text-gray-900">${fmt(debitos)}</span>
+                        scenariosHTML += '</div>';
+
+                        // DETAILS SECTION (Replica of Modal)
+                        const detailsHTML = `
+                            <div style="margin-top: 20px; padding-top: 20px; border-top: 2px dashed #e5e7eb;">
+                                <h3 style="font-size: 16px; font-weight: 700; color: #111827; margin-bottom: 20px;">Detalhamento Financeiro</h3>
+                                
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 32px;">
+                                    <!-- Left Column -->
+                                    <div>
+                                        <!-- Custos de Aquisicao -->
+                                        <div style="margin-bottom: 24px;">
+                                            <h4 style="font-size: 11px; font-weight: 700; color: #6b7280; text-transform: uppercase; margin-bottom: 12px; border-bottom: 1px solid #e5e7eb; padding-bottom: 8px; letter-spacing: 0.5px;">
+                                                Custos de Aquisição
+                                            </h4>
+                                            <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 12px;">
+                                                <span style="color: #6b7280;">Valor de Arremate</span>
+                                                <span style="font-weight: 600; color: #111827;">${fmt(vlrArremate)}</span>
+                                            </div>
+                                            <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 12px;">
+                                                <span style="color: #6b7280;">Assessoria</span>
+                                                <span style="font-weight: 600; color: #111827;">${fmt(assessoria)}</span>
+                                            </div>
+                                            <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 12px;">
+                                                <span style="color: #6b7280;">Leiloeiro (5%)</span>
+                                                <span style="font-weight: 600; color: #111827;">${fmt(leiloeiro)}</span>
+                                            </div>
+                                            <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 12px;">
+                                                <span style="color: #6b7280;">ITBI</span>
+                                                <span style="font-weight: 600; color: #111827;">${fmt(itbi)}</span>
+                                            </div>
+                                            <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 12px;">
+                                                <span style="color: #6b7280;">Cartório / Registro</span>
+                                                <span style="font-weight: 600; color: #111827;">${fmt(cartorio)}</span>
+                                            </div>
+                                            <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 12px;">
+                                                <span style="color: #6b7280;">Reforma</span>
+                                                <span style="font-weight: 600; color: #111827;">${fmt(reforma)}</span>
+                                            </div>
+                                            <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 12px;">
+                                                <span style="color: #6b7280;">Débitos Pendentes</span>
+                                                <span style="font-weight: 600; color: #111827;">${fmt(debitos)}</span>
+                                            </div>
+                                            <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 12px;">
+                                                <span style="color: #6b7280;">Desocupação</span>
+                                                <span style="font-weight: 600; color: #111827;">${fmt(desocupacao)}</span>
+                                            </div>
                                         </div>
-                                        <div class="flex justify-between items-center text-sm p-3 bg-gray-50 rounded-lg border border-gray-100">
-                                            <span class="text-gray-600 font-medium">Reforma Estimada</span>
-                                            <span class="font-bold text-gray-900">${fmt(reforma)}</span>
+                                    </div>
+
+                                    <!-- Right Column -->
+                                    <div>
+                                        <!-- Custos de Venda -->
+                                        <div style="margin-bottom: 24px;">
+                                            <h4 style="font-size: 11px; font-weight: 700; color: #6b7280; text-transform: uppercase; margin-bottom: 12px; border-bottom: 1px solid #e5e7eb; padding-bottom: 8px; letter-spacing: 0.5px;">
+                                                Custos de Venda
+                                            </h4>
+                                            <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 12px;">
+                                                <span style="color: #6b7280;">Corretagem</span>
+                                                <span style="font-weight: 600; color: #111827;">${fmt(corretagem)}</span>
+                                            </div>
                                         </div>
-                                        <div class="flex justify-between items-center text-sm p-3 bg-gray-50 rounded-lg border border-gray-100">
-                                            <span class="text-gray-600 font-medium">Desocupação</span>
-                                            <span class="font-bold text-gray-900">${fmt(desocupacao)}</span>
+
+                                        <!-- Valor de Venda -->
+                                        <div style="margin-bottom: 24px;">
+                                            <h4 style="font-size: 11px; font-weight: 700; color: #6b7280; text-transform: uppercase; margin-bottom: 12px; border-bottom: 1px solid #e5e7eb; padding-bottom: 8px; letter-spacing: 0.5px;">
+                                                Valor de Venda
+                                            </h4>
+                                            <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 12px;">
+                                                <span style="color: #6b7280;">Valor de Venda Estimado</span>
+                                                <span style="font-weight: 700; color: #34C759; font-size: 14px;">${fmt(venda)}</span>
+                                            </div>
                                         </div>
-                                         <div class="flex justify-between items-center text-sm p-3 bg-gray-50 rounded-lg border border-gray-100">
-                                            <span class="text-gray-600 font-medium">Taxa Seguro</span>
-                                            <span class="font-bold text-gray-900">${fmt(seguro)}</span>
-                                        </div>
-                                        
-                                        <div class="mt-4 pt-4 border-t border-dashed border-gray-300">
-                                            <p class="text-xs font-bold text-gray-400 uppercase mb-2">Custo Mensal Recorrente</p>
-                                            <div class="flex justify-between text-sm">
-                                                <span class="text-gray-600">Condomínio + IPTU</span>
-                                                <span class="font-bold text-gray-900">${fmt(custoMensal)} /mês</span>
+
+                                        <!-- Simulação Impostos (Ex: 12 Meses) -->
+                                        <div style="margin-bottom: 12px;">
+                                            <h4 style="font-size: 11px; font-weight: 700; color: #6b7280; text-transform: uppercase; margin-bottom: 12px; border-bottom: 1px solid #e5e7eb; padding-bottom: 8px; letter-spacing: 0.5px;">
+                                                Impostos e Manutenção (Base 12 Meses)
+                                            </h4>
+                                            <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 12px;">
+                                                <span style="color: #6b7280;">Imposto de Renda (15%)</span>
+                                                <span style="font-weight: 600; color: #FF3B30;">${fmt(imposto12)}</span>
+                                            </div>
+                                            <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 12px;">
+                                                <span style="color: #6b7280;">Manutenção (Cond./IPTU)</span>
+                                                <span style="font-weight: 600; color: #111827;">${fmt(op12)}</span>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-
-                <!-- Projeção de Cenários (1 a 12 Meses - Premium Grid) -->
-                            <div class="mt-8">
-                                <h3 class="text-xl font-bold mb-6 flex items-center gap-3 text-gray-900">
-                                    <span class="w-8 h-8 rounded-full bg-black flex items-center justify-center text-[#FFD60A] text-sm"><i class="fa-solid fa-chart-line"></i></span>
-                                    Projeção de Lucro Líquido (12 Meses)
-                                </h3>
-
-                                <div class="grid grid-cols-4 gap-4">
-                                    ${cardsHTML}
-                                </div>
-                            </div>
-                            </div>
                         `;
-                        // Close the backtick here
 
-                        document.getElementById('pdfViabilityContent').innerHTML = dashboardHTML;
+                        document.getElementById('pdfViabilityContent').innerHTML = scenariosHTML + detailsHTML;
                     } catch (e) {
                         console.error("Erro Fatal:", e);
                         const container = document.getElementById('pdfViabilityContent');
@@ -1631,11 +2166,12 @@
 
                 // Lista de todos os campos de input
                 const camposRascunho = [
-                    'inputNome', 'inputEndereco', 'inputBem', 'inputLicitacao',
+                    'inputCliente', 'inputNome', 'inputEndereco', 'inputBem', 'inputLicitacao',
                     'inputApto', 'inputMetragem', 'inputQuartos', 'inputBanheiros',
                     'inputVaga', 'inputCondominio', 'inputInstagram', 'inputCreci',
-                    'inputFooter'
+                    'inputFooter', 'inputValorArremate', 'inputValorAvaliacao', 'inputValorVenda'
                 ];
+
 
                 function salvarRascunho() {
                     try {
@@ -1735,8 +2271,13 @@
                 }
 
                 function mostrarNotificacao(mensagem, tipo) {
+                    // Remover notificações anteriores para evitar sobreposição
+                    const existingCalls = document.querySelectorAll('.macos-notification');
+                    existingCalls.forEach(el => el.remove());
+
                     // Criar elemento de notificação
                     const notif = document.createElement('div');
+                    notif.className = 'macos-notification no-print';
                     notif.style.cssText = `
                         position: fixed;
                         top: 80px;
@@ -1748,23 +2289,32 @@
                         font-weight: 600;
                         font-size: 14px;
                         box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-                        z-index: 10000;
-                        animation: slideIn 0.3s ease-out;
+                        z-index: 99999;
+                        opacity: 0;
+                        transform: translateX(50px);
+                        transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
                         display: flex;
                         align-items: center;
                         gap: 10px;
                     `;
 
-                    const icon = tipo === 'success' ? '✓' : tipo === 'error' ? '✕' : 'ℹ';
+                    const icon = tipo === 'success' ? '<i class="fa-solid fa-check-circle"></i>' : tipo === 'error' ? '<i class="fa-solid fa-circle-exclamation"></i>' : '<i class="fa-solid fa-info-circle"></i>';
                     notif.innerHTML = `<span style="font-size: 18px;">${icon}</span> ${mensagem}`;
 
                     document.body.appendChild(notif);
 
-                    // Remover após 3 segundos
+                    // Animar entrada
+                    requestAnimationFrame(() => {
+                        notif.style.opacity = '1';
+                        notif.style.transform = 'translateX(0)';
+                    });
+
+                    // Remover após 4 segundos (aumentado)
                     setTimeout(() => {
-                        notif.style.animation = 'slideOut 0.3s ease-in';
+                        notif.style.opacity = '0';
+                        notif.style.transform = 'translateX(50px)';
                         setTimeout(() => notif.remove(), 300);
-                    }, 3000);
+                    }, 4000);
                 }
 
                 // Adicionar animações CSS

@@ -248,7 +248,8 @@ const ALLOWED_FILE_TYPES = {
     'image/jpg': '.jpg',
     'image/png': '.png',
     'image/webp': '.webp',
-    'image/gif': '.gif'
+    'image/gif': '.gif',
+    'application/pdf': '.pdf'
 };
 
 const storage = multer.diskStorage({
@@ -274,7 +275,7 @@ const fileFilter = (req, file, cb) => {
     if (ALLOWED_FILE_TYPES[file.mimetype]) {
         cb(null, true);
     } else {
-        cb(new Error(`Tipo de arquivo não permitido: ${file.mimetype}. Apenas imagens são aceitas.`), false);
+        cb(new Error(`Tipo de arquivo não permitido: ${file.mimetype}. Apenas imagens e PDFs são aceitos.`), false);
     }
 };
 
@@ -282,8 +283,8 @@ const upload = multer({
     storage: storage,
     fileFilter: fileFilter,
     limits: {
-        fileSize: 5 * 1024 * 1024, // 5MB máximo
-        files: 1 // Apenas 1 arquivo por vez
+        fileSize: 5 * 1024 * 1024, // 5MB máximo por arquivo
+        files: 10 // Até 10 arquivos por requisição
     }
 });
 
@@ -435,6 +436,14 @@ async function ensureTables() {
             await db.run("ALTER TABLE carteira_imoveis ADD COLUMN cliente_id INTEGER REFERENCES clientes(id) ON DELETE CASCADE");
             console.log('✅ Coluna cliente_id adicionada à carteira_imoveis.');
         }
+        if (!columns.includes('lucro_estimado')) {
+            await db.run("ALTER TABLE carteira_imoveis ADD COLUMN lucro_estimado REAL DEFAULT 0");
+            console.log('✅ Coluna lucro_estimado adicionada à carteira_imoveis.');
+        }
+        if (!columns.includes('roi_estimado')) {
+            await db.run("ALTER TABLE carteira_imoveis ADD COLUMN roi_estimado REAL DEFAULT 0");
+            console.log('✅ Coluna roi_estimado adicionada à carteira_imoveis.');
+        }
     } catch (e) {
         console.error('Erro na migração de carteira_imoveis:', e);
     }
@@ -557,6 +566,8 @@ async function ensureTables() {
             -- Links e Midia
             link_caixa TEXT,
             foto_capa TEXT,
+            pdf_proposta TEXT,
+            pdf_matricula TEXT,
             
             -- Integração
             calculo_origem_id INTEGER, -- ID do cálculo salvo que gerou isso (opcional)
@@ -581,6 +592,14 @@ async function ensureTables() {
         console.log("Colunas 'estado' e 'cidade' adicionadas à tabela leads.");
     } catch (e) {
         // Ignora erro se colunas já existirem
+    }
+
+    // Migração para adicionar coluna 'interesse' se não existir
+    try {
+        await db.exec("ALTER TABLE leads ADD COLUMN interesse TEXT");
+        console.log("Coluna 'interesse' adicionada à tabela leads.");
+    } catch (e) {
+        // Ignora erro se coluna já existir
     }
 
     // Limpeza de tabelas antigas
@@ -785,6 +804,121 @@ app.get('/layout', isAuthenticated, (req, res) => {
     res.render('layout', { user: userContext, path: '/layout' });
 });
 
+// Rota de Notificação Extrajudicial
+app.get('/notificacao', isAuthenticated, (req, res) => {
+    const userContext = getUserContext(req.session);
+    res.render('notificacao', { user: userContext, path: '/notificacao' });
+});
+
+// --- Rota de Análise de Documentos (IA) ---
+// Configuração específica de Multer para memória (não salvar em disco)
+const memoryUpload = multer({ storage: multer.memoryStorage() });
+
+app.get('/analise-documentos', isAuthenticated, (req, res) => {
+    const userContext = getUserContext(req.session);
+    res.render('analise-documentos', { user: userContext, path: '/analise-documentos' });
+});
+
+app.post('/api/analise-documentos/process', isAuthenticated, memoryUpload.fields([{ name: 'edital', maxCount: 1 }, { name: 'matricula', maxCount: 1 }]), async (req, res) => {
+    try {
+        if (!req.files || !req.files['edital'] || !req.files['matricula']) {
+            return res.status(400).json({ error: 'É necessário enviar o Edital e a Matrícula.' });
+        }
+
+        const webhookUrl = process.env.N8N_DOCUMENT_ANALYSIS_WEBHOOK;
+
+        // Mock Response se WEBHOOK não estiver configurado
+        if (!webhookUrl) {
+            console.log('⚠️ N8N_DOCUMENT_ANALYSIS_WEBHOOK não configurado. Retornando mock.');
+            // Simular delay
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            return res.json({
+                analysis: `# Análise Jurídica Preliminar (Simulação)\n\n**Atenção:** O webhook do n8n não está configurado. Adicione \`N8N_DOCUMENT_ANALYSIS_WEBHOOK\` ao seu arquivo .env.\n\n## 1. Análise do Edital\n- **Leiloeiro:** Leilão Exemplo S/A\n- **Data Prevista:** 15/02/2026\n- **Condições:** Pagamento à vista com 10% de desconto ou financiado em até 60x.\n\n## 2. Análise da Matrícula\n- **Proprietário:** João da Silva (Executado)\n- **Ônus Identificados:**\n  - R-3: Hipoteca em favor do Banco X (Objeto da execução).\n  - AV-4: Penhora trabalhista (Risco Médio - Necessário verificar se o valor da arrematação cobre).\n\n## 3. Conclusão\nDocumentação viável para arrematação, porém recomenda-se solicitar planilha de débitos atualizada do processo trabalhista antes do lance.`
+            });
+        }
+
+        // SOLUÇÃO FINAL: Processamento Direto via Gemini (Server-Side)
+        // Isso elimina o erro de timeout/upload do n8n para arquivos grandes/imagens.
+
+        const { GoogleGenerativeAI } = await import('@google/generative-ai');
+
+        // Verifica se tem chave API
+        const apiKey = process.env.GEMINI_API_KEY;
+        if (!apiKey) {
+            throw new Error('GEMINI_API_KEY não configurada no .env');
+        }
+
+        const genAI = new GoogleGenerativeAI(apiKey);
+        // "gemini-flash-latest" aponta para a versão estável com melhor cota gratuita
+        const modelName = "gemini-flash-latest";
+        const model = genAI.getGenerativeModel({ model: modelName });
+
+        // Converter buffers para formato do Google
+        const fileToPart = (buffer, mimeType) => {
+            return {
+                inlineData: {
+                    data: buffer.toString("base64"),
+                    mimeType
+                }
+            };
+        };
+
+        const editalPart = fileToPart(req.files['edital'][0].buffer, "application/pdf");
+        const matriculaPart = fileToPart(req.files['matricula'][0].buffer, "application/pdf");
+
+        const prompt = `
+        Você é um Advogado Especialista em Leilões de Imóveis.
+        Analise os arquivos PDF anexos (Edital e Matrícula).
+        Eles podem ser texto digital ou imagens escaneadas (OCR necessário).
+
+        Gere um RElATÓRIO JURÍDICO em MARKDOWN com:
+        # Análise Jurídica de Viabilidade
+
+        ## 1. Resumo do Imóvel
+        - Endereço e Dados Básicos.
+
+        ## 2. Análise da Matrícula
+        - Proprietário.
+        - Ônus e Gravames (quais caem no leilão?).
+        - Riscos (Baixo/Médio/Alto).
+
+        ## 3. Análise do Edital
+        - Datas, Valores e Regras.
+        - Débitos (IPTU/Condomínio).
+
+        ## 4. CONCLUSÃO
+        - Viável ou Inviável?
+        `;
+
+        console.log(`Enviando para Gemini (${modelName})...`);
+
+        let responseText;
+        try {
+            const result = await model.generateContent([prompt, editalPart, matriculaPart]);
+            const response = await result.response;
+            responseText = response.text();
+        } catch (error) {
+            if (error.message.includes('429')) {
+                console.warn('⚠️ Cota excedida (429). Aguardando 15s para tentar novamente...');
+                await new Promise(resolve => setTimeout(resolve, 15000));
+
+                // Segunda tentativa
+                const resultRetry = await model.generateContent([prompt, editalPart, matriculaPart]);
+                const responseRetry = await resultRetry.response;
+                responseText = responseRetry.text();
+            } else {
+                throw error;
+            }
+        }
+
+        res.json({ analysis: responseText });
+
+    } catch (error) {
+        console.error('Erro ao processar análise:', error);
+        res.status(500).json({ error: error.message || 'Falha ao processar documentos.' });
+    }
+});
+
 // Rota de Login
 app.get('/login', (req, res) => {
     res.render('login', { message: req.query.message || null, error: req.query.error || null });
@@ -828,6 +962,29 @@ app.post('/login', authLimiter, async (req, res) => {
         // Debug: Mostrando erro real para o usuário
         res.render('login', { message: null, error: 'Erro: ' + err.message });
     }
+});
+
+// Logout Route
+app.post('/logout', (req, res) => {
+    req.session.destroy((err) => {
+        if (err) {
+            console.error('Logout error:', err);
+            return res.redirect('/');
+        }
+        res.clearCookie('arremata.sid');
+        res.redirect('/login');
+    });
+});
+
+app.get('/logout', (req, res) => {
+    req.session.destroy((err) => {
+        if (err) {
+            console.error('Logout error:', err);
+            return res.redirect('/');
+        }
+        res.clearCookie('arremata.sid');
+        res.redirect('/login');
+    });
 });
 
 // Middleware de Verificação de Admin Estrita
@@ -1150,6 +1307,42 @@ app.get('/', isAuthenticated, async (req, res) => {
 
             // Get recent 5
             recentProperties = properties.slice(0, 5);
+
+            // 3. Calculate Monthly Growth Data (Last 6 Months)
+            const months = {};
+            const today = new Date();
+            for (let i = 5; i >= 0; i--) {
+                const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
+                const key = d.toISOString().slice(0, 7); // YYYY-MM
+                months[key] = {
+                    label: d.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', '').toUpperCase(),
+                    profit: 0,
+                    volume: 0
+                };
+            }
+
+            properties.forEach(imovel => {
+                if (imovel.data_aquisicao) {
+                    try {
+                        const dateVal = new Date(imovel.data_aquisicao);
+                        if (!isNaN(dateVal.getTime())) {
+                            const dateKey = dateVal.toISOString().slice(0, 7);
+                            if (months[dateKey]) {
+                                months[dateKey].profit += parseFloat(imovel.lucro_estimado || 0);
+                                months[dateKey].volume += 1;
+                            }
+                        }
+                    } catch (e) {
+                        // Ignore invalid dates
+                    }
+                }
+            });
+
+            growthData = {
+                labels: Object.values(months).map(m => m.label),
+                profitData: Object.values(months).map(m => m.profit),
+                volumeData: Object.values(months).map(m => m.volume)
+            };
         }
 
         // 6% Commission Assumption
@@ -1380,7 +1573,7 @@ app.post('/historico/add', isAuthenticated, [
 
         // 2. Automaticamente adiciona à carteira (com cliente_id se fornecido)
         const carteiraResult = await db.run(
-            'INSERT INTO carteira_imoveis (user_id, cliente_id, descricao, endereco, valor_compra, data_aquisicao, valor_venda_estimado, status, condominio_estimado, iptu_estimado) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            'INSERT INTO carteira_imoveis (user_id, cliente_id, descricao, endereco, valor_compra, data_aquisicao, valor_venda_estimado, status, condominio_estimado, iptu_estimado, lucro_estimado, roi_estimado) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
             [
                 req.session.userId,
                 cliente_id ? parseInt(cliente_id) : null, // Vincula ao cliente se fornecido
@@ -1391,7 +1584,9 @@ app.post('/historico/add', isAuthenticated, [
                 parseMonetary(calc_valor_venda) || 0,
                 'Arrematado',
                 parseMonetary(condominioMensal) || 0,
-                parseMonetary(iptuMensal) || 0
+                parseMonetary(iptuMensal) || 0,
+                parseMonetary(calcFields.calc_lucro_liquido) || 0,
+                parseMonetary(calcFields.calc_roi_liquido) || 0
             ]
         );
 
@@ -1600,6 +1795,29 @@ app.put('/api/saved-calculations/:id', isAuthenticated, async (req, res) => {
     }
 });
 
+// Rota para excluir cálculo salvo via API
+app.delete('/api/saved-calculations/:id', isAuthenticated, async (req, res) => {
+    try {
+        const calculoId = req.params.id;
+
+        // Verificar e excluir
+        // Note: db.run returns an object with 'changes' property indicating number of rows affected
+        const result = await db.run(
+            'DELETE FROM saved_calculations WHERE id = ? AND user_id = ?',
+            [calculoId, req.session.userId]
+        );
+
+        if (result.changes === 0) {
+            return res.status(404).json({ error: 'Cálculo não encontrado' });
+        }
+
+        res.json({ success: true, message: 'Cálculo excluído com sucesso' });
+    } catch (error) {
+        console.error('Erro ao excluir cálculo:', error);
+        res.status(500).json({ error: 'Erro ao excluir cálculo' });
+    }
+});
+
 // Importar cálculo salvo para a carteira
 app.post('/api/portfolio/import-calculation/:id', isAuthenticated, async (req, res) => {
     try {
@@ -1609,14 +1827,21 @@ app.post('/api/portfolio/import-calculation/:id', isAuthenticated, async (req, r
         const data = JSON.parse(calc.data);
 
         // Mapear dados do cálculo para a estrutura da carteira
-        // Assumindo que 'data' tem campos como valorArrematado, valorVendaFinal, etc.
         const descricao = calc.name;
         const valorCompra = data.valorArrematado || 0;
         const valorVendaEstimado = data.valorVendaFinal || 0;
 
+        // Calcular lucro e ROI usando o ViabilityCalculator
+        const calculator = new ViabilityCalculator();
+        const results = calculator.calculateViability(data);
+
+        // Usar a projeção de 4 meses como padrão para estimativas
+        const lucroEstimado = results.projection4Months.resultadoLiquido || 0;
+        const roiEstimado = results.projection4Months.roiLiquido || 0;
+
         // Inserir na carteira
         const result = await db.run(
-            'INSERT INTO carteira_imoveis (user_id, descricao, endereco, valor_compra, data_aquisicao, valor_venda_estimado, status, condominio_estimado, iptu_estimado) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            'INSERT INTO carteira_imoveis (user_id, descricao, endereco, valor_compra, data_aquisicao, valor_venda_estimado, status, condominio_estimado, iptu_estimado, lucro_estimado, roi_estimado) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
             [
                 req.session.userId,
                 descricao,
@@ -1626,7 +1851,9 @@ app.post('/api/portfolio/import-calculation/:id', isAuthenticated, async (req, r
                 valorVendaEstimado,
                 'Arrematado',
                 parseFloat(data.condominioMensal) || 0,
-                (parseFloat(data.iptuAnual) / 12) || (parseFloat(data.iptuMensal) || 0)
+                (parseFloat(data.iptuAnual) / 12) || (parseFloat(data.iptuMensal) || 0),
+                lucroEstimado,
+                roiEstimado
             ]
         );
 
@@ -1692,13 +1919,16 @@ app.get('/oportunidades', isAuthenticated, async (req, res) => {
 });
 
 // 2. Criar Nova Oportunidade
-// O 'upload.single' deve vir após a autenticação
-app.post('/oportunidades', isAuthenticated, upload.fields([
-    { name: 'foto_upload', maxCount: 1 },
-    { name: 'pdf_proposta', maxCount: 1 },
-    { name: 'pdf_matricula', maxCount: 1 }
-]), async (req, res) => {
+app.post('/oportunidades', isAuthenticated, upload.any(), async (req, res) => {
     try {
+        // Função helper para converter valores monetários
+        const parseMonetary = (value) => {
+            if (!value) return 0;
+            if (typeof value === 'number') return value;
+            // Remove R$, pontos (milhares) e substitui vírgula por ponto
+            return parseFloat(String(value).replace(/[R$\s.]/g, '').replace(',', '.')) || 0;
+        };
+
         const {
             titulo,
             descricao,
@@ -1719,18 +1949,28 @@ app.post('/oportunidades', isAuthenticated, upload.fields([
         let pdfPropostaPath = null;
         let pdfMatriculaPath = null;
 
-        // Se houver uploads, sobrescreve as vars
-        if (req.files) {
-            if (req.files['foto_upload'] && req.files['foto_upload'][0]) {
-                finalFotoCapa = '/uploads/' + req.files['foto_upload'][0].filename;
+        // Com upload.any(), req.files é um array
+        if (req.files && req.files.length > 0) {
+            const fotoUpload = req.files.find(f => f.fieldname === 'foto_upload');
+            const pdfProposta = req.files.find(f => f.fieldname === 'pdf_proposta');
+            const pdfMatricula = req.files.find(f => f.fieldname === 'pdf_matricula');
+
+            if (fotoUpload) {
+                finalFotoCapa = '/uploads/' + fotoUpload.filename;
             }
-            if (req.files['pdf_proposta'] && req.files['pdf_proposta'][0]) {
-                pdfPropostaPath = '/uploads/' + req.files['pdf_proposta'][0].filename;
+            if (pdfProposta) {
+                pdfPropostaPath = '/uploads/' + pdfProposta.filename;
             }
-            if (req.files['pdf_matricula'] && req.files['pdf_matricula'][0]) {
-                pdfMatriculaPath = '/uploads/' + req.files['pdf_matricula'][0].filename;
+            if (pdfMatricula) {
+                pdfMatriculaPath = '/uploads/' + pdfMatricula.filename;
             }
         }
+
+        // Parse dos valores numéricos
+        const valorArremateNum = parseMonetary(valor_arremate);
+        const valorVendaNum = parseMonetary(valor_venda);
+        const lucroEstimadoNum = parseMonetary(lucro_estimado);
+        const roiEstimadoNum = parseFloat(roi_estimado) || 0;
 
         await db.run(
             `INSERT INTO oportunidades (
@@ -1739,8 +1979,8 @@ app.post('/oportunidades', isAuthenticated, upload.fields([
                 pdf_proposta, pdf_matricula
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
-                req.session.userId, titulo, descricao, valor_arremate, valor_venda, lucro_estimado,
-                roi_estimado, cidade, estado, tipo_imovel, link_caixa, finalFotoCapa, calculo_origem_id,
+                req.session.userId, titulo, descricao, valorArremateNum, valorVendaNum, lucroEstimadoNum,
+                roiEstimadoNum, cidade, estado, tipo_imovel, link_caixa, finalFotoCapa, calculo_origem_id,
                 pdfPropostaPath, pdfMatriculaPath
             ]
         );
@@ -1748,7 +1988,9 @@ app.post('/oportunidades', isAuthenticated, upload.fields([
         res.json({ success: true, message: 'Oportunidade publicada com sucesso!' });
     } catch (error) {
         console.error('Erro ao criar oportunidade:', error);
-        res.status(500).json({ error: 'Erro ao publicar oportunidade.' });
+        console.error('Body recebido:', req.body);
+        console.error('Files recebidos:', req.files);
+        res.status(500).json({ error: 'Erro ao publicar oportunidade: ' + error.message });
     }
 });
 
@@ -2228,6 +2470,34 @@ app.post('/api/clientes', isAuthenticated, async (req, res) => {
     }
 });
 
+// Excluir cliente
+app.delete('/api/clientes/:id', isAuthenticated, async (req, res) => {
+    try {
+        const clienteId = req.params.id;
+
+        // Verificar se cliente existe e pertence ao usuário
+        const cliente = await db.get(
+            'SELECT id FROM clientes WHERE id = ? AND assessor_id = ?',
+            [clienteId, req.session.userId]
+        );
+
+        if (!cliente) {
+            return res.status(404).json({ success: false, error: 'Cliente não encontrado ou acesso negado' });
+        }
+
+        // Antes de excluir, desvincular imóveis para não perdê-los (caso cascade esteja ativo indesejadamente ou para garantir integridade)
+        await db.run('UPDATE carteira_imoveis SET cliente_id = NULL WHERE cliente_id = ?', [clienteId]);
+
+        // Excluir o cliente
+        await db.run('DELETE FROM clientes WHERE id = ?', [clienteId]);
+
+        res.json({ success: true, message: 'Cliente excluído com sucesso' });
+    } catch (error) {
+        console.error('Erro ao excluir cliente:', error);
+        res.status(500).json({ success: false, error: 'Erro ao excluir cliente' });
+    }
+});
+
 // Obter detalhes de um cliente específico
 app.get('/api/clientes/:id', isAuthenticated, async (req, res) => {
     try {
@@ -2353,19 +2623,36 @@ app.get('/api/clientes/:id/dashboard', isAuthenticated, async (req, res) => {
             const investidoImovel = (imovel.valor_compra || 0) + totalCustos;
             totalInvestido += investidoImovel;
 
-            const valorVenda = imovel.valor_venda_estimado || 0;
-            if (valorVenda > 0) {
-                const corretagem = valorVenda * 0.06;
-                const lucroBruto = valorVenda - corretagem - investidoImovel;
-                const imposto = lucroBruto > 0 ? lucroBruto * 0.15 : 0;
-                const lucroLiquido = lucroBruto - imposto;
-                totalLucroEstimado += lucroLiquido;
+            // Priorizar valores salvos no banco (lucro_estimado e roi_estimado)
+            let lucroLiquido = 0;
+            let roi = 0;
 
-                if (investidoImovel > 0) {
-                    const roi = (lucroLiquido / investidoImovel) * 100;
-                    totalROI += roi;
-                    countROI++;
+            if (imovel.lucro_estimado !== null && imovel.lucro_estimado !== undefined && imovel.lucro_estimado !== 0) {
+                // Usar valor salvo do banco
+                lucroLiquido = imovel.lucro_estimado;
+                totalLucroEstimado += lucroLiquido;
+            } else {
+                // Fallback: calcular manualmente se não houver valor salvo
+                const valorVenda = imovel.valor_venda_estimado || 0;
+                if (valorVenda > 0) {
+                    const corretagem = valorVenda * 0.06;
+                    const lucroBruto = valorVenda - corretagem - investidoImovel;
+                    const imposto = lucroBruto > 0 ? lucroBruto * 0.15 : 0;
+                    lucroLiquido = lucroBruto - imposto;
+                    totalLucroEstimado += lucroLiquido;
                 }
+            }
+
+            // ROI: priorizar valor salvo
+            if (imovel.roi_estimado !== null && imovel.roi_estimado !== undefined && imovel.roi_estimado !== 0) {
+                roi = imovel.roi_estimado;
+                totalROI += roi;
+                countROI++;
+            } else if (investidoImovel > 0 && lucroLiquido !== 0) {
+                // Fallback: calcular ROI manualmente
+                roi = (lucroLiquido / investidoImovel) * 100;
+                totalROI += roi;
+                countROI++;
             }
 
             // Custos mensais recorrentes
@@ -2545,22 +2832,34 @@ app.get('/cliente/:id', isAuthenticated, async (req, res) => {
             const investidoImovel = (imovel.valor_compra || 0) + totalCustos;
             totalInvestido += investidoImovel;
 
-            const valorVenda = imovel.valor_venda_estimado || 0;
             let lucroLiquido = 0;
             let roi = 0;
 
-            if (valorVenda > 0) {
-                const corretagem = valorVenda * 0.06;
-                const lucroBruto = valorVenda - corretagem - investidoImovel;
-                const imposto = lucroBruto > 0 ? lucroBruto * 0.15 : 0;
-                lucroLiquido = lucroBruto - imposto;
+            // Priorizar valores salvos no banco
+            if (imovel.lucro_estimado !== null && imovel.lucro_estimado !== undefined && imovel.lucro_estimado !== 0) {
+                lucroLiquido = imovel.lucro_estimado;
                 totalLucroEstimado += lucroLiquido;
-
-                if (investidoImovel > 0) {
-                    roi = (lucroLiquido / investidoImovel) * 100;
-                    totalROI += roi;
-                    countROI++;
+            } else {
+                // Fallback: calcular manualmente
+                const valorVenda = imovel.valor_venda_estimado || 0;
+                if (valorVenda > 0) {
+                    const corretagem = valorVenda * 0.06;
+                    const lucroBruto = valorVenda - corretagem - investidoImovel;
+                    const imposto = lucroBruto > 0 ? lucroBruto * 0.15 : 0;
+                    lucroLiquido = lucroBruto - imposto;
+                    totalLucroEstimado += lucroLiquido;
                 }
+            }
+
+            // ROI: priorizar valor salvo
+            if (imovel.roi_estimado !== null && imovel.roi_estimado !== undefined && imovel.roi_estimado !== 0) {
+                roi = imovel.roi_estimado;
+                totalROI += roi;
+                countROI++;
+            } else if (investidoImovel > 0 && lucroLiquido !== 0) {
+                roi = (lucroLiquido / investidoImovel) * 100;
+                totalROI += roi;
+                countROI++;
             }
 
             // Custos mensais recorrentes
@@ -2729,20 +3028,44 @@ app.post('/carteira/edit/:id', isAuthenticated, async (req, res) => {
     };
 
     try {
+        // Buscar custos existentes para cálculo preciso
+        const custos = await db.all('SELECT valor FROM carteira_custos WHERE imovel_id = ?', [req.params.id]);
+        const totalCustos = custos.reduce((sum, c) => sum + (c.valor || 0), 0);
+
+        const vCompra = parseMonetary(valor_compra);
+        const vVenda = parseMonetary(valor_venda_estimado);
+        const investimentoTotal = vCompra + totalCustos;
+
+        let lucroEstimado = 0;
+        let roiEstimado = 0;
+
+        if (vVenda > 0) {
+            const corretagem = vVenda * 0.06;
+            const lucroBruto = vVenda - corretagem - investimentoTotal;
+            const imposto = lucroBruto > 0 ? lucroBruto * 0.15 : 0;
+            lucroEstimado = lucroBruto - imposto;
+
+            if (investimentoTotal > 0) {
+                roiEstimado = (lucroEstimado / investimentoTotal) * 100;
+            }
+        }
+
         await db.run(
             `UPDATE carteira_imoveis 
-             SET descricao = ?, endereco = ?, status = ?, valor_compra = ?, valor_venda_estimado = ?, data_aquisicao = ?, observacoes = ?, condominio_estimado = ?, iptu_estimado = ?
+             SET descricao = ?, endereco = ?, status = ?, valor_compra = ?, valor_venda_estimado = ?, data_aquisicao = ?, observacoes = ?, condominio_estimado = ?, iptu_estimado = ?, lucro_estimado = ?, roi_estimado = ?
              WHERE id = ? AND user_id = ?`,
             [
                 descricao,
                 endereco,
                 status,
-                parseMonetary(valor_compra),
-                parseMonetary(valor_venda_estimado),
+                vCompra, // Usar valor parseado
+                vVenda,  // Usar valor parseado
                 data_aquisicao,
                 observacoes,
                 parseMonetary(condominio_estimado),
                 parseMonetary(iptu_estimado),
+                lucroEstimado,
+                roiEstimado,
                 req.params.id,
                 req.session.userId
             ]
@@ -2857,7 +3180,7 @@ app.get('/start', (req, res) => {
 // Processamento do Lead (API)
 app.post('/api/leads/submit', async (req, res) => {
     try {
-        const { nome, whatsapp, objetivo, experiencia, restricao_nome, capital_disponivel, preferencia_pgto, estado, cidade } = req.body;
+        const { nome, whatsapp, objetivo, experiencia, restricao_nome, capital_disponivel, preferencia_pgto, estado, cidade, interesse } = req.body;
 
         // Scoring Logic (Simples)
         let score = 50; // Começa com média
@@ -2891,12 +3214,12 @@ app.post('/api/leads/submit', async (req, res) => {
             INSERT INTO leads (
                 nome, whatsapp, objetivo, experiencia, restricao_nome, 
                 capital_entrada, preferencia_pgto, score, status,
-                estado, cidade
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'novo', ?, ?)
+                estado, cidade, interesse
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'novo', ?, ?, ?)
         `, [
             nome, whatsapp, objetivo, experiencia || 'primeira_vez', isRestricted ? 1 : 0,
             capital_disponivel, preferencia_pgto, score,
-            estado || '', cidade || ''
+            estado || '', cidade || '', interesse || 'nao_informado'
         ]);
 
         res.json({ success: true, score: score });
@@ -2962,7 +3285,7 @@ app.post('/api/leads/claim/:id', isAuthenticated, async (req, res) => {
             lead.nome,
             'email@pendente.com', // Placeholder 
             lead.whatsapp,
-            `Lead vindo do Funil (Score: ${lead.score}). Objetivo: ${lead.objetivo}. Capital: ${lead.capital_entrada}`
+            `Lead vindo do Funil (Score: ${lead.score}). Objetivo: ${lead.objetivo}. Capital: ${(lead.capital_entrada || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`
         ]);
 
         console.log(`✅ Assessor ${advisorId} puxou o lead ${leadId} (${lead.nome})`);
@@ -2988,12 +3311,12 @@ app.get('/api/portfolio/imoveis', isAuthenticated, async (req, res) => {
 // Adicionar um novo imóvel
 app.post('/api/portfolio/imoveis', isAuthenticated, async (req, res) => {
     try {
-        const { descricao, endereco, valor_compra, data_aquisicao, valor_venda_estimado } = req.body;
+        const { descricao, endereco, valor_compra, data_aquisicao, valor_venda_estimado, lucro_estimado, roi_estimado } = req.body;
         if (!descricao) return res.status(400).json({ error: 'Descrição é obrigatória' });
 
         const result = await db.run(
-            'INSERT INTO carteira_imoveis (user_id, descricao, endereco, valor_compra, data_aquisicao, valor_venda_estimado) VALUES (?, ?, ?, ?, ?, ?)',
-            [req.session.userId, descricao, endereco, valor_compra || 0, data_aquisicao || null, valor_venda_estimado || 0]
+            'INSERT INTO carteira_imoveis (user_id, descricao, endereco, valor_compra, data_aquisicao, valor_venda_estimado, lucro_estimado, roi_estimado) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+            [req.session.userId, descricao, endereco, valor_compra || 0, data_aquisicao || null, valor_venda_estimado || 0, lucro_estimado || 0, roi_estimado || 0]
         );
         res.status(201).json({ id: result.lastID });
     } catch (err) {

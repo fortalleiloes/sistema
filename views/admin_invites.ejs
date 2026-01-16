@@ -25,8 +25,8 @@
               <p class="text-[var(--macos-text-secondary)]">Gerencie o acesso de novos usuários ao sistema.</p>
             </div>
             <!-- Botão que abre o Modal -->
-            <button onclick="document.getElementById('modalNovoConvite').style.display = 'flex'"
-              class="macos-btn macos-btn-primary">
+            <!-- Botão que abre o Modal -->
+            <button type="button" onclick="abrirModal()" class="macos-btn macos-btn-primary">
               <i class="fa-solid fa-plus mr-2"></i> Novo Convite
             </button>
           </div>
@@ -128,8 +128,7 @@
         <div class="macos-modal w-[400px]">
           <div class="macos-modal-header">
             <h3 class="macos-modal-title">Novo Convite</h3>
-            <button onclick="document.getElementById('modalNovoConvite').style.display = 'none'"
-              class="macos-modal-close">
+            <button type="button" onclick="fecharModal()" class="macos-modal-close">
               <i class="fa-solid fa-times text-sm text-[var(--macos-text-secondary)]"></i>
             </button>
           </div>
@@ -149,8 +148,7 @@
             </div>
 
             <div class="macos-modal-footer bg-[var(--macos-bg-tertiary)] bg-opacity-30">
-              <button type="button" onclick="document.getElementById('modalNovoConvite').style.display = 'none'"
-                class="macos-btn macos-btn-secondary">Cancelar</button>
+              <button type="button" onclick="fecharModal()" class="macos-btn macos-btn-secondary">Cancelar</button>
               <button type="submit" class="macos-btn macos-btn-primary">
                 <i class="fa-solid fa-link mr-2"></i> Gerar Link
               </button>
@@ -159,11 +157,33 @@
         </div>
       </div>
 
-      <!-- Script para fechar modal com ESC -->
+      <!-- Script para Modal -->
       <script>
+        function abrirModal() {
+          const modal = document.getElementById('modalNovoConvite');
+          modal.style.display = 'flex';
+          // Pequeno delay para animação de opacidade se houver
+          setTimeout(() => {
+            modal.style.opacity = '1';
+          }, 10);
+        }
+
+        function fecharModal() {
+          const modal = document.getElementById('modalNovoConvite');
+          modal.style.display = 'none';
+        }
+
+        // Fechar com ESC
         document.addEventListener('keydown', (e) => {
           if (e.key === 'Escape') {
-            document.getElementById('modalNovoConvite').style.display = 'none';
+            fecharModal();
+          }
+        });
+
+        // Fechar ao clicar fora (no overlay)
+        document.getElementById('modalNovoConvite').addEventListener('click', (e) => {
+          if (e.target.id === 'modalNovoConvite') {
+            fecharModal();
           }
         });
       </script>

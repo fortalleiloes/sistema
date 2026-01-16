@@ -2554,9 +2554,9 @@ app.delete('/api/clientes/:id', isAuthenticated, async (req, res) => {
     try {
         const clienteId = req.params.id;
 
-        // Verificar se o cliente pertence ao assessor
+        // Verificar se o cliente pertence ao assessor e pegar dados para liberar lead
         const cliente = await db.get(
-            'SELECT id FROM clientes WHERE id = ? AND assessor_id = ?',
+            'SELECT * FROM clientes WHERE id = ? AND assessor_id = ?',
             [clienteId, req.session.userId]
         );
 
@@ -2575,6 +2575,15 @@ app.delete('/api/clientes/:id', isAuthenticated, async (req, res) => {
                 success: false,
                 error: 'Não é possível deletar cliente com imóveis vinculados. Remova os imóveis primeiro.'
             });
+        }
+
+        // Se este cliente veio de um lead (identificado pelo telefone), devolve o lead para a piscina ('novo')
+        if (cliente.telefone) {
+            await db.run(`
+                UPDATE leads 
+                SET status = 'novo', claimed_by = NULL 
+                WHERE whatsapp = ? AND claimed_by = ?
+            `, [cliente.telefone, req.session.userId]);
         }
 
         await db.run('DELETE FROM clientes WHERE id = ?', [clienteId]);
@@ -3271,6 +3280,32 @@ app.post('/api/leads/submit', async (req, res) => {
 // ========================================
 // ÁREA DO ASSESSOR (LEADS POOL)
 // ========================================
+
+// Rota de Histórico de Distribuição de Leads (Admin)
+app.get('/admin/leads-history', isAuthenticated, async (req, res) => {
+    try {
+        const leads = await db.all(`
+            SELECT 
+                l.*, 
+                u.username as assessor_nome,
+                u.profile_pic_url as assessor_pic
+            FROM leads l 
+            LEFT JOIN users u ON l.claimed_by = u.id 
+            WHERE l.status != 'novo' 
+            ORDER BY l.updated_at DESC
+        `);
+
+        res.render('leads_history', {
+            leads,
+            user: { ...req.session, isAdmin: req.session.isAdmin },
+            username: req.session.username,
+            profile_pic_url: req.session.profile_pic_url
+        });
+    } catch (error) {
+        console.error('Erro ao carregar histórico de leads:', error);
+        res.status(500).send("Erro ao carregar histórico.");
+    }
+});
 
 // Listar Leads Disponíveis (Piscina)
 app.get('/leads', isAuthenticated, async (req, res) => {

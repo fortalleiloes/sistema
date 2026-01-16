@@ -285,8 +285,17 @@
                                             </p>
                                     </div>
 
-                                    <div style="color: var(--macos-text-tertiary);">
-                                        <i class="fa-solid fa-chevron-right"></i>
+                                    <div style="display: flex; align-items: center; gap: 16px;">
+                                        <button onclick="deletarImovel(event, '<%= imovel.id %>')"
+                                            style="width: 32px; height: 32px; border-radius: 50%; border: none; background: transparent; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; color: var(--macos-red); opacity: 0.6;"
+                                            onmouseover="this.style.background='rgba(255, 59, 48, 0.1)'; this.style.opacity='1';"
+                                            onmouseout="this.style.background='transparent'; this.style.opacity='0.6';"
+                                            title="Excluir imóvel">
+                                            <i class="fa-solid fa-trash"></i>
+                                        </button>
+                                        <div style="color: var(--macos-text-tertiary);">
+                                            <i class="fa-solid fa-chevron-right"></i>
+                                        </div>
                                     </div>
                                 </div>
                                 <% }); %>
@@ -663,6 +672,31 @@
 
                 function adicionarImovel() {
                     abrirModalImovel();
+                }
+
+                async function deletarImovel(event, id) {
+                    event.stopPropagation(); // Prevenir abrir detalhes do imóvel
+
+                    if (!confirm('Tem certeza que deseja excluir este imóvel? Esta ação não pode ser desfeita.')) {
+                        return;
+                    }
+
+                    try {
+                        const response = await fetch(`/api/carteira/${id}`, {
+                            method: 'DELETE'
+                        });
+
+                        const result = await response.json();
+
+                        if (result.success) {
+                            window.location.reload();
+                        } else {
+                            alert('Erro ao excluir imóvel: ' + (result.error || 'Erro desconhecido'));
+                        }
+                    } catch (error) {
+                        console.error('Erro ao excluir imóvel:', error);
+                        alert('Erro ao processar solicitação.');
+                    }
                 }
 
                 // Submeter formulário de novo imóvel

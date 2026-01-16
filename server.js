@@ -2586,6 +2586,42 @@ app.delete('/api/clientes/:id', isAuthenticated, async (req, res) => {
     }
 });
 
+// Deletar imóvel da carteira
+app.delete('/api/carteira/:id', isAuthenticated, async (req, res) => {
+    try {
+        const imovelId = req.params.id;
+
+        // Verificar se o imóvel pertence a um cliente do assessor
+        const imovel = await db.get(`
+            SELECT ci.id 
+            FROM carteira_imoveis ci
+            JOIN clientes c ON ci.cliente_id = c.id
+            WHERE ci.id = ? AND c.assessor_id = ?
+        `, [imovelId, req.session.userId]);
+
+        // Fallback: verificar se pertence diretamente ao assessor (caso legado ou sem cliente)
+        const imovelDireto = await db.get(
+            'SELECT id FROM carteira_imoveis WHERE id = ? AND user_id = ?',
+            [imovelId, req.session.userId]
+        );
+
+        if (!imovel && !imovelDireto) {
+            return res.status(404).json({ success: false, error: 'Imóvel não encontrado ou acesso negado' });
+        }
+
+        // Deletar custos associados (se houver)
+        await db.run('DELETE FROM carteira_custos WHERE imovel_id = ?', [imovelId]);
+
+        // Deletar imóvel
+        await db.run('DELETE FROM carteira_imoveis WHERE id = ?', [imovelId]);
+
+        res.json({ success: true, message: 'Imóvel excluído com sucesso' });
+    } catch (error) {
+        console.error('Erro ao excluir imóvel:', error);
+        res.status(500).json({ success: false, error: 'Erro ao excluir imóvel' });
+    }
+});
+
 // Dashboard do cliente específico
 app.get('/api/clientes/:id/dashboard', isAuthenticated, async (req, res) => {
     try {

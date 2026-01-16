@@ -1994,6 +1994,63 @@ app.post('/oportunidades', isAuthenticated, upload.any(), async (req, res) => {
     }
 });
 
+app.post('/api/oportunidades/save-from-proposal', isAuthenticated, upload.none(), async (req, res) => {
+    try {
+        const {
+            titulo, valorArremate, valorVenda, lucroEstimado, roiEstimado,
+            cidade, estado, tipoImovel, linkCaixa, fotoCapa, pdfPropostaData
+        } = req.body;
+
+        // Converter valores monetários
+        const parseMoney = (val) => {
+            if (typeof val === 'number') return val;
+            if (!val) return 0;
+            return parseFloat(val.toString().replace('R$', '').replace(/\./g, '').replace(',', '.').trim());
+        };
+
+        const valorArremateNum = parseMoney(valorArremate);
+        const valorVendaNum = parseMoney(valorVenda);
+        const lucroEstimadoNum = parseMoney(lucroEstimado);
+
+        // ROI já vem geralmente formatado, tentar limpar
+        let roiEstimadoNum = roiEstimado;
+        if (typeof roiEstimado === 'string') {
+            roiEstimadoNum = parseFloat(roiEstimado.replace('%', '').replace(',', '.'));
+        }
+
+        // Salvar PDF se vier (opcional, pode ser implementado depois com upload de arquivo real)
+        // Por enquanto, vamos focar nos dados estruturados.
+
+        const result = await db.run(`
+            INSERT INTO oportunidades (
+                user_id, titulo, descricao, valor_arremate, valor_venda, 
+                lucro_estimado, roi_estimado, cidade, estado, tipo_imovel, 
+                link_caixa, foto_capa, status
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'disponivel')
+        `, [
+            req.session.userId,
+            titulo || 'Oportunidade sem Título',
+            `Imóvel estudado. ROI: ${roiEstimadoNum}%`,
+            valorArremateNum,
+            valorVendaNum,
+            lucroEstimadoNum,
+            roiEstimadoNum,
+            cidade || '',
+            estado || '',
+            tipoImovel || 'Indefinido',
+            linkCaixa || '',
+            fotoCapa || '', // URL da imagem se disponível
+        ]);
+
+        res.json({ success: true, id: result.lastID, message: 'Oportunidade salva via proposta!' });
+
+    } catch (error) {
+        console.error('Erro ao salvar oportunidade via proposta:', error);
+        res.status(500).json({ success: false, error: 'Erro ao salvar oportunidade.' });
+    }
+});
+
+// Delete opportunity route (existing)
 app.delete('/oportunidades/:id', isAuthenticated, async (req, res) => {
     try {
         const { id } = req.params;

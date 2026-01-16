@@ -792,11 +792,18 @@
                             <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
                                 <i class="fa-solid fa-eye mr-2"></i>Prévia do PDF (6 Páginas)
                             </h2>
-                            <button onclick="window.print()"
-                                class="bg-gray-900 text-white px-8 py-3 rounded-lg font-bold hover:bg-gray-800 flex items-center gap-2">
-                                <i class="fa-solid fa-file-pdf"></i>
-                                Gerar PDF Completo
-                            </button>
+                            <div class="flex gap-3">
+                                <button type="button" onclick="salvarOportunidade()" id="btnSalvarOportunidade"
+                                    class="bg-green-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-green-700 flex items-center gap-2 transition-colors">
+                                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                                    Salvar em Oportunidades
+                                </button>
+                                <button onclick="window.print()"
+                                    class="bg-gray-900 text-white px-8 py-3 rounded-lg font-bold hover:bg-gray-800 flex items-center gap-2">
+                                    <i class="fa-solid fa-file-pdf"></i>
+                                    Gerar PDF Completo
+                                </button>
+                            </div>
                         </div>
 
                         <div id="pdf-preview-container" class="space-y-8" style="max-width: 900px; margin: 0 auto;">
@@ -2346,6 +2353,71 @@
                 // Carregar rascunho automaticamente ao carregar a página (opcional)
                 // Descomente a linha abaixo se quiser carregar automaticamente
                 // window.addEventListener('DOMContentLoaded', carregarRascunho);
+
+                // ===== SALVAR OPORTUNIDADE =====
+                async function salvarOportunidade() {
+                    const btn = document.getElementById('btnSalvarOportunidade');
+                    const originalText = btn.innerHTML;
+
+                    try {
+                        btn.disabled = true;
+                        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Salvando...';
+
+                        // Coletar Dados
+                        const endereco = document.getElementById('inputEndereco')?.value || 'Novo Imóvel';
+                        const cidadeEstadoMatch = endereco.match(/([a-zA-Z\s]+)\s*-\s*([A-Z]{2})/); // Tenta achar "Cidade - UF"
+
+                        // Validar ROI
+                        let roiValue = "0";
+                        const roiEl = document.querySelector('#pdfViabilityContent .text-[#FFD60A] + p.text-white'); // Tenta pegar do HTML do Card Preto
+                        // Fallback para o card pequeno do modal details (se o layout for diferente)
+                        const roiElAlt = document.querySelector('p.text-2xl.font-black.text-\\[\\#FFD60A\\] + p');
+
+                        if (roiEl) roiValue = roiEl.innerText;
+                        else if (roiElAlt) roiValue = roiElAlt.innerText;
+
+                        const dados = {
+                            titulo: document.getElementById('inputNome')?.value || endereco,
+                            valorArremate: document.getElementById('inputValorArremate')?.value,
+                            valorVenda: document.getElementById('inputValorVenda')?.value,
+                            lucroEstimado: "0",
+                            roiEstimado: roiValue,
+                            cidade: cidadeEstadoMatch ? cidadeEstadoMatch[1].trim() : "Não Identificado",
+                            estado: cidadeEstadoMatch ? cidadeEstadoMatch[2].trim() : "",
+                            tipoImovel: (document.getElementById('inputApto')?.value ? "Apartamento" : "Casa"),
+                            linkCaixa: "",
+                            fotoCapa: document.getElementById('previewFachada')?.src || "",
+                        };
+
+                        // Limpeza extra no ROI
+                        if (dados.roiEstimado && dados.roiEstimado.includes('ROI')) dados.roiEstimado = dados.roiEstimado.replace('ROI', '').trim();
+
+                        const response = await fetch('/api/oportunidades/save-from-proposal', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(dados)
+                        });
+
+                        const result = await response.json();
+
+                        if (result.success) {
+                            mostrarNotificacao('Oportunidade salva nos seus imóveis!', 'success');
+                            btn.innerHTML = '<i class="fa-solid fa-check"></i> Salvo!';
+                            setTimeout(() => {
+                                btn.disabled = false;
+                                btn.innerHTML = originalText;
+                            }, 3000);
+                        } else {
+                            throw new Error(result.error);
+                        }
+
+                    } catch (error) {
+                        console.error('Erro ao salvar:', error);
+                        mostrarNotificacao('Erro ao salvar: ' + error.message, 'error');
+                        btn.disabled = false;
+                        btn.innerHTML = originalText;
+                    }
+                }
 
             </script>
 

@@ -191,7 +191,8 @@ class ViabilityCalculator {
             roiLiquido,
             impostoDevido: impostoTotal,
             tributacaoEntrada, // Retorna detalhado para debug se precisar
-            impostoLucro
+            impostoLucro,
+            valorVenda: valorVendaFinal // Useful for display
         };
     }
 
@@ -207,17 +208,31 @@ class ViabilityCalculator {
         const valorITBI = inputData._calculatedITBI || 0;
         const valorLeiloeiro = inputData.incluirLeiloeiro ? this._round(inputData.valorArrematado * 0.05) : 0;
         const corretagemPercent = inputData.corretagemPercent || 6;
-        const corretagem = this._round(inputData.valorVendaFinal * (corretagemPercent / 100));
 
-        const projection4Months = this._calculateProjection(4, inputData, investimentoBase, corretagem);
-        const projection8Months = this._calculateProjection(8, inputData, investimentoBase, corretagem);
-        const projection12Months = this._calculateProjection(12, inputData, investimentoBase, corretagem);
-        const projection16Months = this._calculateProjection(16, inputData, investimentoBase, corretagem);
+        // Determine Sales Values for different periods
+        const valorVendaShort = parseFloat(inputData.valorVendaFinal || 0);
+        // If Long Term value is not provided, fallback to Short Term value
+        const valorVendaLong = (inputData.valorVendaLongo && parseFloat(inputData.valorVendaLongo) > 0)
+            ? parseFloat(inputData.valorVendaLongo)
+            : valorVendaShort;
+
+        // Helper to run projection with specific sales value
+        const runProjection = (months, vlrVenda) => {
+            const corretagem = this._round(vlrVenda * (corretagemPercent / 100));
+            // Create a temporary data object with the specific sales value for this projection
+            const projData = { ...inputData, valorVendaFinal: vlrVenda };
+            return this._calculateProjection(months, projData, investimentoBase, corretagem);
+        };
+
+        const projection4Months = runProjection(4, valorVendaShort);
+        const projection8Months = runProjection(8, valorVendaShort);
+        const projection12Months = runProjection(12, valorVendaLong);
+        const projection16Months = runProjection(16, valorVendaLong);
 
         return {
             common: {
                 investimentoBase,
-                corretagem,
+                corretagem: this._round(valorVendaShort * (corretagemPercent / 100)), // Base reference (short term)
                 valorAssessoria,
                 valorITBI,
                 valorLeiloeiro

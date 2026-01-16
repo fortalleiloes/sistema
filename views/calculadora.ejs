@@ -317,12 +317,23 @@
                                                     style="font-size: 22px; font-weight: 600; color: var(--macos-text-primary); margin-bottom: 20px;">
                                                     Custos e Venda</h2>
 
-                                                <div class="macos-form-group">
-                                                    <label class="macos-form-label">Valor de Venda Estimado</label>
-                                                    <div class="macos-input-wrapper">
-                                                        <input type="number" step="0.01" name="valorVendaFinal"
-                                                            value="<%= locals.inputData?.valorVendaFinal || '' %>"
-                                                            required class="macos-input" placeholder="0,00">
+                                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                                                    <div class="macos-form-group">
+                                                        <label class="macos-form-label">Valor Venda (4-8 meses)</label>
+                                                        <div class="macos-input-wrapper">
+                                                            <input type="number" step="0.01" name="valorVendaFinal"
+                                                                value="<%= locals.inputData?.valorVendaFinal || '' %>"
+                                                                required class="macos-input" placeholder="0,00">
+                                                        </div>
+                                                    </div>
+                                                    <div class="macos-form-group">
+                                                        <label class="macos-form-label">Valor Venda (12-16
+                                                            meses)</label>
+                                                        <div class="macos-input-wrapper">
+                                                            <input type="number" step="0.01" name="valorVendaLongo"
+                                                                value="<%= locals.inputData?.valorVendaLongo || '' %>"
+                                                                class="macos-input" placeholder="Opcional">
+                                                        </div>
                                                     </div>
                                                 </div>
 
@@ -521,7 +532,7 @@
                                                                     Valor de Venda</p>
                                                                 <p
                                                                     style="font-size: 16px; font-weight: 600; color: #34C759;">
-                                                                    <%= parseFloat(inputData.valorVendaFinal ||
+                                                                    <%= parseFloat(s.d.valorVenda ||
                                                                         0).toLocaleString('pt-BR', { style: 'currency' ,
                                                                         currency: 'BRL' }) %>
                                                                 </p>
@@ -1331,8 +1342,12 @@
                                         <input type="text" id="edit-valorAvaliacao" name="valorAvaliacao" value="${formatMoney(dados.valorAvaliacao)}" class="macos-input currency-input" required>
                                     </div>
                                     <div class="macos-form-group">
-                                        <label class="macos-form-label">Valor de Venda</label>
+                                        <label class="macos-form-label">Valor Venda (4-8 meses)</label>
                                         <input type="text" id="edit-valorVendaFinal" name="valorVendaFinal" value="${formatMoney(dados.valorVendaFinal)}" class="macos-input currency-input" required>
+                                    </div>
+                                    <div class="macos-form-group">
+                                        <label class="macos-form-label">Valor Venda (12-16 meses)</label>
+                                        <input type="text" id="edit-valorVendaLongo" name="valorVendaLongo" value="${formatMoney(dados.valorVendaLongo)}" class="macos-input currency-input">
                                     </div>
                                     <div class="macos-form-group">
                                         <label class="macos-form-label">ITBI (%)</label>
@@ -1430,6 +1445,7 @@
                                 valorArrematado: getCurrencyValue('edit-valorArrematado'),
                                 valorAvaliacao: getCurrencyValue('edit-valorAvaliacao'),
                                 valorVendaFinal: getCurrencyValue('edit-valorVendaFinal'),
+                                valorVendaLongo: getCurrencyValue('edit-valorVendaLongo'),
                                 itbi: parseFloat(document.getElementById('edit-itbi').value) || 2,
                                 reforma: getCurrencyValue('edit-reforma'),
                                 custosCartorarios: getCurrencyValue('edit-custosCartorarios'),

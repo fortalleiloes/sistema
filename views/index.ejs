@@ -75,7 +75,7 @@
 
                     <% if (stats) { %>
                         <!-- KPI Grid -->
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-6 mb-8">
 
                             <!-- KPI 1: VGV -->
                             <div class="kpi-card group relative overflow-hidden">
@@ -153,6 +153,26 @@
                                     </h3>
                                     <div class="flex items-center text-xs text-blue-500">
                                         <span>Gestão Ativa</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- KPI 5: Blacklist (Novo) -->
+                            <div class="kpi-card group relative overflow-hidden"
+                                title="Leads duplicados (mesmo telefone) filtrados automaticamente da contagem principal.">
+                                <div class="absolute right-0 top-0 p-4 opacity-10 transition-opacity">
+                                    <i class="fa-solid fa-user-shield text-6xl text-red-500"></i>
+                                </div>
+                                <div class="relative z-10">
+                                    <p class="text-xs font-bold uppercase tracking-wider mb-2"
+                                        style="color: var(--macos-text-secondary);">Blacklist / Duplicados</p>
+                                    <h3 class="text-2xl font-bold mb-1" style="color: var(--macos-text-primary);">
+                                        <%= stats.blacklist_count || 0 %>
+                                    </h3>
+                                    <div class="flex items-center text-xs text-red-500 font-medium whitespace-nowrap">
+                                        <i class="fa-solid fa-filter mr-1"></i>
+                                        <span>Retido: <%= Number(stats.blacklist_value || 0).toLocaleString('pt-BR', {
+                                                style: 'currency' , currency: 'BRL' }) %></span>
                                     </div>
                                 </div>
                             </div>

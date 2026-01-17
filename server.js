@@ -1358,18 +1358,59 @@ app.get('/', isAuthenticated, async (req, res) => {
             console.warn(`⚠️  Commission Audit: Calculating 6% on VGV of ${vgvManagement}. Result: ${estimatedCommission}. Verify if this aligns with advisor contract.`);
         }
 
-        // Fetch Leads Waiting Count
-        const leadsCountQuery = await db.get("SELECT COUNT(*) as count FROM leads WHERE status = 'novo'");
-        const leadsWaiting = leadsCountQuery ? leadsCountQuery.count : 0;
+        // --- Blacklist Logic Implementation ---
+
+        // 1. Fetch all 'new' leads explicitly to analyze their quality
+        const incomingLeads = await db.all("SELECT * FROM leads WHERE status = 'novo'");
+
+        // 2. Fetch all historic phone numbers (leads that are NOT 'novo') to define 'already known'
+        const existingPhonesQuery = await db.all("SELECT whatsapp FROM leads WHERE status != 'novo' AND whatsapp IS NOT NULL");
+
+        // Helper to normalize phone (digits only)
+        const normalizePhone = (p) => p ? String(p).replace(/\D/g, '') : '';
+        const knownPhones = new Set(existingPhonesQuery.map(l => normalizePhone(l.whatsapp)));
+
+        let validLeadsCount = 0;
+        let blacklistCount = 0;
+        let blacklistValue = 0;
+        const seenInBatch = new Set();
+
+        incomingLeads.forEach(lead => {
+            const rawPhone = lead.whatsapp;
+            const phone = normalizePhone(rawPhone);
+
+            // Determine potential value (Capital Entrada or Vista, whichever is higher)
+            const potentialValue = Math.max(parseFloat(lead.capital_entrada || 0), parseFloat(lead.capital_vista || 0));
+
+            let isDuplicate = false;
+
+            if (phone && phone.length > 5) { // Basic validity check
+                // Check if phone exists in history
+                if (knownPhones.has(phone)) isDuplicate = true;
+
+                // Check if duplicate within the current 'new' batch (keep first encountered)
+                if (seenInBatch.has(phone)) isDuplicate = true;
+
+                seenInBatch.add(phone);
+            }
+
+            if (isDuplicate) {
+                blacklistCount++;
+                blacklistValue += potentialValue;
+            } else {
+                validLeadsCount++;
+            }
+        });
 
         const advisorStats = {
             vgv_gestao: vgvManagement,
             comissao_prevista: estimatedCommission,
             clientes_ativos: activeClients,
             total_imoveis: totalProperties,
-            leads_waiting: leadsWaiting
+            leads_waiting: validLeadsCount, // Only valid ones shown in main counter
+            blacklist_count: blacklistCount,
+            blacklist_value: blacklistValue
         };
-
         console.log('📊 Stats do Assessor:', JSON.stringify(advisorStats, null, 2));
         console.log('✅ Dashboard: Dados carregados com sucesso');
 
@@ -3393,23 +3434,57 @@ app.get('/leads', isAuthenticated, async (req, res) => {
         // Busca leads 'novos' ou 'desqualificados' (histórico)
         // Ordena por Score (Melhores primeiro)
         // Ordena por Score (Melhores primeiro)
-        const leads = await db.all(`
+        // 1. Fetch leads 'novo'
+        const allLeads = await db.all(`
             SELECT * FROM leads 
             WHERE status = 'novo' 
             ORDER BY score DESC, created_at DESC
         `);
 
-        // Calcular KPIs para Admin
+        // 2. Blacklist Logic
+        const existingPhonesQuery = await db.all("SELECT whatsapp FROM leads WHERE status != 'novo' AND whatsapp IS NOT NULL");
+        const normalizePhone = (p) => p ? String(p).replace(/\D/g, '') : '';
+        const knownPhones = new Set(existingPhonesQuery.map(l => normalizePhone(l.whatsapp)));
+
+        const validLeads = [];
+        const blacklistLeads = [];
+        const seenInBatch = new Set();
+        let blacklistValue = 0;
+
+        allLeads.forEach(lead => {
+            const rawPhone = lead.whatsapp;
+            const phone = normalizePhone(rawPhone);
+            const potentialValue = Math.max(parseFloat(lead.capital_entrada || 0), parseFloat(lead.capital_vista || 0));
+
+            let isDuplicate = false;
+
+            if (phone && phone.length > 5) {
+                if (knownPhones.has(phone)) isDuplicate = true; // Já foi cliente/contatado antes
+                if (seenInBatch.has(phone)) isDuplicate = true; // Duplicado neste mesmo lote
+                seenInBatch.add(phone);
+            }
+
+            if (isDuplicate) {
+                blacklistLeads.push(lead);
+                blacklistValue += potentialValue;
+            } else {
+                validLeads.push(lead);
+            }
+        });
+
+        // Calcular KPIs para Admin (Apenas Válidos)
         let kpis = {
             totalCapital: 0,
             avgScore: 0,
-            totalLeads: leads.length,
+            totalLeads: validLeads.length, // Contagem corrigida
+            blacklistCount: blacklistLeads.length, // Novo KPI
+            blacklistValue: blacklistValue, // Novo KPI
             qualityLabel: 'N/A'
         };
 
-        if (leads.length > 0) {
-            kpis.totalCapital = leads.reduce((sum, l) => sum + (l.capital_entrada || 0), 0);
-            kpis.avgScore = Math.round(leads.reduce((sum, l) => sum + (l.score || 0), 0) / leads.length);
+        if (validLeads.length > 0) {
+            kpis.totalCapital = validLeads.reduce((sum, l) => sum + (l.capital_entrada || 0), 0);
+            kpis.avgScore = Math.round(validLeads.reduce((sum, l) => sum + (l.score || 0), 0) / validLeads.length);
 
             if (kpis.avgScore >= 75) kpis.qualityLabel = 'Excelente 🌟';
             else if (kpis.avgScore >= 50) kpis.qualityLabel = 'Bom ✅';
@@ -3417,8 +3492,9 @@ app.get('/leads', isAuthenticated, async (req, res) => {
         }
 
         res.render('leads-pool', {
-            leads: leads,
-            kpis: kpis, // Passar KPIs
+            leads: validLeads, // Lista limpa
+            blacklist: blacklistLeads, // Lista de "Lixo"
+            kpis: kpis,
             user: getUserContext(req.session),
             username: req.session.username,
             profile_pic_url: req.session.profile_pic_url

@@ -87,7 +87,38 @@
                 </div>
 
                 <!-- Leads Table -->
-                <div class="macos-card p-0 overflow-hidden">
+                <!-- Tabs Navigation -->
+                <!-- Tabs Navigation (Segmented Control Style) -->
+                <div class="flex items-center justify-center mb-6">
+                    <div class="bg-[var(--macos-bg-tertiary)] p-1 rounded-lg inline-flex relative shadow-inner">
+                        <button onclick="switchTab('leads')" id="tab-leads"
+                            class="px-6 py-2 rounded-md text-sm font-medium transition-all duration-200 flex items-center gap-2 shadow-sm bg-[var(--macos-bg-secondary)] text-[var(--macos-text-primary)]">
+                            <i class="fa-solid fa-check-circle text-green-500"></i>
+                            <span>Qualificados</span>
+                            <span
+                                class="bg-green-500/10 text-green-500 text-xs px-2 py-0.5 rounded-full ml-1 font-bold border border-green-500/20">
+                                <%= leads.length %>
+                            </span>
+                        </button>
+
+                        <button onclick="switchTab('blacklist')" id="tab-blacklist"
+                            class="px-6 py-2 rounded-md text-sm font-medium transition-all duration-200 flex items-center gap-2 text-[var(--macos-text-tertiary)] hover:text-[var(--macos-text-primary)]">
+                            <i class="fa-solid fa-ban text-red-500"></i>
+                            <span>Recusados</span>
+                            <% if(locals.blacklist && blacklist.length> 0) { %>
+                                <span
+                                    class="bg-red-500/10 text-red-500 text-xs px-2 py-0.5 rounded-full ml-1 font-bold border border-red-500/20">
+                                    <%= blacklist.length %>
+                                </span>
+                                <% } else { %>
+                                    <span class="text-xs opacity-50 ml-1">0</span>
+                                    <% } %>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Leads Table (Valid) -->
+                <div id="panel-leads" class="macos-card p-0 overflow-hidden">
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse">
                             <thead>
@@ -176,19 +207,6 @@
                                                                     <%= lead.restricao_nome ? 'Restrição Ativa'
                                                                         : 'Nome Limpo' %>
                                                                 </span>
-
-                                                                <% if (lead.interesse && lead.interesse
-                                                                    !=='nao_informado' ) { %>
-                                                                    <span
-                                                                        class="text-xs text-[var(--macos-text-primary)] capitalize mt-1 border-t border-[var(--macos-divider)] pt-1">
-                                                                        <i
-                                                                            class="fa-solid fa-bullseye text-purple-500 mr-1"></i>
-                                                                        <%= lead.interesse==='parcerias'
-                                                                            ? 'Parcerias/Eventos' :
-                                                                            lead.interesse.charAt(0).toUpperCase() +
-                                                                            lead.interesse.slice(1) %>
-                                                                    </span>
-                                                                    <% } %>
                                                 </div>
                                             </td>
 
@@ -215,7 +233,7 @@
                                                 </form>
                                             </td>
 
-                                            <!-- Rastreio (Admin Only) -->
+                                            <!-- Rastreio -->
                                             <% if (locals.isAdmin) { %>
                                                 <td class="p-4 text-xs text-[var(--macos-text-tertiary)] font-mono">
                                                     <div
@@ -224,20 +242,15 @@
                                                         <%= lead.fingerprint ? lead.fingerprint.substring(0, 8) + '...'
                                                             : '--' %>
                                                     </div>
-                                                    <div title="<%= lead.ip_address || 'Sem IP' %>">
-                                                        <i class="fa-solid fa-network-wired mr-1"></i>
-                                                        <%= lead.ip_address || '--' %>
-                                                    </div>
                                                 </td>
                                                 <% } %>
                                         </tr>
                                         <% }); %>
                                             <% } else { %>
                                                 <tr>
-                                                    <td colspan="5"
+                                                    <td colspan="6"
                                                         class="p-8 text-center text-[var(--macos-text-tertiary)]">
-                                                        <i class="fa-solid fa-inbox text-4xl mb-2 opacity-50"></i>
-                                                        <p>Nenhum lead novo no momento.</p>
+                                                        <p>Nenhum lead qualificado no momento.</p>
                                                     </td>
                                                 </tr>
                                                 <% } %>
@@ -245,6 +258,100 @@
                         </table>
                     </div>
                 </div>
+
+                <!-- Blacklist Table (Recusados) -->
+                <div id="panel-blacklist" class="macos-card p-0 overflow-hidden hidden" style="display: none;">
+                    <div class="bg-red-500/5 p-4 border-b border-red-500/10">
+                        <p class="text-sm text-red-500 flex items-center">
+                            <i class="fa-solid fa-triangle-exclamation mr-2"></i>
+                            Estes leads foram identificados como duplicados. O valor não soma no potencial da carteira.
+                        </p>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse opacity-75">
+                            <thead>
+                                <tr class="bg-[var(--macos-bg-tertiary)] border-b border-[var(--macos-divider)]">
+                                    <th class="p-4 text-xs font-semibold text-[var(--macos-text-secondary)] uppercase">
+                                        Data</th>
+                                    <th class="p-4 text-xs font-semibold text-[var(--macos-text-secondary)] uppercase">
+                                        Nome / Telefone</th>
+                                    <th class="p-4 text-xs font-semibold text-[var(--macos-text-secondary)] uppercase">
+                                        Motivo</th>
+                                    <th class="p-4 text-xs font-semibold text-[var(--macos-text-secondary)] uppercase">
+                                        Valor Retido</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-[var(--macos-divider)]">
+                                <% if (locals.blacklist && blacklist.length> 0) { %>
+                                    <% blacklist.forEach(lead=> { %>
+                                        <tr class="hover:bg-[var(--macos-bg-secondary)] transition-colors">
+                                            <td class="p-4 text-xs text-[var(--macos-text-tertiary)]">
+                                                <%= new Date(lead.created_at).toLocaleDateString() %>
+                                            </td>
+                                            <td class="p-4">
+                                                <p class="font-medium text-[var(--macos-text-primary)]">
+                                                    <%= lead.nome %>
+                                                </p>
+                                                <p class="text-xs text-[var(--macos-text-tertiary)]">
+                                                    <%= lead.whatsapp %>
+                                                </p>
+                                            </td>
+                                            <td class="p-4">
+                                                <span
+                                                    class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-red-500/10 text-red-500 border border-red-500/20">
+                                                    Duplicado
+                                                </span>
+                                            </td>
+                                            <td class="p-4 text-[var(--macos-text-tertiary)]">
+                                                <%= ((lead.capital_entrada || 0) + (lead.capital_vista ||
+                                                    0)).toLocaleString('pt-BR', { style: 'currency' , currency: 'BRL' })
+                                                    %>
+                                            </td>
+                                        </tr>
+                                        <% }); %>
+                                            <% } else { %>
+                                                <tr>
+                                                    <td colspan="4"
+                                                        class="p-8 text-center text-[var(--macos-text-tertiary)]">
+                                                        <p>Nenhum lead na blacklist.</p>
+                                                    </td>
+                                                </tr>
+                                                <% } %>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <script>
+                    function switchTab(tabName) {
+                        const activeClasses = ['shadow-sm', 'bg-[var(--macos-bg-secondary)]', 'text-[var(--macos-text-primary)]'];
+                        const inactiveClasses = ['text-[var(--macos-text-tertiary)]', 'hover:text-[var(--macos-text-primary)]'];
+
+                        const btnLeads = document.getElementById('tab-leads');
+                        const btnBlacklist = document.getElementById('tab-blacklist');
+
+                        // Reset to inactive state base
+                        btnLeads.classList.remove(...activeClasses);
+                        btnLeads.classList.add(...inactiveClasses);
+
+                        btnBlacklist.classList.remove(...activeClasses);
+                        btnBlacklist.classList.add(...inactiveClasses);
+
+                        // Set active
+                        const activeBtn = tabName === 'leads' ? btnLeads : btnBlacklist;
+                        activeBtn.classList.remove(...inactiveClasses);
+                        activeBtn.classList.add(...activeClasses);
+
+                        // Toggle Panels
+                        if (tabName === 'leads') {
+                            document.getElementById('panel-leads').style.display = 'block';
+                            document.getElementById('panel-blacklist').style.display = 'none';
+                        } else {
+                            document.getElementById('panel-leads').style.display = 'none';
+                            document.getElementById('panel-blacklist').style.display = 'block';
+                        }
+                    }
+                </script>
 
                 </div>
             </main>

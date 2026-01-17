@@ -260,7 +260,7 @@
                 </div>
 
                 <!-- Blacklist Table (Recusados) -->
-                <div id="panel-blacklist" class="macos-card p-0 overflow-hidden hidden" style="display: none;">
+                <div id="panel-blacklist" class="macos-card p-0 overflow-hidden hidden">
                     <div class="bg-red-500/5 p-4 border-b border-red-500/10">
                         <p class="text-sm text-red-500 flex items-center">
                             <i class="fa-solid fa-triangle-exclamation mr-2"></i>
@@ -342,15 +342,23 @@
                         activeBtn.classList.remove(...inactiveClasses);
                         activeBtn.classList.add(...activeClasses);
 
-                        // Toggle Panels
+                        // Toggle Panels using classes
+                        const panelLeads = document.getElementById('panel-leads');
+                        const panelBlacklist = document.getElementById('panel-blacklist');
+
                         if (tabName === 'leads') {
-                            document.getElementById('panel-leads').style.display = 'block';
-                            document.getElementById('panel-blacklist').style.display = 'none';
+                            panelLeads.classList.remove('hidden');
+                            panelBlacklist.classList.add('hidden');
                         } else {
-                            document.getElementById('panel-leads').style.display = 'none';
-                            document.getElementById('panel-blacklist').style.display = 'block';
+                            panelLeads.classList.add('hidden');
+                            panelBlacklist.classList.remove('hidden');
                         }
                     }
+
+                    // Auto-init
+                    document.addEventListener('DOMContentLoaded', () => {
+                        switchTab('leads');
+                    });
                 </script>
 
                 </div>

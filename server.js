@@ -541,6 +541,10 @@ async function ensureTables() {
             status TEXT DEFAULT 'novo', -- 'novo', 'contatado', 'convertido', 'desqualificado'
             claimed_by INTEGER, -- ID do assessor que pegou o lead
             
+            -- Segurança
+            ip_address TEXT,
+            fingerprint TEXT,
+            
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )
@@ -582,17 +586,19 @@ async function ensureTables() {
         await db.exec("ALTER TABLE saved_calculations ADD COLUMN cidade TEXT");
         console.log("Coluna 'cidade' adicionada à tabela saved_calculations.");
     } catch (e) {
-        // Ignora
+        // Ignora se já existir
     }
 
-    // Migração para adicionar colunas de localização se não existirem
+    // Migrações para adicionar IP e Fingerprint à tabela leads existente
     try {
-        await db.exec("ALTER TABLE leads ADD COLUMN estado TEXT");
-        await db.exec("ALTER TABLE leads ADD COLUMN cidade TEXT");
-        console.log("Colunas 'estado' e 'cidade' adicionadas à tabela leads.");
-    } catch (e) {
-        // Ignora erro se colunas já existirem
-    }
+        await db.exec("ALTER TABLE leads ADD COLUMN ip_address TEXT");
+        console.log("Coluna 'ip_address' adicionada à tabela leads.");
+    } catch (e) { }
+
+    try {
+        await db.exec("ALTER TABLE leads ADD COLUMN fingerprint TEXT");
+        console.log("Coluna 'fingerprint' adicionada à tabela leads.");
+    } catch (e) { }
 
     // Migração para adicionar coluna 'interesse' se não existir
     try {
@@ -3312,18 +3318,31 @@ app.post('/api/leads/submit', async (req, res) => {
         score = Math.min(100, Math.max(0, score));
 
         // Save to DB
-        await db.run(`
-            INSERT INTO leads (
-                nome, whatsapp, objetivo, experiencia, restricao_nome, 
-                capital_entrada, preferencia_pgto, score, status,
-                estado, cidade, interesse
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'novo', ?, ?, ?)
-        `, [
-            nome, whatsapp, objetivo, experiencia || 'primeira_vez', isRestricted ? 1 : 0,
-            capital_disponivel, preferencia_pgto, score,
-            estado || '', cidade || '', interesse || 'nao_informado'
-        ]);
+        // Capturar dados de rastreamento
+        const ip_address = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+        const fingerprint = req.body.fingerprint || null;
 
+        await db.run(`
+        INSERT INTO leads (
+            nome, whatsapp, objetivo, experiencia, restricao_nome, 
+            capital_entrada, preferencia_pgto, estado, cidade, interesse, score,
+            ip_address, fingerprint
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `, [
+            nome,
+            whatsapp,
+            objetivo,
+            experiencia || 'primeira_vez',
+            isRestricted ? 1 : 0,
+            capital_disponivel,
+            preferencia_pgto,
+            estado || '',
+            cidade || '',
+            interesse || 'nao_informado',
+            score,
+            ip_address,
+            fingerprint
+        ]);
         res.json({ success: true, score: score });
 
     } catch (error) {

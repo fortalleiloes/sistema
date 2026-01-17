@@ -99,6 +99,11 @@ function handleBackContact() {
 document.getElementById('funnelForm').addEventListener('submit', async function (e) {
     e.preventDefault();
 
+
+    // Initialize FingerprintJS
+    const fpPromise = import('https://openfpcdn.io/fingerprintjs/v4')
+        .then(FingerprintJS => FingerprintJS.load());
+
     // Validate final step
     const nome = $('input[name="nome"]').val();
     const whatsapp = $('input[name="whatsapp"]').val();
@@ -107,6 +112,7 @@ document.getElementById('funnelForm').addEventListener('submit', async function 
         alert('Por favor, preencha seus dados de contato corretamente.');
         return;
     }
+
 
     // Loading State
     const btnText = document.getElementById('btnText');
@@ -124,6 +130,18 @@ document.getElementById('funnelForm').addEventListener('submit', async function 
 
     // Clean monetary value
     data.capital_disponivel = parseFloat(data.capital_disponivel.replace(/\./g, '').replace(',', '.')) || 0;
+
+    // Get Fingerprint
+    let fingerprint = null;
+    try {
+        const fp = await fpPromise;
+        const result = await fp.get();
+        fingerprint = result.visitorId;
+        data.fingerprint = fingerprint;
+    } catch (e) {
+        console.warn('Fingerprint error:', e);
+    }
+
 
     try {
         const response = await fetch('/api/leads/submit', {

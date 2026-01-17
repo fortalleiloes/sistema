@@ -416,9 +416,13 @@
                 }
 
                 .pdf-sheet {
-                    margin: 0 !important;
+                    margin: 0 auto !important;
                     box-shadow: none !important;
                     page-break-after: always !important;
+                    width: 100% !important;
+                    max-width: 210mm !important;
+                    overflow: visible !important;
+                    /* Allow spill over if needed */
                 }
             }
         </style>
@@ -1758,9 +1762,23 @@
                 const fmt = (v) => parseFloat(v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
                 // Parse currency input to number
+                // Parse currency input to number (Handles 1.234,56 and 1234.56)
                 const parseCurrency = (str) => {
                     if (!str) return 0;
-                    return parseFloat(str.replace(/[^\d,]/g, '').replace(',', '.')) || 0;
+                    if (typeof str === 'number') return str;
+
+                    const cleanStr = str.trim();
+
+                    // Simple logic: If contains comma, assume PT-BR (1.000,00)
+                    // If contains ONLY dots and no commas, assume US/Simple (1000.00)
+                    if (cleanStr.includes(',')) {
+                        return parseFloat(cleanStr.replace(/[^\d,]/g, '').replace(',', '.')) || 0;
+                    } else if (cleanStr.includes('.')) {
+                        return parseFloat(cleanStr.replace(/[^\d.]/g, '')) || 0;
+                    }
+
+                    // Integers only
+                    return parseFloat(cleanStr.replace(/\D/g, '')) || 0;
                 };
 
                 // Update PDF with manual financial data

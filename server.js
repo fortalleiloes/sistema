@@ -3442,35 +3442,80 @@ app.get('/leads', isAuthenticated, async (req, res) => {
         `);
 
         // 2. Blacklist Logic
-        const existingPhonesQuery = await db.all("SELECT whatsapp FROM leads WHERE status != 'novo' AND whatsapp IS NOT NULL");
-        const normalizePhone = (p) => p ? String(p).replace(/\D/g, '') : '';
-        const knownPhones = new Set(existingPhonesQuery.map(l => normalizePhone(l.whatsapp)));
+        // Busca Histórico Completo (Telefone, Device/Fingerprint, IP) de leads antigos
+        const historyQuery = await db.all("SELECT whatsapp, fingerprint, ip_address FROM leads WHERE status != 'novo'");
+
+        // Normalização Robusta
+        const normalizePhone = (p) => {
+            if (!p) return '';
+            let s = String(p).replace(/\D/g, '');
+            if (s.startsWith('55') && s.length > 11) s = s.substring(2);
+            return s;
+        };
+
+        const knownPhones = new Set();
+        const knownFingerprints = new Set();
+        const knownIPs = new Set();
+
+        historyQuery.forEach(l => {
+            const n = normalizePhone(l.whatsapp);
+            if (n.length > 6) knownPhones.add(n);
+            if (l.fingerprint && l.fingerprint.length > 5) knownFingerprints.add(l.fingerprint);
+            if (l.ip_address && l.ip_address.length > 5) knownIPs.add(l.ip_address);
+        });
 
         const validLeads = [];
         const blacklistLeads = [];
-        const seenInBatch = new Set();
+        const seenBatchPhones = new Set();
+        const seenBatchFingerprints = new Set();
+        const seenBatchIPs = new Set();
+
         let blacklistValue = 0;
+
+        console.log(`🔎 Blacklist Check: Analisando ${allLeads.length} leads contra histórico de ${knownPhones.size} numeros, ${knownFingerprints.size} devices e ${knownIPs.size} IPs.`);
 
         allLeads.forEach(lead => {
             const rawPhone = lead.whatsapp;
             const phone = normalizePhone(rawPhone);
+            const fingerprint = lead.fingerprint;
+            const ip = lead.ip_address;
             const potentialValue = Math.max(parseFloat(lead.capital_entrada || 0), parseFloat(lead.capital_vista || 0));
 
             let isDuplicate = false;
+            let reason = '';
 
-            if (phone && phone.length > 5) {
-                if (knownPhones.has(phone)) isDuplicate = true; // Já foi cliente/contatado antes
-                if (seenInBatch.has(phone)) isDuplicate = true; // Duplicado neste mesmo lote
-                seenInBatch.add(phone);
+            // 1. Checagem de Telefone
+            if (phone && phone.length > 6) {
+                if (knownPhones.has(phone)) { isDuplicate = true; reason = 'Telefone Histórico'; }
+                if (seenBatchPhones.has(phone)) { isDuplicate = true; reason = 'Telefone Duplicado (Lote)'; }
+                seenBatchPhones.add(phone);
+            }
+
+            // 2. Checagem de Dispositivo (Fingerprint)
+            if (!isDuplicate && fingerprint && fingerprint.length > 5) {
+                if (knownFingerprints.has(fingerprint)) { isDuplicate = true; reason = 'Mesmo Dispositivo (Histórico)'; }
+                if (seenBatchFingerprints.has(fingerprint)) { isDuplicate = true; reason = 'Mesmo Dispositivo (Lote)'; }
+                seenBatchFingerprints.add(fingerprint);
+            }
+
+            // 3. Checagem de IP
+            if (!isDuplicate && ip && ip.length > 5) {
+                if (knownIPs.has(ip)) { isDuplicate = true; reason = 'Mesmo IP (Histórico)'; }
+                if (seenBatchIPs.has(ip)) { isDuplicate = true; reason = 'Mesmo IP (Lote)'; }
+                seenBatchIPs.add(ip);
             }
 
             if (isDuplicate) {
+                console.log(`🚫 Blacklist: ${lead.nome} - Motivo: ${reason}`);
+                lead.blacklist_reason = reason;
                 blacklistLeads.push(lead);
                 blacklistValue += potentialValue;
             } else {
                 validLeads.push(lead);
             }
         });
+
+        console.log(`✅ Resultado: ${validLeads.length} Válidos | ${blacklistLeads.length} Recusados`);
 
         // Calcular KPIs para Admin (Apenas Válidos)
         let kpis = {

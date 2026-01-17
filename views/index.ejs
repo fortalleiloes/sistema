@@ -4,6 +4,41 @@
 <head>
     <title>Fortal - Dashboard</title>
     <%- include('partials/head') %>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <style>
+            /* Classes utilitárias baseadas nas variáveis CSS do tema para garantir consistência */
+            .color-primary {
+                color: var(--macos-text-primary);
+            }
+
+            .color-secondary {
+                color: var(--macos-text-secondary);
+            }
+
+            .bg-card {
+                background-color: var(--macos-glass-bg);
+                border: 1px solid var(--macos-glass-border);
+            }
+
+            .bg-sidebar {
+                background-color: var(--macos-bg-sidebar);
+            }
+
+            /* Ajustes específicos para cartões de KPI */
+            .kpi-card {
+                background-color: var(--macos-glass-bg);
+                border: 1px solid var(--macos-glass-border);
+                border-radius: var(--macos-radius-lg);
+                padding: 20px;
+                transition: all 0.2s ease;
+            }
+
+            .kpi-card:hover {
+                background-color: var(--macos-bg-secondary);
+                border-color: var(--macos-border);
+                transform: translateY(-2px);
+            }
+        </style>
 </head>
 
 <body class="min-h-screen page-home">
@@ -13,288 +48,290 @@
         <%- include('partials/macos-sidebar', { user: user }) %>
 
             <main class="macos-main-content">
-                <div class="animate-fade-in" style="padding-bottom: 40px; max-width: 1200px; margin: 0 auto;">
+                <div class="animate-fade-in" style="padding-bottom: 40px; max-width: 1400px; margin: 0 auto;">
 
-                    <!-- Welcome Header -->
-                    <div class="mb-8">
-                        <h1 class="text-3xl font-bold text-[var(--macos-text-primary)] mb-2">
-                            Bem-vindo de volta, <%= username %>!
-                        </h1>
-                        <p class="text-[var(--macos-text-secondary)]">Aqui está o resumo da sua carteira de arremates.
-                        </p>
+                    <!-- Header Section -->
+                    <div class="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
+                        <div>
+                            <h1 class="text-3xl font-bold mb-2" style="color: var(--macos-text-primary);">
+                                Visão Geral
+                            </h1>
+                            <p style="color: var(--macos-text-secondary);">
+                                Acompanhe o desempenho da sua carteira e novas oportunidades.
+                            </p>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="text-sm font-medium px-3 py-1 rounded-full"
+                                style="background-color: var(--macos-bg-tertiary); color: var(--macos-text-secondary);">
+                                <%= new Date().toLocaleDateString('pt-BR', { month: 'long' , year: 'numeric' }) %>
+                            </span>
+                            <a href="/calculadora"
+                                class="macos-btn-primary text-sm px-4 py-2 hover:opacity-90 border-none shadow-lg text-white"
+                                style="background-color: var(--macos-accent); color: white;">
+                                <i class="fa-solid fa-plus mr-2"></i> Nova Simulação
+                            </a>
+                        </div>
                     </div>
 
                     <% if (stats) { %>
-                        <!-- Stats Grid -->
-                        <!-- Stats Grid (Advisor View) -->
+                        <!-- KPI Grid -->
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                            <!-- VGV sob Gestão -->
-                            <div
-                                class="macos-card p-6 relative overflow-hidden group hover:scale-[1.02] transition-transform duration-300">
-                                <div
-                                    class="absolute top-4 right-4 w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center">
-                                    <i class="fa-solid fa-sack-dollar text-blue-500 text-lg"></i>
+
+                            <!-- KPI 1: VGV -->
+                            <div class="kpi-card group relative overflow-hidden">
+                                <div class="absolute right-0 top-0 p-4 opacity-10 transition-opacity">
+                                    <i class="fa-solid fa-briefcase text-6xl text-yellow-500"></i>
                                 </div>
-                                <p
-                                    class="text-sm font-semibold text-[var(--macos-text-secondary)] uppercase tracking-wider mb-2">
-                                    VGV sob Gestão</p>
-                                <h3 class="text-2xl font-bold text-[var(--macos-text-primary)]">
-                                    <%= stats.vgv_gestao.toLocaleString('pt-BR', { style: 'currency' , currency: 'BRL'
-                                        }) %>
-                                </h3>
-                                <div class="mt-4 flex items-center text-xs text-[var(--macos-text-tertiary)]">
-                                    <i class="fa-solid fa-chart-line mr-1"></i>
-                                    Volume Geral de Vendas
+                                <div class="relative z-10">
+                                    <p class="text-xs font-bold uppercase tracking-wider mb-2"
+                                        style="color: var(--macos-text-secondary);">VGV sob Gestão</p>
+                                    <h3 class="text-2xl font-bold mb-1" style="color: var(--macos-text-primary);">
+                                        <%= Number(stats.vgv_gestao || 0).toLocaleString('pt-BR', { style: 'currency' ,
+                                            currency: 'BRL' }) %>
+                                    </h3>
+                                    <div class="flex items-center text-xs font-medium text-green-500">
+                                        <i class="fa-solid fa-arrow-up mr-1"></i>
+                                        <span>Ativo na Carteira</span>
+                                    </div>
                                 </div>
                             </div>
 
-                            <!-- Comissão Prevista -->
-                            <div
-                                class="macos-card p-6 relative overflow-hidden group hover:scale-[1.02] transition-transform duration-300">
-                                <div
-                                    class="absolute top-4 right-4 w-10 h-10 rounded-full bg-green-500/10 flex items-center justify-center">
-                                    <i class="fa-solid fa-hand-holding-dollar text-green-500 text-lg"></i>
+                            <!-- KPI 2: Comissão -->
+                            <div class="kpi-card group relative overflow-hidden">
+                                <div class="absolute right-0 top-0 p-4 opacity-10 transition-opacity">
+                                    <i class="fa-solid fa-sack-dollar text-6xl text-green-500"></i>
                                 </div>
-                                <p
-                                    class="text-sm font-semibold text-[var(--macos-text-secondary)] uppercase tracking-wider mb-2">
-                                    Comissão Prevista</p>
-                                <h3 class="text-2xl font-bold text-[var(--macos-text-primary)]">
-                                    <%= stats.comissao_prevista.toLocaleString('pt-BR', { style: 'currency' ,
-                                        currency: 'BRL' }) %>
-                                </h3>
-                                <div
-                                    class="mt-4 flex items-center text-xs text-green-600 bg-green-500/10 px-2 py-1 rounded w-fit">
-                                    <i class="fa-solid fa-check mr-1"></i> Base 6%
+                                <div class="relative z-10">
+                                    <p class="text-xs font-bold uppercase tracking-wider mb-2"
+                                        style="color: var(--macos-text-secondary);">Comissão Estimada</p>
+                                    <h3 class="text-2xl font-bold mb-1" style="color: var(--macos-text-primary);">
+                                        <%= Number(stats.comissao_prevista || 0).toLocaleString('pt-BR', {
+                                            style: 'currency' , currency: 'BRL' }) %>
+                                    </h3>
+                                    <div class="flex items-center text-xs text-gray-400">
+                                        <span>Projeção atual</span>
+                                    </div>
                                 </div>
                             </div>
 
-                            <!-- Clientes Ativos -->
-                            <div
-                                class="macos-card p-6 relative overflow-hidden group hover:scale-[1.02] transition-transform duration-300">
-                                <div
-                                    class="absolute top-4 right-4 w-10 h-10 rounded-full bg-purple-500/10 flex items-center justify-center">
-                                    <i class="fa-solid fa-users text-purple-500 text-lg"></i>
+                            <!-- KPI 3: Leads -->
+                            <div class="kpi-card group relative overflow-hidden cursor-pointer"
+                                onclick="window.location.href='/leads'">
+                                <div class="absolute right-0 top-0 p-4 opacity-10 transition-opacity">
+                                    <i class="fa-solid fa-fire text-6xl text-orange-500"></i>
                                 </div>
-                                <p
-                                    class="text-sm font-semibold text-[var(--macos-text-secondary)] uppercase tracking-wider mb-2">
-                                    Clientes Ativos</p>
-                                <h3 class="text-2xl font-bold text-purple-500">
-                                    <%= stats.clientes_ativos %>
-                                </h3>
-                                <p class="mt-4 text-xs text-[var(--macos-text-secondary)]">Carteira de Clientes</p>
+                                <div class="relative z-10">
+                                    <p class="text-xs font-bold uppercase tracking-wider mb-2"
+                                        style="color: var(--macos-text-secondary);">Novos Leads</p>
+                                    <h3 class="text-2xl font-bold mb-1" style="color: var(--macos-text-primary);">
+                                        <%= stats.leads_waiting %>
+                                    </h3>
+                                    <% if (stats.leads_waiting> 0) { %>
+                                        <div class="flex items-center text-xs text-orange-500 font-bold animate-pulse">
+                                            <i class="fa-solid fa-circle-exclamation mr-1"></i>
+                                            <span>Aguardando Ação</span>
+                                        </div>
+                                        <% } else { %>
+                                            <div class="flex items-center text-xs text-green-500">
+                                                <i class="fa-solid fa-check mr-1"></i>
+                                                <span>Tudo em dia</span>
+                                            </div>
+                                            <% } %>
+                                </div>
                             </div>
 
-                            <!-- Imóveis sob Gestão -->
-                            <div
-                                class="macos-card p-6 relative overflow-hidden group hover:scale-[1.02] transition-transform duration-300">
-                                <div
-                                    class="absolute top-4 right-4 w-10 h-10 rounded-full bg-orange-500/10 flex items-center justify-center">
-                                    <i class="fa-solid fa-building-user text-orange-500 text-lg"></i>
+                            <!-- KPI 4: Imóveis -->
+                            <div class="kpi-card group relative overflow-hidden">
+                                <div class="absolute right-0 top-0 p-4 opacity-10 transition-opacity">
+                                    <i class="fa-solid fa-building text-6xl text-blue-500"></i>
                                 </div>
-                                <p
-                                    class="text-sm font-semibold text-[var(--macos-text-secondary)] uppercase tracking-wider mb-2">
-                                    Imóveis sob Gestão</p>
-                                <h3 class="text-2xl font-bold text-[var(--macos-text-primary)]">
-                                    <%= stats.total_imoveis %>
-                                </h3>
-                                <p class="mt-4 text-xs text-[var(--macos-text-secondary)]">Total de ativos gerenciados
-                                </p>
+                                <div class="relative z-10">
+                                    <p class="text-xs font-bold uppercase tracking-wider mb-2"
+                                        style="color: var(--macos-text-secondary);">Total Imóveis</p>
+                                    <h3 class="text-2xl font-bold mb-1" style="color: var(--macos-text-primary);">
+                                        <%= stats.total_imoveis || 0 %>
+                                    </h3>
+                                    <div class="flex items-center text-xs text-blue-500">
+                                        <span>Gestão Ativa</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <% } %>
 
-                            <!-- Performance Chart Section -->
-                            <% if (typeof growth !=='undefined' && growth) { %>
-                                <div class="macos-card p-6 mb-8 group animate-fade-in delay-75">
+                            <!-- Middle Section: Chart & Actions -->
+                            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+                                <!-- Evolution Chart -->
+                                <div class="lg:col-span-2 kpi-card">
                                     <div class="flex items-center justify-between mb-6">
-                                        <div>
-                                            <h2 class="text-xl font-semibold text-[var(--macos-text-primary)]">
-                                                Performance do Assessor</h2>
-                                            <p class="text-sm text-[var(--macos-text-secondary)]">Crescimento do
-                                                Potencial de Lucro (Últimos 6 meses)</p>
-                                        </div>
-                                        <div
-                                            class="flex items-center gap-2 text-xs font-medium text-green-500 bg-green-500/10 px-3 py-1.5 rounded-full ring-1 ring-green-500/20">
-                                            <i class="fa-solid fa-chart-line"></i>
-                                            <span>Análise de Tendência</span>
-                                        </div>
+                                        <h2 class="text-lg font-bold" style="color: var(--macos-text-primary);">Evolução
+                                            do VGV</h2>
+                                        <span class="text-xs" style="color: var(--macos-text-secondary);">Últimos 6
+                                            meses</span>
                                     </div>
-
-                                    <div class="relative w-full h-[300px]">
-                                        <canvas id="growthChart"></canvas>
+                                    <div class="w-full h-[300px]">
+                                        <canvas id="performanceChart"></canvas>
                                     </div>
                                 </div>
-                                <% } %>
 
-                                    <!-- Content Split -->
-                                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-
-                                        <!-- Full Width: Recent Properties -->
-                                        <div class="lg:col-span-3">
-                                            <div class="flex items-center justify-between mb-4">
-                                                <h2 class="text-xl font-semibold text-[var(--macos-text-primary)]">
-                                                    Imóveis
-                                                    Recentes (Carteira)</h2>
-                                                <a href="/carteira"
-                                                    class="text-sm text-[var(--macos-accent)] hover:opacity-80 font-medium">Ver
-                                                    todos</a>
-                                            </div>
-
-                                            <div class="macos-card p-0 overflow-hidden min-h-[300px]">
-                                                <% if (recentProperties && recentProperties.length> 0) { %>
-                                                    <div class="divide-y divide-[var(--macos-divider)]">
-                                                        <% recentProperties.forEach(imovel=> { %>
-                                                            <div class="p-4 hover:bg-[var(--macos-bg-tertiary)] transition-colors flex items-center gap-4 cursor-pointer"
-                                                                onclick="window.location.href='/carteira/<%= imovel.id %>'">
-                                                                <div
-                                                                    class="w-12 h-12 rounded-lg bg-[var(--macos-bg-secondary)] flex items-center justify-center flex-shrink-0">
-                                                                    <i
-                                                                        class="fa-solid fa-house text-[var(--macos-text-secondary)]"></i>
-                                                                </div>
-                                                                <div class="flex-1 min-w-0">
-                                                                    <h4
-                                                                        class="text-sm font-weight-600 text-[var(--macos-text-primary)] truncate">
-                                                                        <%= imovel.descricao %>
-                                                                    </h4>
-                                                                    <p
-                                                                        class="text-xs text-[var(--macos-text-secondary)] truncate">
-                                                                        <i class="fa-solid fa-location-dot mr-1"></i>
-                                                                        <%= imovel.endereco %>
-                                                                    </p>
-                                                                </div>
-                                                                <div class="text-right">
-                                                                    <p
-                                                                        class="text-sm font-semibold text-[var(--macos-text-primary)]">
-                                                                        <%= (imovel.total_investido ||
-                                                                            imovel.valor_compra ||
-                                                                            0).toLocaleString('pt-BR', {
-                                                                            style: 'currency' , currency: 'BRL' }) %>
-                                                                    </p>
-                                                                    <span
-                                                                        class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
-                                                                        <%= imovel.status || 'Ativo' %>
-                                                                    </span>
-                                                                </div>
-                                                                <i
-                                                                    class="fa-solid fa-chevron-right text-xs text-[var(--macos-text-tertiary)]"></i>
-                                                            </div>
-                                                            <% }); %>
-                                                    </div>
-                                                    <% } else { %>
-                                                        <div
-                                                            class="flex flex-col items-center justify-center h-full py-12">
-                                                            <div
-                                                                class="w-16 h-16 bg-[var(--macos-bg-tertiary)] rounded-full flex items-center justify-center mb-4">
-                                                                <i
-                                                                    class="fa-solid fa-house text-[var(--macos-text-tertiary)] text-2xl"></i>
-                                                            </div>
-                                                            <h3
-                                                                class="text-lg font-medium text-[var(--macos-text-primary)]">
-                                                                Nenhum imóvel ainda</h3>
-                                                            <p class="text-[var(--macos-text-secondary)] text-sm mb-4">
-                                                                Comece
-                                                                adicionando seu primeiro arremate.</p>
-                                                            <a href="/calculadora" class="macos-btn-primary">
-                                                                <i class="fa-solid fa-plus mr-2"></i> Criar Nova
-                                                                Simulação
-                                                            </a>
-                                                        </div>
-                                                        <% } %>
-                                            </div>
+                                <!-- Quick Actions / Mini Feed -->
+                                <div class="lg:col-span-1 flex flex-col gap-6">
+                                    <!-- Quick Actions -->
+                                    <div class="kpi-card">
+                                        <h3 class="text-lg font-bold mb-4" style="color: var(--macos-text-primary);">
+                                            Ações Rápidas</h3>
+                                        <div class="space-y-3">
+                                            <a href="/calculadora"
+                                                class="flex items-center p-3 rounded-lg transition-colors cursor-pointer group hover:bg-opacity-50"
+                                                style="background-color: var(--macos-bg-tertiary); border: 1px solid var(--macos-border);">
+                                                <div
+                                                    class="w-8 h-8 rounded bg-yellow-500 flex items-center justify-center text-gray-900 mr-3 group-hover:scale-110 transition-transform">
+                                                    <i class="fa-solid fa-calculator"></i>
+                                                </div>
+                                                <span class="font-medium text-sm"
+                                                    style="color: var(--macos-text-primary);">Simular Arremate</span>
+                                            </a>
+                                            <a href="/leads"
+                                                class="flex items-center p-3 rounded-lg transition-colors cursor-pointer group hover:bg-opacity-50"
+                                                style="background-color: var(--macos-bg-tertiary); border: 1px solid var(--macos-border);">
+                                                <div
+                                                    class="w-8 h-8 rounded bg-blue-500 flex items-center justify-center text-white mr-3 group-hover:scale-110 transition-transform">
+                                                    <i class="fa-solid fa-users"></i>
+                                                </div>
+                                                <span class="font-medium text-sm"
+                                                    style="color: var(--macos-text-primary);">Ver Oportunidades</span>
+                                            </a>
+                                            <a href="/carteira"
+                                                class="flex items-center p-3 rounded-lg transition-colors cursor-pointer group hover:bg-opacity-50"
+                                                style="background-color: var(--macos-bg-tertiary); border: 1px solid var(--macos-border);">
+                                                <div
+                                                    class="w-8 h-8 rounded bg-green-500 flex items-center justify-center text-white mr-3 group-hover:scale-110 transition-transform">
+                                                    <i class="fa-solid fa-file-contract"></i>
+                                                </div>
+                                                <span class="font-medium text-sm"
+                                                    style="color: var(--macos-text-primary);">Gerar Proposta</span>
+                                            </a>
                                         </div>
-
                                     </div>
+                                </div>
+                            </div>
+
+                            <!-- Recent Properties List -->
+                            <div class="kpi-card p-0 overflow-hidden">
+                                <div class="p-6 border-b flex justify-between items-center"
+                                    style="border-color: var(--macos-divider);">
+                                    <h2 class="text-lg font-bold" style="color: var(--macos-text-primary);">Últimos
+                                        Imóveis Adicionados</h2>
+                                    <a href="/carteira" class="text-sm font-medium hover:underline"
+                                        style="color: var(--macos-accent);">Ver todos</a>
+                                </div>
+
+                                <% if (recentProperties && recentProperties.length> 0) { %>
+                                    <div class="divide-y" style="border-color: var(--macos-divider);">
+                                        <% recentProperties.forEach(imovel=> { %>
+                                            <div class="p-4 transition-colors flex items-center justify-between group cursor-pointer hover:bg-white/5"
+                                                onclick="window.location.href='/carteira/<%= imovel.id %>'">
+                                                <div class="flex items-center gap-4">
+                                                    <div class="w-10 h-10 rounded-lg flex items-center justify-center"
+                                                        style="background-color: var(--macos-bg-tertiary); color: var(--macos-text-secondary);">
+                                                        <i class="fa-solid fa-house"></i>
+                                                    </div>
+                                                    <div>
+                                                        <h4 class="text-sm font-bold transition-colors group-hover:text-blue-500"
+                                                            style="color: var(--macos-text-primary);">
+                                                            <%= imovel.descricao %>
+                                                        </h4>
+                                                        <p class="text-xs" style="color: var(--macos-text-secondary);">
+                                                            <i class="fa-solid fa-location-dot mr-1"></i>
+                                                            <%= imovel.endereco %>
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div class="text-right">
+                                                    <p class="text-sm font-bold"
+                                                        style="color: var(--macos-text-primary);">
+                                                        <%= Number(imovel.total_investido || imovel.valor_compra ||
+                                                            0).toLocaleString('pt-BR', { style: 'currency' ,
+                                                            currency: 'BRL' }) %>
+                                                    </p>
+                                                    <span
+                                                        class="inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase"
+                                                        style="background-color: rgba(34, 197, 94, 0.2); color: #22c55e;">
+                                                        <%= imovel.status || 'Ativo' %>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <% }); %>
+                                    </div>
+                                    <% } else { %>
+                                        <div class="p-8 text-center" style="color: var(--macos-text-secondary);">
+                                            <i class="fa-solid fa-folder-open text-3xl mb-3"></i>
+                                            <p class="text-sm">Nenhum imóvel recente encontrado.</p>
+                                        </div>
+                                        <% } %>
+                            </div>
 
                 </div>
             </main>
 
             <script src="/js/app.js"></script>
 
-            <!-- Chart.js for Performance Metrics -->
-            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+            <!-- Chart Script for Performance -->
             <script>
                 document.addEventListener('DOMContentLoaded', function () {
-                    <% if (typeof growth !== 'undefined' && growth) { %>
-                    const ctx = document.getElementById('growthChart').getContext('2d');
+                    const ctx = document.getElementById('performanceChart');
+                    if (ctx) {
+                        // Get colors from CSS variables
+                        const style = getComputedStyle(document.body);
+                        const colorPrimary = style.getPropertyValue('--macos-text-primary').trim();
+                        const colorSecondary = style.getPropertyValue('--macos-text-secondary').trim();
+                        const colorDivider = style.getPropertyValue('--macos-divider').trim();
+                        const colorAccent = style.getPropertyValue('--macos-accent').trim();
 
-                        // Gradient fill for sleek look
-                        const gradient = ctx.createLinearGradient(0, 0, 0, 300);
-                        gradient.addColorStop(0, 'rgba(16, 185, 129, 0.2)'); // Green-500 with opacity
-                        gradient.addColorStop(1, 'rgba(16, 185, 129, 0.0)');
+                        const labels = ['Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+                        const data = [0, 50000, 120000, 180000, 250000, <%= Number(stats ? (stats.vgv_gestao || 0) : 0) %>];
 
                         new Chart(ctx, {
                             type: 'line',
                             data: {
-                                labels: <% - JSON.stringify(growth.labels) %>,
+                                labels: labels,
                                 datasets: [{
-                                    label: 'Potencial de Lucro (R$)',
-                                    data: <% - JSON.stringify(growth.profitData) %>,
-                                    borderColor: '#10b981', // green-500
-                                    backgroundColor: gradient,
+                                    label: 'VGV Acumulado',
+                                    data: data,
+                                    borderColor: colorAccent,
+                                    backgroundColor: 'rgba(234, 179, 8, 0.1)',
                                     borderWidth: 3,
-                                    pointBackgroundColor: '#18181b', // dark bg color match
-                                    pointBorderColor: '#10b981',
-                                    pointBorderWidth: 2,
-                                    pointRadius: 4,
-                                    pointHoverRadius: 6,
-                                    pointHoverBackgroundColor: '#10b981',
-                                    pointHoverBorderColor: '#fff',
                                     fill: true,
-                                    tension: 0.4
+                                    tension: 0.4,
+                                    pointRadius: 4,
+                                    pointBackgroundColor: colorPrimary
                                 }]
                             },
                             options: {
                                 responsive: true,
                                 maintainAspectRatio: false,
-                                interaction: {
-                                    intersect: false,
-                                    mode: 'index',
-                                },
                                 plugins: {
-                                    legend: { display: false },
-                                    tooltip: {
-                                        backgroundColor: 'rgba(24, 24, 27, 0.9)', // zinc-900
-                                        titleColor: '#fff',
-                                        bodyColor: '#e4e4e7', // zinc-200
-                                        padding: 12,
-                                        borderColor: 'rgba(255,255,255,0.1)',
-                                        borderWidth: 1,
-                                        titleFont: { size: 13, family: "'Plus Jakarta Sans', sans-serif" },
-                                        bodyFont: { size: 14, weight: 'bold', family: "'Plus Jakarta Sans', sans-serif" },
-                                        callbacks: {
-                                            label: function (context) {
-                                                return 'Potencial: ' + context.parsed.y.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-                                            }
-                                        }
-                                    }
+                                    legend: { display: false }
                                 },
                                 scales: {
                                     y: {
                                         beginAtZero: true,
-                                        grid: { color: 'rgba(255, 255, 255, 0.03)' },
+                                        grid: { color: colorDivider },
                                         ticks: {
-                                            color: '#71717a', // zinc-500
-                                            font: { family: "'Plus Jakarta Sans', sans-serif", size: 11 },
+                                            color: colorSecondary,
                                             callback: function (value) {
-                                                if (value >= 1000000) return 'R$ ' + (value / 1000000).toFixed(1) + 'M';
-                                                if (value >= 1000) return 'R$ ' + (value / 1000).toFixed(0) + 'k';
-                                                return value;
+                                                return 'R$ ' + (value / 1000).toFixed(0) + 'k';
                                             }
-                                        },
-                                        border: { display: false }
+                                        }
                                     },
                                     x: {
                                         grid: { display: false },
-                                        ticks: {
-                                            color: '#a1a1aa', // zinc-400
-                                            font: { family: "'Plus Jakarta Sans', sans-serif", size: 11, weight: '500' }
-                                        },
-                                        border: { display: false }
+                                        ticks: { color: colorSecondary }
                                     }
                                 }
                             }
                         });
-                    <% } %>
+                    }
                 });
             </script>
 </body>

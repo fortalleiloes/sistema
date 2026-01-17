@@ -83,13 +83,15 @@
                 padding: 24px;
             }
 
+            /* UI STYLES (Screen) - DARK MODE COMPATIBLE */
             .step-card {
-                background: white;
+                background: var(--macos-bg-window, #ffffff);
                 border-radius: 12px;
                 padding: 24px;
                 margin-bottom: 24px;
-                border: 1px solid #e5e7eb;
+                border: 1px solid var(--macos-border, #e5e7eb);
                 box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+                color: var(--macos-text-primary, #000000);
             }
 
             .step-header {
@@ -97,51 +99,87 @@
                 align-items: center;
                 gap: 12px;
                 margin-bottom: 20px;
-                border-bottom: 1px solid #f3f4f6;
-                padding-bottom: 12px;
+                border-bottom: 1px solid var(--macos-divider, #f3f4f6);
+                padding-bottom: 16px;
             }
 
             .step-number {
-                background: #FFD60A;
-                color: #000000;
                 width: 32px;
                 height: 32px;
+                background: #FFD60A;
+                color: black;
                 border-radius: 50%;
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 font-weight: 800;
+                font-size: 14px;
                 flex-shrink: 0;
             }
 
             .step-title {
-                font-size: 1.1rem;
-                font-weight: 600;
-                color: #1f2937;
+                font-size: 18px;
+                font-weight: 700;
+                color: var(--macos-text-primary, #111827);
                 margin: 0;
-                line-height: 1.2;
             }
 
-            /* Dark Mode Overrides */
+            /* Inputs Form Styles */
+            label {
+                display: block;
+                font-size: 13px;
+                font-weight: 600;
+                color: var(--macos-text-secondary, #374151);
+                margin-bottom: 6px;
+            }
+
+            input[type="text"],
+            input[type="number"],
+            textarea,
+            select {
+                width: 100%;
+                padding: 10px 12px;
+                border: 1px solid var(--macos-border, #d1d5db);
+                border-radius: 6px;
+                font-size: 14px;
+                transition: all 0.2s;
+                background-color: var(--macos-bg-tertiary, #ffffff);
+                color: var(--macos-text-primary, #000000);
+            }
+
+            input:focus,
+            textarea:focus,
+            select:focus {
+                outline: none;
+                border-color: #FFD60A;
+                box-shadow: 0 0 0 3px rgba(255, 214, 10, 0.1);
+            }
+
+            ::placeholder {
+                color: var(--macos-text-tertiary, #9ca3af);
+            }
+
+            /* Dark Mode Specific Overrides just in case variables fail */
             html.dark .step-card {
-                background: #1f2937;
-                border-color: #374151;
+                background-color: #1c1c1e;
+                border-color: #2c2c2e;
+            }
+
+            html.dark input,
+            html.dark textarea,
+            html.dark select {
+                background-color: #2c2c2e;
+                /* um pouco mais claro que o card */
+                border-color: #3f3f46;
+                color: white;
             }
 
             html.dark .step-title {
-                color: #ffffff;
-            }
-
-            html.dark .step-header {
-                border-bottom-color: #374151;
-            }
-
-            html.dark input[type="text"],
-            html.dark input[type="number"],
-            html.dark select {
-                background-color: #374151;
-                border-color: #4b5563;
                 color: white;
+            }
+
+            html.dark label {
+                color: #a1a1aa;
             }
 
             html.dark input::placeholder {
@@ -474,92 +512,61 @@
                         </div>
                     </div>
 
-                    <div
-                        class="step-card bg-white dark:bg-gray-800 dark:border-gray-700 transition-colors duration-200">
-                        <div class="step-header border-b border-gray-100 dark:border-gray-700">
+                    <div class="step-card">
+                        <div class="step-header">
                             <div class="step-number">1</div>
-                            <h2 class="step-title dark:text-white">Dados Gerais e Imagens</h2>
+                            <h2 class="step-title">Dados Gerais e Imagens</h2>
                         </div>
 
 
                         <div class="mb-4">
-                            <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Nome do
-                                Cliente</label>
-                            <input type="text" id="inputCliente"
-                                class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
-                                placeholder="Ex: João Silva">
+                            <label>Nome do Cliente</label>
+                            <input type="text" id="inputCliente" placeholder="Ex: João Silva">
                         </div>
 
                         <div class="grid grid-cols-2 gap-4 mb-4">
                             <div>
-                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Nome do
-                                    Condomínio /
-                                    Bairro</label>
-                                <input type="text" id="inputNome"
-                                    class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
-                                    placeholder="Ex: Nome do Condomínio">
+                                <label>Nome do Condomínio / Bairro</label>
+                                <input type="text" id="inputNome" placeholder="Ex: Nome do Condomínio">
                             </div>
                             <div>
-                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Endereço
-                                    Completo</label>
-                                <input type="text" id="inputEndereco"
-                                    class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
-                                    placeholder="Ex: Endereço Completo">
+                                <label>Endereço Completo</label>
+                                <input type="text" id="inputEndereco" placeholder="Ex: Endereço Completo">
                             </div>
                             <div>
-                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Número do
-                                    Bem</label>
-                                <input type="text" id="inputBem"
-                                    class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
-                                    placeholder="Ex: 000000000000-0">
+                                <label>Número do Bem</label>
+                                <input type="text" id="inputBem" placeholder="Ex: 000000000000-0">
                             </div>
                             <div>
-                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Licitação
-                                    Aberta</label>
-                                <input type="text" id="inputLicitacao"
-                                    class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
-                                    placeholder="DD/MM/AAAA Às HH:mm" maxlength="19" oninput="maskDateHour(this)">
+                                <label>Licitação Aberta</label>
+                                <input type="text" id="inputLicitacao" placeholder="DD/MM/AAAA Às HH:mm" maxlength="19"
+                                    oninput="maskDateHour(this)">
                             </div>
                         </div>
 
                         <div class="grid grid-cols-3 gap-4 mb-6">
                             <div>
-                                <label
-                                    class="block text-xs font-medium text-gray-700 dark:text-gray-300">Apartamento/Bloco</label>
-                                <input type="text" id="inputApto"
-                                    class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
-                                    placeholder="Ex: Apto 00, Bloco X">
+                                <label>Apartamento/Bloco</label>
+                                <input type="text" id="inputApto" placeholder="Ex: Apto 00, Bloco X">
                             </div>
                             <div>
-                                <label
-                                    class="block text-xs font-medium text-gray-700 dark:text-gray-300">Metragem</label>
-                                <input type="text" id="inputMetragem"
-                                    class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
-                                    placeholder="Ex: 00m²">
+                                <label>Metragem</label>
+                                <input type="text" id="inputMetragem" placeholder="Ex: 00m²">
                             </div>
                             <div>
-                                <label
-                                    class="block text-xs font-medium text-gray-700 dark:text-gray-300">Quartos</label>
-                                <input type="text" id="inputQuartos"
-                                    class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
-                                    placeholder="Ex: 00">
+                                <label>Quartos</label>
+                                <input type="text" id="inputQuartos" placeholder="Ex: 00">
                             </div>
                             <div>
-                                <label
-                                    class="block text-xs font-medium text-gray-700 dark:text-gray-300">Banheiros</label>
-                                <input type="text" id="inputBanheiros"
-                                    class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
-                                    placeholder="Ex: 00">
+                                <label>Banheiros</label>
+                                <input type="text" id="inputBanheiros" placeholder="Ex: 00">
                             </div>
                             <div>
-                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Vaga
-                                    Garagem</label>
-                                <input type="text" id="inputVaga"
-                                    class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
-                                    placeholder="Ex: 00">
+                                <label>Vaga Garagem</label>
+                                <input type="text" id="inputVaga" placeholder="Ex: 00">
                             </div>
                             <div>
-                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Condomínio
+                                <label>Condomínio
                                     (R$)</label>
                                 <input type="text" id="inputCondominio"
                                     class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400 currency-input"
@@ -653,22 +660,20 @@
                     </div>
 
                     <!-- Step 1.5: Company Info (New) -->
-                    <div
-                        class="step-card bg-white dark:bg-gray-800 dark:border-gray-700 transition-colors duration-200 mb-4">
-                        <div class="step-header border-b border-gray-100 dark:border-gray-700">
+                    <div class="step-card mb-4">
+                        <div class="step-header">
                             <div class="step-number">2</div>
-                            <h2 class="step-title dark:text-white">Informações da Empresa / Rodapé</h2>
+                            <h2 class="step-title">Informações da Empresa / Rodapé</h2>
                         </div>
 
                         <!-- Saved Companies Manager -->
-                        <div
-                            class="mb-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 flex gap-2 items-end">
+                        <div class="mb-6 p-4 rounded-lg flex gap-2 items-end"
+                            style="background: var(--macos-bg-secondary); border: 1px solid var(--macos-border);">
                             <div class="flex-grow">
-                                <label
-                                    class="block text-xs font-bold text-gray-500 dark:text-gray-300 uppercase tracking-wide mb-1">Empresas
+                                <label class="block text-xs font-bold uppercase tracking-wide mb-1"
+                                    style="color: var(--macos-text-secondary);">Empresas
                                     Salvas</label>
-                                <select id="selectSavedCompany"
-                                    class="w-full p-2 border rounded text-sm bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white"
+                                <select id="selectSavedCompany" class="w-full p-2 border rounded text-sm"
                                     onchange="loadCompanyProfile(this.value)">
                                     <option value="">-- Selecione ou Cadastre Nova --</option>
                                 </select>
@@ -678,7 +683,7 @@
                                 <i class="fa-solid fa-save mr-1"></i> Salvar Empresa
                             </button>
                             <button onclick="deleteCompanyProfile()"
-                                class="px-3 py-2 bg-red-100 dark:bg-red-900 hover:bg-red-200 dark:hover:bg-red-800 text-red-600 dark:text-red-200 rounded shadow-sm transition-colors"
+                                class="px-3 py-2 bg-red-100 hover:bg-red-200 text-red-600 rounded shadow-sm transition-colors"
                                 title="Excluir Empresa Selecionada">
                                 <i class="fa-solid fa-trash"></i>
                             </button>
@@ -686,134 +691,122 @@
 
                         <div class="grid grid-cols-2 gap-4 mb-4">
                             <div>
-                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Instagram
-                                    Comercial</label>
-                                <input type="text" id="inputInstagram"
-                                    class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
-                                    placeholder="Ex: @seuinstagram">
+                                <label>Instagram Comercial</label>
+                                <input type="text" id="inputInstagram" placeholder="Ex: @seuinstagram">
                             </div>
                             <div>
-                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Nome da
-                                    Empresa / CRECI</label>
-                                <input type="text" id="inputCreci"
-                                    class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
-                                    placeholder="Ex: Nome da Empresa - CRECI 00000">
+                                <label>Nome da Empresa / CRECI</label>
+                                <input type="text" id="inputCreci" placeholder="Ex: Fortal Leilões - CRECI 1234">
                             </div>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-medium text-gray-700 dark:text-gray-300">Texto
-                                Personalizado do Rodapé</label>
-                            <input type="text" id="inputFooter"
-                                class="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400"
-                                placeholder="Editável: direitos reservados...">
                         </div>
 
-                        <!-- Watermark Upload -->
-                        <div class="mt-4 border-t pt-4 dark:border-gray-700">
-                            <div id="dropzone_fileLogoWatermark"
-                                class="relative border border-dashed border-gray-400 dark:border-gray-600 p-4 rounded text-center cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 outline-none focus:ring-2 focus:ring-[var(--macos-accent)] transition-all"
-                                tabindex="0" onclick="handleSmartUploadClick('fileLogoWatermark', this)">
-                                <button type="button"
-                                    class="remove-image-btn absolute top-2 right-2 text-red-500 hover:text-red-700 hidden z-10 bg-white dark:bg-gray-800 rounded-full w-6 h-6 flex items-center justify-center shadow-md"
-                                    onclick="removeImage(event, 'fileLogoWatermark', 'previewWatermark', null)">
-                                    <i class="fa-solid fa-xmark"></i>
-                                </button>
-                                <p class="text-sm font-bold text-gray-600 dark:text-gray-300">Logo para Marca D'água
-                                    (Fundo)</p>
-                                <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Sua logo ficará repetida no
-                                    fundo das páginas. Selecione ou Cole (Ctrl+V).</p>
-                                <input type="file" id="fileLogoWatermark" class="hidden" accept="image/*"
-                                    onchange="updateWatermark(this)">
-                                <img id="previewWatermark" class="h-16 mx-auto mt-2 object-contain hidden" />
-                            </div>
+                        <div class="mb-4">
+                            <label>Texto do Rodapé (Direita)</label>
+                            <input type="text" id="inputFooter" placeholder="Ex: Consultoria Especializada em Leilões">
+                        </div>
+                    </div> <!-- Watermark Upload -->
+                    <div class="mt-4 border-t pt-4 dark:border-gray-700">
+                        <div id="dropzone_fileLogoWatermark"
+                            class="relative border border-dashed border-gray-400 dark:border-gray-600 p-4 rounded text-center cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 outline-none focus:ring-2 focus:ring-[var(--macos-accent)] transition-all"
+                            tabindex="0" onclick="handleSmartUploadClick('fileLogoWatermark', this)">
+                            <button type="button"
+                                class="remove-image-btn absolute top-2 right-2 text-red-500 hover:text-red-700 hidden z-10 bg-white dark:bg-gray-800 rounded-full w-6 h-6 flex items-center justify-center shadow-md"
+                                onclick="removeImage(event, 'fileLogoWatermark', 'previewWatermark', null)">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                            <p class="text-sm font-bold text-gray-600 dark:text-gray-300">Logo para Marca D'água
+                                (Fundo)</p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Sua logo ficará repetida no
+                                fundo das páginas. Selecione ou Cole (Ctrl+V).</p>
+                            <input type="file" id="fileLogoWatermark" class="hidden" accept="image/*"
+                                onchange="updateWatermark(this)">
+                            <img id="previewWatermark" class="h-16 mx-auto mt-2 object-contain hidden" />
                         </div>
                     </div>
+                </div>
 
-                    <!-- Step 2: Financial Data (Import) -->
+                <!-- Step 2: Financial Data (Import) -->
+                <div class="step-card bg-white dark:bg-gray-800 dark:border-gray-700 transition-colors duration-200">
+                    <div class="step-header border-b border-gray-100 dark:border-gray-700">
+                        <div class="step-number">3</div>
+                        <h2 class="step-title dark:text-white">Dados Financeiros (Viabilidade)</h2>
+                    </div>
+
                     <div
-                        class="step-card bg-white dark:bg-gray-800 dark:border-gray-700 transition-colors duration-200">
-                        <div class="step-header border-b border-gray-100 dark:border-gray-700">
-                            <div class="step-number">3</div>
-                            <h2 class="step-title dark:text-white">Dados Financeiros (Viabilidade)</h2>
-                        </div>
+                        class="bg-blue-50 dark:bg-gray-700 p-4 rounded-lg border border-blue-100 dark:border-gray-600 mb-4">
+                        <label class="block text-sm font-medium text-blue-900 dark:text-gray-200 mb-2">Importar de
+                            um cálculo
+                            salvo:</label>
+                        <select id="selectCalculo"
+                            class="w-full p-2 border border-blue-200 rounded-lg bg-white dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+                            onchange="loadCalculationData(this)">
+                            <option value="">Selecione para preencher automaticamente...</option>
+                            <% if (savedCalculations && savedCalculations.length> 0) { %>
+                                <% savedCalculations.forEach(calc=> { %>
+                                    <option value="<%= calc.id %>">
+                                        <%= calc.name %> - <%= new Date(calc.created_at).toLocaleDateString('pt-BR') %>
+                                    </option>
+                                    <% }) %>
+                                        <% } %>
+                        </select>
+                    </div>
 
-                        <div
-                            class="bg-blue-50 dark:bg-gray-700 p-4 rounded-lg border border-blue-100 dark:border-gray-600 mb-4">
-                            <label class="block text-sm font-medium text-blue-900 dark:text-gray-200 mb-2">Importar de
-                                um cálculo
-                                salvo:</label>
-                            <select id="selectCalculo"
-                                class="w-full p-2 border border-blue-200 rounded-lg bg-white dark:bg-gray-800 dark:border-gray-600 dark:text-white"
-                                onchange="loadCalculationData(this)">
-                                <option value="">Selecione para preencher automaticamente...</option>
-                                <% if (savedCalculations && savedCalculations.length> 0) { %>
-                                    <% savedCalculations.forEach(calc=> { %>
-                                        <option value="<%= calc.id %>">
-                                            <%= calc.name %> - <%= new Date(calc.created_at).toLocaleDateString('pt-BR')
-                                                    %>
-                                        </option>
-                                        <% }) %>
-                                            <% } %>
-                            </select>
-                        </div>
-
-                        <div
-                            class="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
-                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-3">
-                                <i class="fa-solid fa-keyboard mr-2"></i>Ou preencha manualmente:
-                            </label>
-                            <div class="grid grid-cols-3 gap-4">
-                                <div>
-                                    <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Valor
-                                        do Arremate (R$)</label>
-                                    <input type="text" id="inputValorArremate"
-                                        class="w-full p-2 border rounded dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:placeholder-gray-400 currency-input"
-                                        placeholder="Ex: R$ 100.000,00" oninput="updateManualFinancialData()">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Valor
-                                        de Avaliação (R$)</label>
-                                    <input type="text" id="inputValorAvaliacao"
-                                        class="w-full p-2 border rounded dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:placeholder-gray-400 currency-input"
-                                        placeholder="Ex: R$ 150.000,00" oninput="updateManualFinancialData()">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Valor
-                                        de Venda (R$)</label>
-                                    <input type="text" id="inputValorVenda"
-                                        class="w-full p-2 border rounded dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:placeholder-gray-400 currency-input"
-                                        placeholder="Ex: R$ 180.000,00" oninput="updateManualFinancialData()">
-                                </div>
+                    <div class="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-3">
+                            <i class="fa-solid fa-keyboard mr-2"></i>Ou preencha manualmente:
+                        </label>
+                        <div class="grid grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Valor
+                                    do Arremate (R$)</label>
+                                <input type="text" id="inputValorArremate"
+                                    class="w-full p-2 border rounded dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:placeholder-gray-400 currency-input"
+                                    placeholder="Ex: R$ 100.000,00" oninput="updateManualFinancialData()">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Valor
+                                    de Avaliação (R$)</label>
+                                <input type="text" id="inputValorAvaliacao"
+                                    class="w-full p-2 border rounded dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:placeholder-gray-400 currency-input"
+                                    placeholder="Ex: R$ 150.000,00" oninput="updateManualFinancialData()">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Valor
+                                    de Venda (R$)</label>
+                                <input type="text" id="inputValorVenda"
+                                    class="w-full p-2 border rounded dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:placeholder-gray-400 currency-input"
+                                    placeholder="Ex: R$ 180.000,00" oninput="updateManualFinancialData()">
                             </div>
                         </div>
                     </div>
+                </div>
 
 
 
-                    <!-- PDF PREVIEW SECTION -->
-                    <div class="mb-12">
-                        <div class="flex justify-between items-center mb-6">
-                            <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
-                                <i class="fa-solid fa-eye mr-2"></i>Prévia do PDF (6 Páginas)
-                            </h2>
-                            <div class="flex gap-3">
-                                <button type="button" onclick="salvarOportunidade()" id="btnSalvarOportunidade"
-                                    class="bg-green-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-green-700 flex items-center gap-2 transition-colors">
-                                    <i class="fa-solid fa-cloud-arrow-up"></i>
-                                    Salvar em Oportunidades
-                                </button>
-                                <button onclick="window.print()"
-                                    class="bg-gray-900 text-white px-8 py-3 rounded-lg font-bold hover:bg-gray-800 flex items-center gap-2">
-                                    <i class="fa-solid fa-file-pdf"></i>
-                                    Gerar PDF Completo
-                                </button>
-                            </div>
-                        </div>
-
-                        <div id="pdf-preview-container" class="space-y-8" style="max-width: 900px; margin: 0 auto;">
-                            <!-- As 4 páginas do PDF serão exibidas aqui -->
+                <!-- PDF PREVIEW SECTION -->
+                <div class="mb-12">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
+                            <i class="fa-solid fa-eye mr-2"></i>Prévia do PDF (6 Páginas)
+                        </h2>
+                        <div class="flex gap-3">
+                            <button type="button" onclick="salvarOportunidade()" id="btnSalvarOportunidade"
+                                class="bg-green-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-green-700 flex items-center gap-2 transition-colors">
+                                <i class="fa-solid fa-cloud-arrow-up"></i>
+                                Salvar em Oportunidades
+                            </button>
+                            <button onclick="window.print()"
+                                class="bg-gray-900 text-white px-8 py-3 rounded-lg font-bold hover:bg-gray-800 flex items-center gap-2">
+                                <i class="fa-solid fa-file-pdf"></i>
+                                Gerar PDF Completo
+                            </button>
                         </div>
                     </div>
+
+                    <div id="pdf-preview-container" class="space-y-8" style="max-width: 900px; margin: 0 auto;">
+                        <!-- As 4 páginas do PDF serão exibidas aqui -->
+                    </div>
+                </div>
                 </div>
 
                 <!-- PDF CONTENT (Visible on screen for preview, used for print) -->

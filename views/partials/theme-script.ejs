@@ -1,10 +1,16 @@
 <script>
     // Este script é executado antes da renderização para evitar a "piscada" do tema.
-    (function() {
+    (function () {
         try {
             const theme = localStorage.getItem('theme');
+            // Se for explicitamente light, põe light e garante q não tem dark
             if (theme === 'light') {
+                document.documentElement.classList.remove('dark');
                 document.documentElement.classList.add('light');
+            } else {
+                // Se for dark ou nada (padrão), põe dark
+                document.documentElement.classList.remove('light');
+                document.documentElement.classList.add('dark');
             }
         } catch (e) {
             console.error('Failed to apply theme from localStorage', e);

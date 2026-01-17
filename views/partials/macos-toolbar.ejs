@@ -23,24 +23,59 @@
         <!-- Barra de Busca (Opcional) -->
     </div>
 
-    <div class="macos-toolbar-right">
+    <style>
+        .macos-toolbar-icon-btn {
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            /* Soft rounded square */
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--macos-text-secondary);
+            background: transparent;
+            border: 1px solid transparent;
+            /* Prevents layout shift */
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+            font-size: 14px;
+        }
+
+        .macos-toolbar-icon-btn:hover {
+            background: var(--macos-bg-tertiary);
+            color: var(--macos-text-primary);
+            border-color: var(--macos-border);
+        }
+
+        /* Active/Checked State for Toggle */
+        .macos-toolbar-icon-btn.active {
+            color: var(--macos-accent);
+            background: var(--macos-bg-tertiary);
+        }
+    </style>
+
+    <div class="macos-toolbar-right" style="gap: 8px;">
         <!-- Botão de Busca -->
-        <button class="macos-btn macos-btn-secondary" style="padding: 6px 12px;">
-            <i class="fa-solid fa-search"></i>
+        <button class="macos-toolbar-icon-btn" title="Buscar">
+            <i class="fa-solid fa-magpie"></i> <!-- Icone mais elegante que 'search' padrão -->
         </button>
 
         <!-- Toggle Tema (Light/Dark) -->
-        <label for="macos-theme-toggle" class="macos-btn macos-btn-secondary"
-            style="padding: 6px 12px; cursor: pointer;">
+        <label for="macos-theme-toggle" class="macos-toolbar-icon-btn" title="Alternar Tema">
             <input type="checkbox" id="macos-theme-toggle" style="display: none;">
             <i id="macos-theme-icon-dark" class="fa-solid fa-moon"></i>
-            <i id="macos-theme-icon-light" class="fa-solid fa-sun" style="display: none;"></i>
+            <i id="macos-theme-icon-light" class="fa-solid fa-sun" style="display: none; color: #F59E0B;"></i>
         </label>
 
         <!-- Profile Dropdown -->
         <div class="relative">
-            <button id="macosProfileBtn" class="macos-btn macos-btn-secondary" style="padding: 6px 12px;">
-                <i class="fa-regular fa-user"></i>
+            <button id="macosProfileBtn" class="macos-toolbar-icon-btn" title="Perfil">
+                <% if (typeof profile_pic_url !=='undefined' && profile_pic_url) { %>
+                    <img src="<%= profile_pic_url %>" alt="Perfil"
+                        style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover;">
+                    <% } else { %>
+                        <i class="fa-regular fa-circle-user" style="font-size: 16px;"></i>
+                        <% } %>
             </button>
 
             <!-- Profile Popup -->
@@ -120,27 +155,29 @@
     const iconLight = document.getElementById('macos-theme-icon-light');
 
     if (themeToggle && iconDark && iconLight) {
-        // Carregar tema salvo
-        const savedTheme = localStorage.getItem('theme') || 'dark';
-        if (savedTheme === 'light') {
-            document.documentElement.classList.add('light');
-            themeToggle.checked = true;
-            iconDark.style.display = 'none';
-            iconLight.style.display = 'block';
-        }
-
-        themeToggle.addEventListener('change', () => {
-            if (themeToggle.checked) {
-                document.documentElement.classList.add('light');
-                localStorage.setItem('theme', 'light');
-                iconDark.style.display = 'none';
-                iconLight.style.display = 'block';
-            } else {
+        const applyTheme = (theme) => {
+            if (theme === 'dark') {
+                document.documentElement.classList.add('dark');
                 document.documentElement.classList.remove('light');
-                localStorage.setItem('theme', 'dark');
+                themeToggle.checked = false;
                 iconDark.style.display = 'block';
                 iconLight.style.display = 'none';
+            } else {
+                document.documentElement.classList.remove('dark');
+                document.documentElement.classList.add('light');
+                themeToggle.checked = true;
+                iconDark.style.display = 'none';
+                iconLight.style.display = 'block';
             }
+            localStorage.setItem('theme', theme);
+        };
+
+        // Carregar tema salvo ou default 'dark'
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        applyTheme(savedTheme);
+
+        themeToggle.addEventListener('change', () => {
+            applyTheme(themeToggle.checked ? 'light' : 'dark');
         });
     }
 

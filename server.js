@@ -1351,17 +1351,27 @@ app.get('/', isAuthenticated, async (req, res) => {
             };
         }
 
-        // 6% Commission Assumption
+        // 6% Commission Assumption - TODO: Refine this logic based on individual property commission data if available
+        // User requested careful analysis of this value. Currently using flat 6% on VGV.
         const estimatedCommission = vgvManagement * 0.06;
+        if (vgvManagement > 0) {
+            console.warn(`⚠️  Commission Audit: Calculating 6% on VGV of ${vgvManagement}. Result: ${estimatedCommission}. Verify if this aligns with advisor contract.`);
+        }
+
+        // Fetch Leads Waiting Count
+        const leadsCountQuery = await db.get("SELECT COUNT(*) as count FROM leads WHERE status = 'novo'");
+        const leadsWaiting = leadsCountQuery ? leadsCountQuery.count : 0;
 
         const advisorStats = {
             vgv_gestao: vgvManagement,
             comissao_prevista: estimatedCommission,
             clientes_ativos: activeClients,
-            total_imoveis: totalProperties
+            total_imoveis: totalProperties,
+            leads_waiting: leadsWaiting
         };
 
-        console.log('✅ Dashboard: Dados do ASSESSOR carregados com sucesso');
+        console.log('📊 Stats do Assessor:', JSON.stringify(advisorStats, null, 2));
+        console.log('✅ Dashboard: Dados carregados com sucesso');
 
         res.render('index', {
             ...baseContext,
@@ -1372,16 +1382,10 @@ app.get('/', isAuthenticated, async (req, res) => {
     } catch (error) {
         console.error('❌ ERRO CRÍTICO NO DASHBOARD:', error.message);
         console.error('Stack trace:', error.stack);
-
-        // Renderizar versão simplificada sem dados
-        res.render('index', {
-            ...baseContext,
-            stats: null,
-            recentProperties: [],
-            growth: null
-        });
+        res.status(500).render('debug_error', { error });
     }
 });
+
 
 // Rota para a página de perfil
 app.get('/perfil', isAuthenticated, async (req, res) => {
@@ -3388,14 +3392,33 @@ app.get('/leads', isAuthenticated, async (req, res) => {
     try {
         // Busca leads 'novos' ou 'desqualificados' (histórico)
         // Ordena por Score (Melhores primeiro)
+        // Ordena por Score (Melhores primeiro)
         const leads = await db.all(`
             SELECT * FROM leads 
             WHERE status = 'novo' 
             ORDER BY score DESC, created_at DESC
         `);
 
+        // Calcular KPIs para Admin
+        let kpis = {
+            totalCapital: 0,
+            avgScore: 0,
+            totalLeads: leads.length,
+            qualityLabel: 'N/A'
+        };
+
+        if (leads.length > 0) {
+            kpis.totalCapital = leads.reduce((sum, l) => sum + (l.capital_entrada || 0), 0);
+            kpis.avgScore = Math.round(leads.reduce((sum, l) => sum + (l.score || 0), 0) / leads.length);
+
+            if (kpis.avgScore >= 75) kpis.qualityLabel = 'Excelente 🌟';
+            else if (kpis.avgScore >= 50) kpis.qualityLabel = 'Bom ✅';
+            else kpis.qualityLabel = 'Regular ⚠️';
+        }
+
         res.render('leads-pool', {
             leads: leads,
+            kpis: kpis, // Passar KPIs
             user: getUserContext(req.session),
             username: req.session.username,
             profile_pic_url: req.session.profile_pic_url

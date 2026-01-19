@@ -38,6 +38,15 @@
                 }
             }
 
+            /* Utility to force hide elements during print via JS */
+            @media print {
+                .force-print-hidden {
+                    display: none !important;
+                    visibility: hidden !important;
+                    opacity: 0 !important;
+                }
+            }
+
             /* PREMIUM PDF DESIGN SYSTEM (Da Vinci 2.0) */
             /* FORCE SITE FONT GLOBAL OVERRIDE */
             :root {
@@ -397,72 +406,91 @@
                 letter-spacing: 0.05em;
                 padding: 4px 8px;
                 border-radius: 4px;
-            }
 
-            .brand-highlight-text {
-                background: linear-gradient(180deg, transparent 65%, #FFD60A 65%);
-                display: inline;
-                padding-right: 2px;
-                padding-left: 2px;
-            }
+                .brand-highlight-text {
+                    background: linear-gradient(180deg, transparent 65%, #FFD60A 65%);
 
-            /* PRINT RESET */
-            @media print {
-                @page {
-                    margin: 0;
-                    size: A4 portrait;
+                    /* PRINT RESET FINAL FIX V3 */
+                    @media print {
+                        @page {
+                            margin: 0;
+                            size: A4 portrait;
+                        }
+
+                        html,
+                        body {
+                            width: 210mm !important;
+                            height: 100% !important;
+                            margin: 0 !important;
+                            padding: 0 !important;
+                            background: white !important;
+                            overflow: visible !important;
+                            display: block !important;
+                        }
+
+                        /* HIDE EVERYTHING ELSE */
+                        body>*:not(.macos-main-content),
+                        .macos-toolbar,
+                        .macos-sidebar,
+                        .page-container,
+                        .no-print,
+                        header,
+                        aside {
+                            display: none !important;
+                        }
+
+                        /* PREPARE WRAPPERS */
+                        .macos-main-content,
+                        main {
+                            display: block !important;
+                            width: 100% !important;
+                            margin: 0 !important;
+                            padding: 0 !important;
+                            position: static !important;
+                            /* Restore flow */
+                            background: transparent !important;
+                            box-shadow: none !important;
+                        }
+
+                        /* PDF CONTENT CONTAINER */
+                        #pdf-content {
+                            display: block !important;
+                            width: 210mm !important;
+                            /* Strict A4 width */
+                            margin: 0 !important;
+                            padding: 0 !important;
+                            position: relative !important;
+                            left: 0 !important;
+                            top: 0 !important;
+                        }
+
+                        /* INDIVIDUAL SHEETS */
+                        .pdf-sheet {
+                            width: 210mm !important;
+                            height: 296mm !important;
+                            /* Exact A4 height minus tiny buffer if needed, but 296mm is safe */
+                            margin: 0 !important;
+                            /* FORCE LEFT ALIGNMENT */
+                            padding: 40px !important;
+                            /* Restore internal padding */
+                            box-sizing: border-box !important;
+                            page-break-after: always !important;
+                            break-after: page !important;
+                            background-color: white !important;
+                            overflow: hidden !important;
+                            border-left: 8px solid #FFD60A !important;
+                            position: relative !important;
+                        }
+
+                        /* REMOVE BREAK ON LAST PAGE */
+                        .pdf-sheet:last-of-type,
+                        .pdf-sheet:last-child {
+                            page-break-after: auto !important;
+                            break-after: auto !important;
+                            margin-bottom: 0 !important;
+                        }
+                    }
                 }
-
-                html,
-                body {
-                    margin: 0 !important;
-                    background: white !important;
-                    -webkit-print-color-adjust: exact !important;
-                    print-color-adjust: exact !important;
-                }
-
-                * {
-                    -webkit-print-color-adjust: exact !important;
-                    print-color-adjust: exact !important;
-                }
-
-                .macos-toolbar,
-                .macos-sidebar,
-                .page-container,
-                .no-print,
-                #pdf-content-preview-wrapper,
-                header,
-                aside {
-                    display: none !important;
-                }
-
-                .macos-main-content,
-                main,
-                #pdf-content {
-                    display: block !important;
-                    margin: 0 !important;
-                    padding: 0 !important;
-                    width: 100% !important;
-                    position: static !important;
-                    left: auto !important;
-                    visibility: visible !important;
-                }
-
-                #pdf-preview-container,
-                .page-badge {
-                    display: none !important;
-                }
-
-                .pdf-sheet {
-                    margin: 0 auto !important;
-                    box-shadow: none !important;
-                    page-break-after: always !important;
-                    width: 100% !important;
-                    max-width: 210mm !important;
-                    overflow: visible !important;
-                    /* Allow spill over if needed */
-                }
-            }
         </style>
 </head>
 
@@ -726,7 +754,8 @@
                 </div>
 
                 <!-- Step 2: Financial Data (Import) -->
-                <div class="step-card bg-white dark:bg-gray-800 dark:border-gray-700 transition-colors duration-200">
+                <div
+                    class="step-card bg-white dark:bg-gray-800 dark:border-gray-700 transition-colors duration-200 no-print">
                     <div class="step-header border-b border-gray-100 dark:border-gray-700">
                         <div class="step-number">3</div>
                         <h2 class="step-title dark:text-white">Dados Financeiros (Viabilidade)</h2>
@@ -784,7 +813,7 @@
 
 
                 <!-- PDF PREVIEW SECTION -->
-                <div class="mb-12">
+                <div class="mb-12 no-print">
                     <div class="flex justify-between items-center mb-6">
                         <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
                             <i class="fa-solid fa-eye mr-2"></i>Prévia do PDF (6 Páginas)
@@ -795,7 +824,7 @@
                                 <i class="fa-solid fa-cloud-arrow-up"></i>
                                 Salvar em Oportunidades
                             </button>
-                            <button onclick="window.print()"
+                            <button onclick="generateDaVinciPDF()" id="btnGerarPDF"
                                 class="bg-gray-900 text-white px-8 py-3 rounded-lg font-bold hover:bg-gray-800 flex items-center gap-2">
                                 <i class="fa-solid fa-file-pdf"></i>
                                 Gerar PDF Completo
@@ -825,8 +854,6 @@
                                 <div>
                                     <p class="text-xs font-bold tracking-[0.2em] uppercase text-gray-400 mb-2">Relatório
                                         de Oportunidade</p>
-                                    <p class="text-sm font-medium text-gray-500 mb-1">Preparado para:</p>
-                                    <p class="text-lg font-bold text-black mb-3" id="pdfCliente">Nome do Cliente</p>
                                     <div class="max-w-[450px]">
                                         <h1 class="text-4xl font-serif font-black text-black leading-tight break-words"
                                             id="pdfNomeImovel">Nome do Imóvel Premium</h1>
@@ -1269,6 +1296,9 @@
                     </div>
             </main>
 
+            <!-- Libs -->
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+            <script src="/js/macos-ui.js"></script>
             <script>
                 // Máscara para Data e Hora: DD/MM/AAAA Às HH:mm
                 window.maskDateHour = (input) => {
@@ -2430,6 +2460,116 @@
                     }
                 }
 
+                // NEW APPROACH: Clean Window Print
+                // This opens a popup with ONLY the content we want, ensuring no UI interference and native rendering.
+                function generateDaVinciPDF() {
+                    const content = document.getElementById('pdf-content').innerHTML;
+
+                    // Get all stylesheets to ensure proper styling
+                    const styles = Array.from(document.querySelectorAll('link[rel="stylesheet"], style'))
+                        .map(style => style.outerHTML)
+                        .join('');
+
+                    // Create a focused print window
+                    const printWindow = window.open('', '_blank', 'width=1000,height=900');
+
+                    if (!printWindow) {
+                        alert('Por favor, permita pop-ups para gerar o PDF.');
+                        return;
+                    }
+
+                    const printDoc = printWindow.document;
+
+                    printDoc.open();
+                    printDoc.write(`
+                        <!DOCTYPE html>
+                        <html>
+                        <head>
+                            <title>Proposta Fortal - ${document.getElementById('inputCliente').value || 'Cliente'}</title>
+                            <meta charset="utf-8">
+                            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                            ${styles}
+                            <style>
+                                /* FORCE A4 & PRINT RESET */
+                                @page {
+                                    size: A4 portrait;
+                                    margin: 0;
+                                }
+                                html, body {
+                                    margin: 0;
+                                    padding: 0;
+                                    width: 210mm;
+                                    height: 100%;
+                                    background: white;
+                                    -webkit-print-color-adjust: exact;
+                                    print-color-adjust: exact;
+                                }
+                                body {
+                                    width: 210mm;
+                                }
+                                /* Ensure strict sheet sizing */
+                                .pdf-sheet {
+                                    width: 210mm !important;
+                                    height: 296mm !important; /* Single page strict */
+                                    page-break-after: always !important;
+                                    break-after: page !important;
+                                    overflow: hidden !important;
+                                    margin: 0 !important;
+                                    position: relative !important;
+                                    box-sizing: border-box !important;
+                                }
+                                .pdf-sheet:last-child {
+                                    page-break-after: auto !important;
+                                    break-after: avoid !important;
+                                }
+                                /* Hide any UI that might have slipped in (though unlikely in this method) */
+                                .no-print, .macos-toolbar, header, aside { display: none !important; }
+                            </style>
+                        </head>
+                        <body>
+                            ${content}
+                            <script>
+                                // Auto-print when resources are loaded
+                                window.onload = function() {
+                                    setTimeout(() => {
+                                        window.print();
+                                        // Optional: Close after print (commented out to allow user to retry if needed)
+                                        // window.close(); 
+                                    }, 1000);
+                                };
+                            <\/script>
+                        </body>
+                        </html>
+                    `);
+                    printDoc.close();
+                }
+
+                function handlePrint() {
+                    const noPrintElements = document.querySelectorAll('.no-print, .macos-toolbar, .macos-sidebar, .page-container');
+                    const pdfContent = document.getElementById('pdf-content');
+
+                    // Force Hide
+                    noPrintElements.forEach(el => {
+                        el.classList.add('force-print-hidden');
+                    });
+
+                    // Force Show PDF Content
+                    if (pdfContent) {
+                        pdfContent.style.display = 'block';
+                    }
+
+                    // Print
+                    setTimeout(() => {
+                        window.print();
+
+                        // Restore after print dialog opens/closes
+                        setTimeout(() => {
+                            noPrintElements.forEach(el => {
+                                el.classList.remove('force-print-hidden');
+                            });
+                        }, 500); // Increased timeout significantly for Windows responsiveness
+                    }, 500);
+                }
             </script>
 
             <!-- Script de Tema Dark/Light -->

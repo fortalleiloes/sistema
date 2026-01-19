@@ -56,7 +56,7 @@
                             class="macos-btn-secondary" style="display: flex; align-items: center; gap: 8px;">
                             <i class="fa-solid fa-pen"></i> Editar
                         </button>
-                        <button onclick="openAddCustoModal()" class="macos-btn-primary"
+                        <button id="btnOpenCusto" type="button" class="macos-btn-primary"
                             style="display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(255, 214, 10, 0.3);">
                             <i class="fa-solid fa-plus"></i> Adicionar Custo
                         </button>
@@ -243,7 +243,7 @@
                                                                 <%= (custo.valor || 0).toLocaleString('pt-BR', {
                                                                     style: 'currency' , currency: 'BRL' }) %>
                                                             </span>
-                                                            <button onclick="deleteCusto(<%= custo.id %>)"
+                                                            <button onclick="deleteCusto('<%= custo.id %>')"
                                                                 style="background: none; border: none; color: var(--macos-text-tertiary); cursor: pointer; transition: color 0.2s;"
                                                                 onmouseover="this.style.color='var(--macos-red)'"
                                                                 onmouseout="this.style.color='var(--macos-text-tertiary)'">
@@ -361,24 +361,55 @@
 
             <script>
                 // Modal functions
+                let modalOpenTime = 0;
+
                 function openAddCustoModal() {
+                    modalOpenTime = Date.now();
                     const modal = document.getElementById('modal-add-custo');
                     modal.style.display = 'flex';
-                    // Focus no primeiro input
-                    setTimeout(() => modal.querySelector('select').focus(), 100);
+                    // Add active class for opacity transition
+                    setTimeout(() => {
+                        modal.classList.add('active');
+                    }, 10);
+                    setTimeout(() => {
+                        const sel = modal.querySelector('select');
+                        if (sel) sel.focus();
+                    }, 50);
                 }
 
                 function closeAddCustoModal() {
-                    document.getElementById('modal-add-custo').style.display = 'none';
-                    document.getElementById('form-add-custo').reset();
+                    const modal = document.getElementById('modal-add-custo');
+                    modal.classList.remove('active');
+
+                    // Wait for transition before hiding
+                    setTimeout(() => {
+                        modal.style.display = 'none';
+                        document.getElementById('form-add-custo').reset();
+                    }, 300);
                 }
 
-                // Fechar modal ao clicar fora
-                document.getElementById('modal-add-custo').addEventListener('click', (e) => {
-                    if (e.target === document.getElementById('modal-add-custo')) {
-                        closeAddCustoModal();
-                    }
-                });
+                // Explicit Button Listener
+                const btnOpen = document.getElementById('btnOpenCusto');
+                if (btnOpen) {
+                    btnOpen.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        openAddCustoModal();
+                    });
+                }
+
+                // Close on background click
+                const modalAdd = document.getElementById('modal-add-custo');
+                if (modalAdd) {
+                    modalAdd.addEventListener('mousedown', (e) => {
+                        // Prevent accidental closing right after opening
+                        if (Date.now() - modalOpenTime < 500) return;
+
+                        if (e.target === modalAdd) {
+                            closeAddCustoModal();
+                        }
+                    });
+                }
 
                 // Form submit
                 document.getElementById('form-add-custo').addEventListener('submit', async (e) => {

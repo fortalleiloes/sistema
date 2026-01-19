@@ -73,6 +73,41 @@
                         </div>
                     </div>
 
+                    <!-- Widget: Minhas Minerações (Comissões) -->
+                    <div id="mining-widget" class="kpi-card mb-8"
+                        style="background: linear-gradient(135deg, var(--macos-bg-secondary), var(--macos-bg-tertiary)); border: 1px solid var(--macos-accent); display:none;">
+                        <div class="flex items-center justify-between mb-4">
+                            <h2 class="text-lg font-bold" style="color: var(--macos-text-primary);">
+                                <i class="fa-solid fa-gem mr-2" style="color: #9b59b6;"></i> Mineração & Comissões
+                            </h2>
+                            <div class="flex gap-4 text-sm font-medium">
+                                <div class="px-3 py-1 rounded-full bg-green-500/10 text-green-500">
+                                    Recebido: <span id="valRecebido">R$ 0,00</span>
+                                </div>
+                                <div class="px-3 py-1 rounded-full bg-orange-500/10 text-orange-500">
+                                    A Receber (Previsão): <span id="valReceber">R$ 0,00</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-sm" style="color: var(--macos-text-secondary);">
+                                <thead>
+                                    <tr style="border-bottom: 1px solid var(--macos-divider);">
+                                        <th class="pb-2">Imóvel</th>
+                                        <th class="pb-2">Arrematado Por</th>
+                                        <th class="pb-2">Data</th>
+                                        <th class="pb-2">Comissão</th>
+                                        <th class="pb-2">Status</th>
+                                        <th class="pb-2 text-right">Ação</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="mining-list">
+                                    <!-- JS vai preencher -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
                     <% if (stats) { %>
                         <!-- KPI Grid -->
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-6 mb-8">
@@ -298,7 +333,47 @@
 
             <!-- Chart Script for Performance -->
             <script>
-                document.addEventListener('DOMContentLoaded', function () {
+                document.addEventListener('DOMContentLoaded', async function () {
+                    // --- Carregar Dados de Mineração ---
+                    try {
+                        const res = await fetch('/api/financeiro/minhas-mineracoes');
+                        const data = await res.json();
+
+                        if (data.rows && data.rows.length > 0) {
+                            document.getElementById('mining-widget').style.display = 'block';
+
+                            // Totais
+                            const toCurrency = (v) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+                            document.getElementById('valRecebido').textContent = toCurrency(data.totalRecebido);
+                            document.getElementById('valReceber').textContent = toCurrency(data.totalReceber);
+
+                            const tbody = document.getElementById('mining-list');
+                            tbody.innerHTML = '';
+
+                            data.rows.forEach(row => {
+                                const tr = document.createElement('tr');
+                                tr.className = 'border-b border-[var(--macos-divider)] last:border-0 hover:bg-white/5';
+
+                                const statusColor = row.status == 'pago' ? 'text-green-500' : 'text-orange-400';
+                                const statusIcon = row.status == 'pago' ? '<i class="fa-solid fa-check-circle"></i>' : '<i class="fa-solid fa-clock"></i>';
+
+                                tr.innerHTML = `
+                                    <td class="py-2 font-medium">${row.imovel_desc}</td>
+                                    <td class="py-2 text-xs">${row.vendedor || 'N/A'}</td>
+                                    <td class="py-2 text-xs opacity-70">${row.data_fmt}</td>
+                                    <td class="py-2 font-bold">${toCurrency(row.valor)}</td>
+                                    <td class="py-2 text-xs ${statusColor}">${statusIcon} ${row.status.toUpperCase()}</td>
+                                    <td class="py-2 text-right">
+                                        ${row.status === 'pendente' ?
+                                        `<button onclick="marcarPago(${row.id})" class="text-xs bg-green-500/10 text-green-500 px-2 py-1 rounded hover:bg-green-500 hover:text-white transition-colors">Confirmar Recebimento</button>`
+                                        : ''}
+                                    </td>
+                                `;
+                                tbody.appendChild(tr);
+                            });
+                        }
+                    } catch (e) { console.error('Erro mineracao dashboard', e); }
+
                     const ctx = document.getElementById('performanceChart');
                     if (ctx) {
                         // Get colors from CSS variables
@@ -353,6 +428,15 @@
                         });
                     }
                 });
+
+                async function marcarPago(id) {
+                    if (!confirm('Confirma que recebeu o pagamento desta mineração?')) return;
+                    try {
+                        const res = await fetch(`/api/financeiro/confirmar-pagamento/${id}`, { method: 'POST' });
+                        const d = await res.json();
+                        if (d.success) window.location.reload();
+                    } catch (e) { alert('Erro'); }
+                }
             </script>
 </body>
 

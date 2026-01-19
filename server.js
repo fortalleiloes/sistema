@@ -438,7 +438,10 @@ async function ensureTables() {
         }
         if (!columns.includes('lucro_estimado')) {
             await db.run("ALTER TABLE carteira_imoveis ADD COLUMN lucro_estimado REAL DEFAULT 0");
-            console.log('✅ Coluna lucro_estimado adicionada à carteira_imoveis.');
+        }
+        if (!columns.includes('minerador_original_id')) {
+            await db.run("ALTER TABLE carteira_imoveis ADD COLUMN minerador_original_id INTEGER DEFAULT NULL");
+            console.log('✅ Coluna minerador_original_id adicionada.');
         }
         if (!columns.includes('roi_estimado')) {
             await db.run("ALTER TABLE carteira_imoveis ADD COLUMN roi_estimado REAL DEFAULT 0");
@@ -469,6 +472,29 @@ async function ensureTables() {
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         expires_at DATETIME,
         used INTEGER DEFAULT 0
+    )`);
+
+    // 7. Tabela Configurações do Sistema (Admin)
+    await db.run(`CREATE TABLE IF NOT EXISTS system_settings (
+        key TEXT PRIMARY KEY,
+        value TEXT
+    )`);
+    // Seed default fee
+    await db.run("INSERT OR IGNORE INTO system_settings (key, value) VALUES ('default_mining_fee', '500')");
+
+    // 8. Tabela Comissões de Mineração
+    await db.run(`CREATE TABLE IF NOT EXISTS comissoes_mineracao (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        imovel_id INTEGER,
+        minerador_id INTEGER, -- Quem cadastrou a oportunidade
+        assessor_venda_id INTEGER, -- Quem arrematou/vendeu
+        valor REAL,
+        status TEXT DEFAULT 'pendente', -- pendente, pago
+        data_geracao DATETIME DEFAULT CURRENT_TIMESTAMP,
+        data_pagamento DATETIME,
+        FOREIGN KEY(imovel_id) REFERENCES carteira_imoveis(id),
+        FOREIGN KEY(minerador_id) REFERENCES users(id),
+        FOREIGN KEY(assessor_venda_id) REFERENCES users(id)
     )`);
 
     console.log('✅ Tabelas verificadas/criadas com sucesso.');
@@ -565,6 +591,8 @@ async function ensureTables() {
             roi_estimado REAL,
             cidade TEXT,
             estado TEXT,
+            latitude REAL, -- Geo
+            longitude REAL, -- Geo
             tipo_imovel TEXT, -- Casa, Apto, etc
             
             -- Links e Midia
@@ -607,6 +635,12 @@ async function ensureTables() {
     } catch (e) {
         // Ignora erro se coluna já existir
     }
+
+    // Migração para adicionar 'pdf_analise_juridica' em oportunidades
+    try {
+        await db.exec("ALTER TABLE oportunidades ADD COLUMN pdf_analise_juridica TEXT");
+        console.log("Coluna 'pdf_analise_juridica' adicionada à tabela oportunidades.");
+    } catch (e) { }
 
     // Limpeza de tabelas antigas
     await db.exec('DROP TABLE IF EXISTS carteira_entries');
@@ -1507,16 +1541,36 @@ app.post('/perfil/reset-all-data', isAuthenticated, async (req, res) => {
 // Rota para o Histórico de Arremates
 app.get('/historico', isAuthenticated, async (req, res) => {
     try {
-        const arremates = await db.all('SELECT * FROM arremates WHERE user_id = ? ORDER BY data_arremate DESC', [req.session.userId]);
+        // Fetch from carteira_imoveis (Unified Wallet)
+        // Filter by user_id. We can decide if we want to show client properties here too, 
+        // but for "Meus Arremates" it usually implies own properties or ALL managed properties.
+        // Let's get ALL properties managed by this user (user_id = session)
+
+        const arremates = await db.all(`
+            SELECT * FROM carteira_imoveis 
+            WHERE user_id = ? 
+            ORDER BY data_aquisicao DESC
+        `, [req.session.userId]);
 
         // Formata o valor do arremate para o padrão de moeda brasileiro (BRL)
         const arrematesFormatados = arremates.map(item => {
             return {
                 ...item,
-                valor_formatado: item.valor_arremate.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+                // Map carteira fields to legacy arremate fields if needed by view
+                descricao_imovel: item.descricao, // map descricao -> descricao_imovel
+                data_arremate: item.data_aquisicao, // map data_aquisicao -> data_arremate
+                valor_formatado: (item.valor_compra || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+                status: item.status || 'Arrematado'
             };
         });
-        res.render('historico', { arremates: arrematesFormatados, user: getUserContext(req.session), username: req.session.username, email: req.session.email || 'Acesso de Lead', profile_pic_url: req.session.profile_pic_url });
+
+        res.render('historico', {
+            arremates: arrematesFormatados,
+            user: getUserContext(req.session),
+            username: req.session.username,
+            email: req.session.email || 'Acesso de Lead',
+            profile_pic_url: req.session.profile_pic_url
+        });
     } catch (error) {
         console.error('Erro ao buscar histórico:', error);
         res.status(500).send("Erro ao carregar o histórico.");
@@ -1642,6 +1696,30 @@ app.post('/historico/add', isAuthenticated, [
         );
 
         const imovelId = carteiraResult.lastID;
+
+        // --- COMISSÃO DE MINERAÇÃO (Lógica Automática) ---
+        // Verificar se esse arremate veio de uma oportunidade cadastrada
+        // Como o form manual não passa ID da oportunidade original, vamos tentar inferir pelo título/descrição 
+        // ou futuramente adicionar um hidden field 'origin_opportunity_id' no form.
+        // POR ENQUANTO: Se for manual, não gera comissão automática a menos que vinculemos explicitamente.
+        // ... Logica de vinculação será melhor aplicada na importação direta da Oportunidade -> Carteira.
+
+        // Se houver opportunity_id vindo do body (vamos adicionar isso no form editavel/importacao)
+        if (req.body.origin_opportunity_id) {
+            const originOp = await db.get('SELECT user_id FROM oportunidades WHERE id = ?', [req.body.origin_opportunity_id]);
+            if (originOp) {
+                // Get Default Fee
+                const feeSetting = await db.get("SELECT value FROM system_settings WHERE key = 'default_mining_fee'");
+                const feeValue = parseFloat(feeSetting?.value || 500);
+
+                await db.run(`INSERT INTO comissoes_mineracao (imovel_id, minerador_id, assessor_venda_id, valor, status) 
+                              VALUES (?, ?, ?, ?, 'pendente')`,
+                    [imovelId, originOp.user_id, req.session.userId, feeValue]);
+                console.log(`💰 Comissão de mineração gerada: R$ ${feeValue} para User ${originOp.user_id}`);
+            }
+        }
+
+
 
         // 3. Adiciona custos estimados na carteira (se existirem no cálculo)
         if (calc_custo_reforma && parseFloat(calc_custo_reforma) > 0) {
@@ -1999,12 +2077,14 @@ app.post('/oportunidades', isAuthenticated, upload.any(), async (req, res) => {
         let finalFotoCapa = foto_capa;
         let pdfPropostaPath = null;
         let pdfMatriculaPath = null;
+        let pdfAnaliseJuridicaPath = null;
 
         // Com upload.any(), req.files é um array
         if (req.files && req.files.length > 0) {
             const fotoUpload = req.files.find(f => f.fieldname === 'foto_upload');
             const pdfProposta = req.files.find(f => f.fieldname === 'pdf_proposta');
             const pdfMatricula = req.files.find(f => f.fieldname === 'pdf_matricula');
+            const pdfAnaliseJuridica = req.files.find(f => f.fieldname === 'pdf_analise_juridica');
 
             if (fotoUpload) {
                 finalFotoCapa = '/uploads/' + fotoUpload.filename;
@@ -2014,6 +2094,9 @@ app.post('/oportunidades', isAuthenticated, upload.any(), async (req, res) => {
             }
             if (pdfMatricula) {
                 pdfMatriculaPath = '/uploads/' + pdfMatricula.filename;
+            }
+            if (pdfAnaliseJuridica) {
+                pdfAnaliseJuridicaPath = '/uploads/' + pdfAnaliseJuridica.filename;
             }
         }
 
@@ -2026,13 +2109,14 @@ app.post('/oportunidades', isAuthenticated, upload.any(), async (req, res) => {
         await db.run(
             `INSERT INTO oportunidades (
                 user_id, titulo, descricao, valor_arremate, valor_venda, lucro_estimado, 
-                roi_estimado, cidade, estado, tipo_imovel, link_caixa, foto_capa, calculo_origem_id,
-                pdf_proposta, pdf_matricula
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                roi_estimado, cidade, estado, latitude, longitude, tipo_imovel, link_caixa, foto_capa, calculo_origem_id,
+                pdf_proposta, pdf_matricula, pdf_analise_juridica
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
                 req.session.userId, titulo, descricao, valorArremateNum, valorVendaNum, lucroEstimadoNum,
-                roiEstimadoNum, cidade, estado, tipo_imovel, link_caixa, finalFotoCapa, calculo_origem_id,
-                pdfPropostaPath, pdfMatriculaPath
+                roiEstimadoNum, cidade, estado, req.body.latitude || null, req.body.longitude || null,
+                tipo_imovel, link_caixa, finalFotoCapa, calculo_origem_id,
+                pdfPropostaPath, pdfMatriculaPath, pdfAnaliseJuridicaPath
             ]
         );
 
@@ -3335,31 +3419,55 @@ app.post('/api/leads/submit', async (req, res) => {
     try {
         const { nome, whatsapp, objetivo, experiencia, restricao_nome, capital_disponivel, preferencia_pgto, estado, cidade, interesse } = req.body;
 
-        // Scoring Logic (Simples)
-        let score = 50; // Começa com média
+        // --- Advanced Credit Score Algorithm (Bank Grade) ---
+        // Desenvolvido para qualificar leads com precisão bancária
+        let score = 0;
+        const capital = parseFloat(capital_disponivel || 0);
+        const isCash = preferencia_pgto === 'vista';
+        const isRestricted = restricao_nome === 'true'; // Vem como string 'true'/'false' do form
+        const hasExperience = experiencia === 'ja_arrematei';
 
-        // 0. Experiência
-        if (experiencia === 'ja_arrematei') score += 10;
+        // 1. Capacidade Financeira (Peso: 50%) - O Fator mais crítico
+        if (capital >= 1000000) score += 50;      // Whale (Baleia) - Atendimento VIP Imediato
+        else if (capital >= 500000) score += 40;  // High Net Worth
+        else if (capital >= 200000) score += 30;  // Standard Gold
+        else if (capital >= 100000) score += 20;  // Entry Level
+        else if (capital >= 50000) score += 10;   // Minimal Viable
 
-        // 1. Capital
-        if (capital_disponivel >= 200000) score += 30;
-        else if (capital_disponivel >= 50000) score += 15;
-        else score -= 10;
-
-        // 2. Pagamento
-        if (preferencia_pgto === 'vista') score += 10; // Cash is king
-
-        // 3. Restrição (Deal breaker for financing, but ok for cash)
-        const isRestricted = restricao_nome === 'true'; // Vem como string do form
-        if (isRestricted) {
-            score -= 20;
-            // Se tiver restrição mas muito dinheiro, ainda é bom
-            if (capital_disponivel < 50000) score -= 20; // Bad combo
+        // 2. Perfil de Liquidez (Peso: 20%) - Velocidade de Fechamento
+        if (isCash) {
+            score += 20; // Cash is King - Sem dependência de bancos
         } else {
-            score += 10;
+            // Financiado: Ciclo de venda 3x mais longo + Risco de reprovação
+            score += 5;
         }
 
-        // Cap score 0-100
+        // 3. Maturidade do Investidor (Peso: 20%) - Qualidade da Conversa
+        if (hasExperience) {
+            score += 20; // Já arrematou: Entende o processo, não precisa ser "educado"
+        } else if (objetivo === 'investir') {
+            score += 15; // Investidor racional: Decide por números
+        } else {
+            score += 5; // Moradia/Primeira vez: Compra emocional, muitas dúvidas
+        }
+
+        // 4. Qualidade dos Dados (Peso: 10%)
+        if (whatsapp && whatsapp.replace(/\D/g, '').length >= 10) score += 5;
+        if (estado && estado.length === 2 && cidade) score += 5;
+
+        // --- Penalidades de Risco (Lógica de Bureau) ---
+        if (isRestricted) {
+            if (isCash) {
+                // Se paga à vista, restrição importa pouco (apenas compliance/burocracia menor)
+                score -= 5;
+            } else {
+                // Se quer financiar com nome sujo, a chance de êxito é < 5%
+                // Penalidade severa para não iludir o time de vendas
+                score -= 40;
+            }
+        }
+
+        // Normalização (0 a 100)
         score = Math.min(100, Math.max(0, score));
 
         // Save to DB
@@ -3712,6 +3820,141 @@ app.post('/api/portfolio/imoveis/:id/lancar-mensais', isAuthenticated, async (re
 });
 
 // API para dados do Dashboard
+// --- ROTAS DE GERENCIAMENTO DE COMISSÕES ---
+
+// 1. Admin: Alterar taxa padrão de mineração
+app.post('/api/admin/config/mining-fee', isAuthenticated, async (req, res) => {
+    if (!req.session.isAdmin) return res.status(403).json({ error: 'Apenas admin' });
+    const { fee } = req.body;
+    await db.run("UPDATE system_settings SET value = ? WHERE key = 'default_mining_fee'", [fee]);
+    res.json({ success: true });
+});
+
+app.get('/api/admin/config/mining-fee', isAuthenticated, async (req, res) => {
+    const s = await db.get("SELECT value FROM system_settings WHERE key = 'default_mining_fee'");
+    res.json({ fee: s?.value || 500 });
+});
+
+// 2. Assessor: Ver minhas comissões (Receber e Pagar?)
+// Foco no "Receber" (Minerações que eu fiz e outros venderam)
+app.get('/api/financeiro/minhas-mineracoes', isAuthenticated, async (req, res) => {
+    try {
+        const rows = await db.all(`
+            SELECT c.*, u.username as vendedor, i.descricao as imovel_desc,
+                   strftime('%d/%m/%Y', c.data_geracao) as data_fmt
+            FROM comissoes_mineracao c
+            JOIN users u ON c.assessor_venda_id = u.id
+            JOIN carteira_imoveis i ON c.imovel_id = i.id
+            WHERE c.minerador_id = ?
+            ORDER BY c.data_geracao DESC
+        `, [req.session.userId]);
+
+        let totalRecebido = 0;
+        let totalReceber = 0;
+        rows.forEach(r => {
+            if (r.status === 'pago') totalRecebido += r.valor;
+            else totalReceber += r.valor;
+        });
+
+        res.json({ rows, totalRecebido, totalReceber });
+    } catch (e) {
+        console.error(e);
+        res.status(500).json({ error: 'Erro' });
+    }
+});
+
+// 3. Marcar como pago (O próprio minerador confirma que recebeu)
+app.post('/api/financeiro/confirmar-pagamento/:id', isAuthenticated, async (req, res) => {
+    try {
+        // Verifica se pertence ao usuario
+        const comissao = await db.get('SELECT * FROM comissoes_mineracao WHERE id = ? AND minerador_id = ?', [req.params.id, req.session.userId]);
+        if (!comissao) return res.status(404).json({ error: 'Não encontrado' });
+
+        await db.run("UPDATE comissoes_mineracao SET status = 'pago', data_pagamento = CURRENT_TIMESTAMP WHERE id = ?", [req.params.id]);
+        res.json({ success: true });
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// 4. Endpoint para "Arrematar" direto da oportunidade (Gera Carteira + Comissão Linkada)
+// 4. Endpoint para "Arrematar" direto da oportunidade (Entra na carteira como "Em Andamento")
+app.post('/api/oportunidades/:id/arrematar', isAuthenticated, async (req, res) => {
+    try {
+        const op = await db.get('SELECT * FROM oportunidades WHERE id = ?', [req.params.id]);
+        if (!op) return res.status(404).json({ error: 'Op não encontrada' });
+
+        const { cliente_id } = req.body;
+
+        // Inserir na carteira do usuario logado (quem 'pegou' a oportunidade)
+        // Status inicial: 'Em Andamento'
+        // Salva quem minerou (op.user_id) em minerador_original_id
+        await db.run(`
+            INSERT INTO carteira_imoveis (
+                user_id, descricao, endereco, valor_compra, valor_venda_estimado, 
+                status, lucro_estimado, roi_estimado, data_aquisicao, minerador_original_id, cliente_id
+            )
+            VALUES (?, ?, ?, ?, ?, 'Em Andamento', ?, ?, ?, ?, ?)
+        `, [
+            req.session.userId,
+            op.titulo,
+            (op.cidade + ' - ' + op.estado),
+            op.valor_arremate,
+            op.valor_venda,
+            op.lucro_estimado,
+            op.roi_estimado,
+            new Date().toISOString().split('T')[0],
+            op.user_id, // Salva ID do minerador para pagar depois
+            cliente_id || null // Add client ID if provided
+        ]);
+
+        // Marcar OP como 'reservada' ou 'vendido'
+        await db.run("UPDATE oportunidades SET status = 'vendido' WHERE id = ?", [op.id]);
+
+        res.json({ success: true, message: 'Imóvel adicionado à carteira do cliente como "Em Andamento".' });
+
+    } catch (e) {
+        console.error(e);
+        res.status(500).json({ error: 'Erro ao processar' });
+    }
+});
+
+// 5. Finalizar Arremate (Na Carteira) -> Gera Comissão
+app.post('/api/carteira/:id/finalizar-arremate', isAuthenticated, async (req, res) => {
+    try {
+        const imovel = await db.get('SELECT * FROM carteira_imoveis WHERE id = ? AND user_id = ?', [req.params.id, req.session.userId]);
+        if (!imovel) return res.status(404).json({ error: 'Imovel não encontrado' });
+
+        if (imovel.status === 'Arrematado') return res.status(400).json({ error: 'Já está arrematado' });
+
+        // Atualiza status local
+        await db.run("UPDATE carteira_imoveis SET status = 'Arrematado' WHERE id = ?", [req.params.id]);
+
+        // Verifica se tem comissão pendente (se tem minerador original e é diferente do dono atual)
+        if (imovel.minerador_original_id && imovel.minerador_original_id != req.session.userId) {
+
+            // Check se já existe comissão para este imóvel (evitar duplos cliques)
+            const exists = await db.get('SELECT id FROM comissoes_mineracao WHERE imovel_id = ?', [imovel.id]);
+
+            if (!exists) {
+                const feeSetting = await db.get("SELECT value FROM system_settings WHERE key = 'default_mining_fee'");
+                const feeValue = parseFloat(feeSetting?.value || 500);
+
+                await db.run(`INSERT INTO comissoes_mineracao (imovel_id, minerador_id, assessor_venda_id, valor, status) 
+                              VALUES (?, ?, ?, ?, 'pendente')`,
+                    [imovel.id, imovel.minerador_original_id, req.session.userId, feeValue]);
+
+                console.log(`💰 Comissão Gerada (Finalização): R$${feeValue} para ${imovel.minerador_original_id}`);
+                return res.json({ success: true, message: 'Arremate confirmado e comissão gerada!' });
+            }
+        }
+
+        res.json({ success: true, message: 'Arremate confirmado!' });
+
+    } catch (e) {
+        console.error(e);
+        res.status(500).json({ error: 'Erro ao finalizar' });
+    }
+});
+
 // Aplicar rate limiter em todas as rotas /api/*
 app.use('/api/', apiLimiter);
 

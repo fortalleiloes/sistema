@@ -151,16 +151,82 @@
                                         <tr class="hover:bg-[var(--macos-bg-secondary)] transition-colors group lead-row"
                                             data-state="<%= lead.estado || '' %>"
                                             data-tracking="<%= lead.whatsapp %>|<%= lead.fingerprint || '' %>">
-                                            <!-- Score -->
+                                            <!-- Score (Advanced Tier UI) -->
                                             <td class="p-4">
-                                                <div class="flex items-center gap-2">
-                                                    <div class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm
-                                                    <%= lead.score >= 80 ? 'bg-green-500/20 text-green-500' : 
-                                                       lead.score >= 50 ? 'bg-yellow-500/20 text-yellow-500' : 
-                                                       'bg-red-500/20 text-red-500' %>">
-                                                        <%= lead.score %>
+                                                <% let tierColor='text-gray-400' ; let tierBg='bg-gray-500/10' ; let
+                                                    tierRing='stroke-gray-500/30' ; let icon='' ; let label='Bronze' ;
+                                                    if (lead.score>= 90) {
+                                                    tierColor = 'text-purple-400';
+                                                    tierBg = 'bg-purple-500/10';
+                                                    tierRing = 'stroke-purple-500';
+                                                    icon = 'fa-crown';
+                                                    label = 'Diamond';
+                                                    } else if (lead.score >= 70) {
+                                                    tierColor = 'text-emerald-400';
+                                                    tierBg = 'bg-emerald-500/10';
+                                                    tierRing = 'stroke-emerald-500';
+                                                    icon = 'fa-bolt';
+                                                    label = 'Gold';
+                                                    } else if (lead.score >= 50) {
+                                                    tierColor = 'text-amber-400';
+                                                    tierBg = 'bg-amber-500/10';
+                                                    tierRing = 'stroke-amber-500';
+                                                    icon = 'fa-star';
+                                                    label = 'Silver';
+                                                    }
+
+                                                    // SVG calc
+                                                    const radius = 18;
+                                                    const circumference = 2 * Math.PI * radius;
+                                                    const offset = circumference - ((lead.score / 100) * circumference);
+                                                    %>
+                                                    <div class="flex items-center gap-3">
+                                                        <div
+                                                            class="relative w-12 h-12 flex items-center justify-center">
+                                                            <!-- Background Ring -->
+                                                            <svg class="w-full h-full transform -rotate-90">
+                                                                <circle cx="24" cy="24" r="<%= radius %>"
+                                                                    stroke="currentColor" stroke-width="3"
+                                                                    fill="transparent"
+                                                                    class="text-[var(--macos-bg-tertiary)]" />
+                                                                <!-- Progress Ring -->
+                                                                <circle cx="24" cy="24" r="<%= radius %>"
+                                                                    stroke="currentColor" stroke-width="3"
+                                                                    fill="transparent"
+                                                                    stroke-dasharray="<%= circumference %>"
+                                                                    stroke-dashoffset="<%= offset %>"
+                                                                    stroke-linecap="round"
+                                                                    class="<%= tierRing %> drop-shadow-md transition-all duration-1000 ease-out" />
+                                                            </svg>
+
+                                                            <!-- Score Number -->
+                                                            <div
+                                                                class="absolute inset-0 flex items-center justify-center flex-col">
+                                                                <span class="text-xs font-black <%= tierColor %>">
+                                                                    <%= lead.score %>
+                                                                </span>
+                                                            </div>
+                                                        </div>
+
+                                                        <!-- Label & Icon -->
+                                                        <div class="flex flex-col">
+                                                            <span
+                                                                class="text-[10px] uppercase font-bold tracking-wider <%= tierColor %> opacity-90">
+                                                                <%= label %>
+                                                            </span>
+                                                            <% if (lead.score>= 70) { %>
+                                                                <span
+                                                                    class="text-[9px] text-[var(--macos-text-tertiary)] flex items-center gap-1">
+                                                                    <i class="fa-solid <%= icon %> text-[9px]"></i> Alta
+                                                                    Prioridade
+                                                                </span>
+                                                                <% } else { %>
+                                                                    <span
+                                                                        class="text-[9px] text-[var(--macos-text-tertiary)]">Lead
+                                                                        Comum</span>
+                                                                    <% } %>
+                                                        </div>
                                                     </div>
-                                                </div>
                                             </td>
 
                                             <!-- Nome -->

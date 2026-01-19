@@ -207,8 +207,7 @@
                                                                         Date(item.data_arremate).toLocaleDateString('pt-BR',
                                                                         {timeZone: 'UTC' }) %>
                                                                         <span style="margin: 0 8px;">•</span>
-                                                                        <%= item.leiloeiro || 'Leiloeiro não informado'
-                                                                            %>
+                                                                        <%= item.leiloeiro || 'Carteira Pessoal' %>
                                                                 </p>
                                                             </div>
                                                             <div style="text-align: right;">
@@ -216,20 +215,34 @@
                                                                     style="font-size: 16px; font-weight: 600; color: var(--macos-text-primary);">
                                                                     <%= item.valor_formatado %>
                                                                 </p>
-                                                                <span
-                                                                    style="font-size: 11px; font-weight: 600; color: #34C759; background: rgba(52, 199, 89, 0.1); padding: 2px 6px; border-radius: 4px;">Arrematado</span>
+                                                                <% if (item.status==='Em Andamento' ) { %>
+                                                                    <span
+                                                                        style="font-size: 11px; font-weight: 600; color: #f59e0b; background: rgba(245, 158, 11, 0.1); padding: 2px 6px; border-radius: 4px;">Em
+                                                                        Andamento</span>
+                                                                    <% } else { %>
+                                                                        <span
+                                                                            style="font-size: 11px; font-weight: 600; color: #34C759; background: rgba(52, 199, 89, 0.1); padding: 2px 6px; border-radius: 4px;">Arrematado</span>
+                                                                        <% } %>
                                                             </div>
                                                         </div>
                                                     </div>
 
                                                     <!-- Ações -->
                                                     <div style="display: flex; gap: 8px;">
-                                                        <a href="/historico/edit/<%= item.id %>"
-                                                            class="macos-btn-secondary"
-                                                            style="padding: 6px 10px; font-size: 13px;">
-                                                            <i class="fa-solid fa-pen-to-square"></i>
-                                                        </a>
+                                                        <% if (item.status==='Em Andamento' ) { %>
+                                                            <button onclick="confirmarArremate('<%= item.id %>')"
+                                                                class="macos-btn-primary"
+                                                                style="padding: 6px 10px; font-size: 12px; background: #34C759; border-color: #34C759;"
+                                                                title="Confirmar Arremate">
+                                                                <i class="fa-solid fa-check"></i> Confirmar
+                                                            </button>
+                                                            <% } %>
 
+                                                                <a href="/historico/edit/<%= item.id %>"
+                                                                    class="macos-btn-secondary"
+                                                                    style="padding: 6px 10px; font-size: 13px;">
+                                                                    <i class="fa-solid fa-pen-to-square"></i>
+                                                                </a>
                                                     </div>
                                                 </div>
                                                 <% }); %>
@@ -299,7 +312,7 @@
                         openModalBtn.addEventListener('click', async (e) => {
                             e.preventDefault(); // Prevent form submit
                             e.stopPropagation(); // Prevent bubbling
-                            
+
                             modal.style.display = 'flex';
                             calcListDiv.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--macos-text-secondary);">Carregando...</div>';
 
@@ -316,13 +329,13 @@
                                     let data = {};
                                     try {
                                         data = typeof calc.data === 'string' ? JSON.parse(calc.data) : calc.data;
-                                    } catch(e) { console.error("Error parsing calc data", e); }
-                                    
+                                    } catch (e) { console.error("Error parsing calc data", e); }
+
                                     const valor = (data.valorArrematado || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-                                    
+
                                     // Serialize safely for data attribute
                                     const safeData = typeof calc.data === 'string' ? calc.data.replace(/'/g, "&apos;") : JSON.stringify(calc.data).replace(/'/g, "&apos;");
-                                    
+
                                     return `
                             <div class="macos-list-item" style="cursor: pointer; padding: 16px 20px;" data-calc='${safeData}' data-calc-name='${calc.name.replace(/'/g, "&apos;")}'>
                                 <div class="macos-list-item-icon" style="background: var(--macos-accent); color: white;">
@@ -515,6 +528,24 @@
                         }, 600); // Espera 600ms para o usuário ver o "Carregado!"
                     });
                 });
+
+                async function confirmarArremate(id) {
+                    if (!confirm('Deseja oficializar o arremate deste imóvel? Isso irá gerar a comissão para o minerador original (se houver).')) return;
+
+                    try {
+                        const res = await fetch(`/api/carteira/${id}/finalizar-arremate`, { method: 'POST' });
+                        const data = await res.json();
+                        if (data.success) {
+                            alert(data.message);
+                            window.location.reload();
+                        } else {
+                            alert('Erro: ' + (data.error || 'Desconhecido'));
+                        }
+                    } catch (e) {
+                        alert('Erro de conexão ao finalizar arremate.');
+                        console.error(e);
+                    }
+                }
             </script>
 
 </html>

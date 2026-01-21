@@ -283,8 +283,9 @@ const upload = multer({
     storage: storage,
     fileFilter: fileFilter,
     limits: {
-        fileSize: 5 * 1024 * 1024, // 5MB máximo por arquivo
-        files: 10 // Até 10 arquivos por requisição
+        fileSize: 10 * 1024 * 1024, // Aumentado para 10MB
+        files: 20, // Aumentado para 20
+        fields: 100 // Limite de campos de texto
     }
 });
 
@@ -1385,11 +1386,42 @@ app.get('/', isAuthenticated, async (req, res) => {
             };
         }
 
-        // 6% Commission Assumption - TODO: Refine this logic based on individual property commission data if available
-        // User requested careful analysis of this value. Currently using flat 6% on VGV.
-        const estimatedCommission = vgvManagement * 0.06;
-        if (vgvManagement > 0) {
-            console.warn(`⚠️  Commission Audit: Calculating 6% on VGV of ${vgvManagement}. Result: ${estimatedCommission}. Verify if this aligns with advisor contract.`);
+        // --- CALCULO DE COMISSÕES DETALHADO ---
+
+        let commissionDetails = [];
+        let totalCommission = 0;
+
+        // 1. Mineração (Estudos Adicionados) - R$ 500,00 fixo por estudo
+        try {
+            const userOpps = await db.all("SELECT id, titulo, created_at FROM oportunidades WHERE user_id = ?", [req.session.userId]);
+            userOpps.forEach(op => {
+                const val = 500.00;
+                commissionDetails.push({
+                    tipo: 'Mineração (Estudo)',
+                    descricao: op.titulo || 'Oportunidade #' + op.id,
+                    data: op.created_at,
+                    valor: val
+                });
+                totalCommission += val;
+            });
+        } catch (e) { console.error('Erro calc comissao mineracao:', e); }
+
+        // 2. Corretagem (Gestão de Carteira) - 6% do VGV dos clientes ativos
+        if (typeof properties !== 'undefined') {
+            properties.forEach(p => {
+                // Se o imóvel tem valor de venda estimado, calcula 6%
+                const vgv = p.valor_venda_estimado || 0;
+                if (vgv > 0) {
+                    const val = vgv * 0.06;
+                    commissionDetails.push({
+                        tipo: 'Corretagem (Venda)',
+                        descricao: p.descricao || 'Imóvel Carteira #' + p.id,
+                        data: p.created_at || new Date(),
+                        valor: val
+                    });
+                    totalCommission += val;
+                }
+            });
         }
 
         // --- Blacklist Logic Implementation ---
@@ -1438,7 +1470,7 @@ app.get('/', isAuthenticated, async (req, res) => {
 
         const advisorStats = {
             vgv_gestao: vgvManagement,
-            comissao_prevista: estimatedCommission,
+            comissao_prevista: totalCommission, // Atualizado com cálculo detalhado
             clientes_ativos: activeClients,
             total_imoveis: totalProperties,
             leads_waiting: validLeadsCount, // Only valid ones shown in main counter
@@ -1452,7 +1484,8 @@ app.get('/', isAuthenticated, async (req, res) => {
             ...baseContext,
             stats: advisorStats,
             growth: growthData,
-            recentProperties: recentProperties
+            recentProperties: recentProperties,
+            commissionDetails: commissionDetails // NEW: Passa o detalhamento
         });
     } catch (error) {
         console.error('❌ ERRO CRÍTICO NO DASHBOARD:', error.message);
@@ -2016,7 +2049,7 @@ app.get('/oportunidades', isAuthenticated, async (req, res) => {
 
         // Busca oportunidades COM o nome do assessor (JOIN)
         const oportunidades = await db.all(`
-            SELECT oportunidades.*, users.username as autor 
+            SELECT oportunidades.*, users.username as autor, users.email as autor_email
             FROM oportunidades 
             LEFT JOIN users ON oportunidades.user_id = users.id 
             ORDER BY oportunidades.created_at DESC
@@ -2107,11 +2140,11 @@ app.post('/oportunidades', isAuthenticated, upload.any(), async (req, res) => {
         const roiEstimadoNum = parseFloat(roi_estimado) || 0;
 
         await db.run(
-            `INSERT INTO oportunidades (
-                user_id, titulo, descricao, valor_arremate, valor_venda, lucro_estimado, 
-                roi_estimado, cidade, estado, latitude, longitude, tipo_imovel, link_caixa, foto_capa, calculo_origem_id,
-                pdf_proposta, pdf_matricula, pdf_analise_juridica
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            `INSERT INTO oportunidades(
+            user_id, titulo, descricao, valor_arremate, valor_venda, lucro_estimado,
+            roi_estimado, cidade, estado, latitude, longitude, tipo_imovel, link_caixa, foto_capa, calculo_origem_id,
+            pdf_proposta, pdf_matricula, pdf_analise_juridica
+        ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
                 req.session.userId, titulo, descricao, valorArremateNum, valorVendaNum, lucroEstimadoNum,
                 roiEstimadoNum, cidade, estado, req.body.latitude || null, req.body.longitude || null,
@@ -2157,15 +2190,15 @@ app.post('/api/oportunidades/save-from-proposal', isAuthenticated, upload.none()
         // Por enquanto, vamos focar nos dados estruturados.
 
         const result = await db.run(`
-            INSERT INTO oportunidades (
-                user_id, titulo, descricao, valor_arremate, valor_venda, 
-                lucro_estimado, roi_estimado, cidade, estado, tipo_imovel, 
-                link_caixa, foto_capa, status
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'disponivel')
+            INSERT INTO oportunidades(
+            user_id, titulo, descricao, valor_arremate, valor_venda,
+            lucro_estimado, roi_estimado, cidade, estado, tipo_imovel,
+            link_caixa, foto_capa, status
+        ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'disponivel')
         `, [
             req.session.userId,
             titulo || 'Oportunidade sem Título',
-            `Imóvel estudado. ROI: ${roiEstimadoNum}%`,
+            `Imóvel estudado.ROI: ${roiEstimadoNum}% `,
             valorArremateNum,
             valorVendaNum,
             lucroEstimadoNum,
@@ -2325,7 +2358,7 @@ app.post('/calculadora/salvar', isAuthenticated, [
         } else {
             // Salvar novo cálculo
             await db.run(
-                `INSERT INTO saved_calculations (user_id, name, data) VALUES (?, ?, ?)`,
+                `INSERT INTO saved_calculations(user_id, name, data) VALUES(?, ?, ?)`,
                 [req.session.userId, calculationName, JSON.stringify(inputData)] // Salva o objeto de dados brutos
             );
         }
@@ -2383,12 +2416,12 @@ async function getPortfolioData(userId) {
     // 1. Fetch Imoveis with Aggregated Costs
     const imoveis = await db.all(`
         SELECT
-            i.*,
+        i.*,
             (i.valor_compra + IFNULL((SELECT SUM(c.valor) FROM carteira_custos c WHERE c.imovel_id = i.id), 0)) as total_investido,
-            IFNULL((SELECT SUM(c.valor) FROM carteira_custos c WHERE c.imovel_id = i.id), 0) as total_custos
+    IFNULL((SELECT SUM(c.valor) FROM carteira_custos c WHERE c.imovel_id = i.id), 0) as total_custos
         FROM carteira_imoveis i
         WHERE i.user_id = ?
-        ORDER BY i.data_aquisicao DESC
+    ORDER BY i.data_aquisicao DESC
     `, [userId]);
 
     // 2. Fetch Helper Data for Healing
@@ -2553,7 +2586,7 @@ async function getPortfolioData(userId) {
                     }
                 }
             } catch (e) {
-                console.warn(`Data inválida para imóvel ${imovel.id}:`, imovel.data_aquisicao);
+                console.warn(`Data inválida para imóvel ${imovel.id}: `, imovel.data_aquisicao);
             }
         }
     });
@@ -2575,17 +2608,17 @@ async function getPortfolioData(userId) {
 app.get('/api/clientes', isAuthenticated, async (req, res) => {
     try {
         const clientes = await db.all(`
-            SELECT 
-                c.*,
-                COUNT(DISTINCT ci.id) as total_imoveis,
-                COALESCE(SUM(ci.valor_compra), 0) as total_investido,
-                COALESCE(SUM(ci.valor_venda_estimado), 0) as total_valor_venda
+SELECT
+c.*,
+    COUNT(DISTINCT ci.id) as total_imoveis,
+    COALESCE(SUM(ci.valor_compra), 0) as total_investido,
+    COALESCE(SUM(ci.valor_venda_estimado), 0) as total_valor_venda
             FROM clientes c
             LEFT JOIN carteira_imoveis ci ON c.id = ci.cliente_id
             WHERE c.assessor_id = ?
-            GROUP BY c.id
+    GROUP BY c.id
             ORDER BY c.created_at DESC
-        `, [req.session.userId]);
+    `, [req.session.userId]);
 
         // Calcular ROI médio para cada cliente
         const clientesComROI = await Promise.all(clientes.map(async (cliente) => {
@@ -2640,9 +2673,9 @@ app.post('/api/clientes', isAuthenticated, async (req, res) => {
         }
 
         const result = await db.run(`
-            INSERT INTO clientes (assessor_id, nome, cpf, email, telefone, status, data_inicio, observacoes)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        `, [
+            INSERT INTO clientes(assessor_id, nome, cpf, email, telefone, status, data_inicio, observacoes)
+VALUES(?, ?, ?, ?, ?, ?, ?, ?)
+    `, [
             req.session.userId,
             nome,
             cpf || null,
@@ -2729,10 +2762,10 @@ app.put('/api/clientes/:id', isAuthenticated, async (req, res) => {
 
         await db.run(`
             UPDATE clientes 
-            SET nome = ?, cpf = ?, email = ?, telefone = ?, status = ?, 
-                data_inicio = ?, observacoes = ?, updated_at = CURRENT_TIMESTAMP
+            SET nome = ?, cpf = ?, email = ?, telefone = ?, status = ?,
+    data_inicio = ?, observacoes = ?, updated_at = CURRENT_TIMESTAMP
             WHERE id = ?
-        `, [nome, cpf, email, telefone, status, data_inicio, observacoes, clienteId]);
+    `, [nome, cpf, email, telefone, status, data_inicio, observacoes, clienteId]);
 
         res.json({ success: true });
     } catch (error) {
@@ -2775,7 +2808,7 @@ app.delete('/api/clientes/:id', isAuthenticated, async (req, res) => {
                 UPDATE leads 
                 SET status = 'novo', claimed_by = NULL 
                 WHERE whatsapp = ? AND claimed_by = ?
-            `, [cliente.telefone, req.session.userId]);
+    `, [cliente.telefone, req.session.userId]);
         }
 
         await db.run('DELETE FROM clientes WHERE id = ?', [clienteId]);
@@ -2798,7 +2831,7 @@ app.delete('/api/carteira/:id', isAuthenticated, async (req, res) => {
             FROM carteira_imoveis ci
             JOIN clientes c ON ci.cliente_id = c.id
             WHERE ci.id = ? AND c.assessor_id = ?
-        `, [imovelId, req.session.userId]);
+    `, [imovelId, req.session.userId]);
 
         // Fallback: verificar se pertence diretamente ao assessor (caso legado ou sem cliente)
         const imovelDireto = await db.get(
@@ -2921,16 +2954,16 @@ app.get('/carteira', isAuthenticated, async (req, res) => {
     try {
         // Buscar todos os clientes do assessor com estatísticas
         const clientes = await db.all(`
-            SELECT 
-                c.*,
-                COUNT(DISTINCT ci.id) as total_imoveis,
-                COALESCE(SUM(ci.valor_compra), 0) as total_investido
+            SELECT
+c.*,
+    COUNT(DISTINCT ci.id) as total_imoveis,
+    COALESCE(SUM(ci.valor_compra), 0) as total_investido
             FROM clientes c
             LEFT JOIN carteira_imoveis ci ON c.id = ci.cliente_id
             WHERE c.assessor_id = ?
-            GROUP BY c.id
+    GROUP BY c.id
             ORDER BY c.created_at DESC
-        `, [req.session.userId]);
+    `, [req.session.userId]);
 
         // Calcular KPIs consolidados de todos os clientes
         let totalImoveisGeral = 0;
@@ -3115,13 +3148,13 @@ app.get('/cliente/:id', isAuthenticated, async (req, res) => {
 
         // Buscar histórico de custos mensais
         const custosPorMes = await db.all(`
-            SELECT 
-                strftime('%Y-%m', cc.data_custo) as mes,
-                SUM(cc.valor) as total
+SELECT
+strftime('%Y-%m', cc.data_custo) as mes,
+    SUM(cc.valor) as total
             FROM carteira_custos cc
             INNER JOIN carteira_imoveis ci ON cc.imovel_id = ci.id
             WHERE ci.cliente_id = ?
-            GROUP BY mes
+    GROUP BY mes
             ORDER BY mes DESC
             LIMIT 12
         `, [clienteId]);
@@ -3290,7 +3323,7 @@ app.post('/carteira/edit/:id', isAuthenticated, async (req, res) => {
         await db.run(
             `UPDATE carteira_imoveis 
              SET descricao = ?, endereco = ?, status = ?, valor_compra = ?, valor_venda_estimado = ?, data_aquisicao = ?, observacoes = ?, condominio_estimado = ?, iptu_estimado = ?, lucro_estimado = ?, roi_estimado = ?
-             WHERE id = ? AND user_id = ?`,
+    WHERE id = ? AND user_id = ? `,
             [
                 descricao,
                 endereco,
@@ -3307,7 +3340,7 @@ app.post('/carteira/edit/:id', isAuthenticated, async (req, res) => {
                 req.session.userId
             ]
         );
-        res.redirect(`/carteira/${req.params.id}`);
+        res.redirect(`/ carteira / ${req.params.id} `);
     } catch (error) {
         console.error('Erro ao atualizar imóvel:', error);
         res.status(500).send("Erro ao salvar alterações.");
@@ -3326,12 +3359,12 @@ app.get('/debug/force-heal', isAuthenticated, async (req, res) => {
         logs.push(`Found ${imoveis.length} imoveis, ${savedCalcs.length} saved calcs, ${arremates.length} arremates.`);
 
         for (let imovel of imoveis) {
-            logs.push(`Checking Imovel ${imovel.id} (${imovel.descricao})... Venda: ${imovel.valor_venda_estimado}, Cond: ${imovel.condominio_estimado}`);
+            logs.push(`Checking Imovel ${imovel.id} (${imovel.descricao})...Venda: ${imovel.valor_venda_estimado}, Cond: ${imovel.condominio_estimado} `);
 
             // Level 1: Arremates
             const arremate = arremates.find(a => a.descricao_imovel === imovel.descricao);
             if (arremate) {
-                logs.push(`  -> Found Arremate Match (L1): ID ${arremate.id}. Venda: ${arremate.calc_valor_venda}`);
+                logs.push(`  -> Found Arremate Match(L1): ID ${arremate.id}.Venda: ${arremate.calc_valor_venda} `);
                 if (arremate.calc_valor_venda > 0) {
                     await db.run('UPDATE carteira_imoveis SET valor_venda_estimado = ? WHERE id = ?', [arremate.calc_valor_venda, imovel.id]);
                     logs.push(`  -> UPDATED Venda from Arremate.`);
@@ -3348,7 +3381,7 @@ app.get('/debug/force-heal', isAuthenticated, async (req, res) => {
 
             if (match) {
                 const data = JSON.parse(match.data);
-                logs.push(`  -> Found SavedCalc Match (L2): ID ${match.id}. Venda: ${data.valorVendaFinal}, Cond: ${data.condominioMensal}`);
+                logs.push(`  -> Found SavedCalc Match(L2): ID ${match.id}.Venda: ${data.valorVendaFinal}, Cond: ${data.condominioMensal} `);
 
                 await db.run('UPDATE carteira_imoveis SET valor_venda_estimado = ?, condominio_estimado = ?, iptu_estimado = ? WHERE id = ?',
                     [parseFloat(data.valorVendaFinal) || imovel.valor_venda_estimado,
@@ -3386,7 +3419,7 @@ app.get('/api/portfolio/dashboard', isAuthenticated, async (req, res) => {
             SELECT tipo_custo, SUM(valor) as total
             FROM carteira_custos
             WHERE user_id = ?
-            GROUP BY tipo_custo
+    GROUP BY tipo_custo
         `, [req.session.userId]);
 
         res.json({
@@ -3476,12 +3509,12 @@ app.post('/api/leads/submit', async (req, res) => {
         const fingerprint = req.body.fingerprint || null;
 
         await db.run(`
-        INSERT INTO leads (
-            nome, whatsapp, objetivo, experiencia, restricao_nome, 
+        INSERT INTO leads(
+            nome, whatsapp, objetivo, experiencia, restricao_nome,
             capital_entrada, preferencia_pgto, estado, cidade, interesse, score,
             ip_address, fingerprint
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `, [
+        ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            `, [
             nome,
             whatsapp,
             objetivo,
@@ -3514,15 +3547,15 @@ app.post('/api/leads/submit', async (req, res) => {
 app.get('/admin/leads-history', isAuthenticated, async (req, res) => {
     try {
         const leads = await db.all(`
-            SELECT 
-                l.*, 
-                u.username as assessor_nome,
-                u.profile_pic_url as assessor_pic
+SELECT
+l.*,
+    u.username as assessor_nome,
+    u.profile_pic_url as assessor_pic
             FROM leads l 
             LEFT JOIN users u ON l.claimed_by = u.id 
             WHERE l.status != 'novo' 
             ORDER BY l.updated_at DESC
-        `);
+    `);
 
         res.render('leads_history', {
             leads,
@@ -3544,7 +3577,7 @@ app.get('/leads', isAuthenticated, async (req, res) => {
         // Ordena por Score (Melhores primeiro)
         // 1. Fetch leads 'novo'
         const allLeads = await db.all(`
-            SELECT * FROM leads 
+SELECT * FROM leads 
             WHERE status = 'novo' 
             ORDER BY score DESC, created_at DESC
         `);
@@ -3614,7 +3647,7 @@ app.get('/leads', isAuthenticated, async (req, res) => {
             }
 
             if (isDuplicate) {
-                console.log(`🚫 Blacklist: ${lead.nome} - Motivo: ${reason}`);
+                console.log(`🚫 Blacklist: ${lead.nome} - Motivo: ${reason} `);
                 lead.blacklist_reason = reason;
                 blacklistLeads.push(lead);
                 blacklistValue += potentialValue;
@@ -3676,15 +3709,15 @@ app.post('/api/leads/claim/:id', isAuthenticated, async (req, res) => {
 
         // 3. Cria automaticamente o registro na tabela 'clientes' do assessor
         await db.run(`
-            INSERT INTO clientes (
-                assessor_id, nome, email, telefone, status, data_inicio, observacoes
-            ) VALUES (?, ?, ?, ?, 'ativo', date('now'), ?)
+            INSERT INTO clientes(
+    assessor_id, nome, email, telefone, status, data_inicio, observacoes
+) VALUES(?, ?, ?, ?, 'ativo', date('now'), ?)
         `, [
             advisorId,
             lead.nome,
             'email@pendente.com', // Placeholder 
             lead.whatsapp,
-            `Lead vindo do Funil (Score: ${lead.score}). Objetivo: ${lead.objetivo}. Capital: ${(lead.capital_entrada || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`
+            `Lead vindo do Funil(Score: ${lead.score}).Objetivo: ${lead.objetivo}.Capital: ${(lead.capital_entrada || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} `
         ]);
 
         console.log(`✅ Assessor ${advisorId} puxou o lead ${leadId} (${lead.nome})`);
@@ -3744,7 +3777,7 @@ app.get('/api/portfolio/imoveis/:id', isAuthenticated, async (req, res) => {
 app.post('/api/portfolio/imoveis/:id/custos', isAuthenticated, async (req, res) => {
     try {
         const { tipo_custo, descricao, valor, data_custo } = req.body;
-        console.log(`📝 Recebendo novo custo: Imóvel = ${req.params.id}, Tipo = ${tipo_custo}, Valor = ${valor}, Data = ${data_custo}`);
+        console.log(`📝 Recebendo novo custo: Imóvel = ${req.params.id}, Tipo = ${tipo_custo}, Valor = ${valor}, Data = ${data_custo} `);
         if (!tipo_custo || !valor) return res.status(400).json({ error: 'Tipo e valor do custo são obrigatórios' });
 
         const today = new Date().toISOString().split('T')[0];
@@ -3793,7 +3826,7 @@ app.post('/api/portfolio/imoveis/:id/lancar-mensais', isAuthenticated, async (re
         if (imovel.condominio_estimado > 0) {
             await db.run(
                 'INSERT INTO carteira_custos (imovel_id, user_id, tipo_custo, descricao, valor, data_custo) VALUES (?, ?, ?, ?, ?, ?)',
-                [imovelId, req.session.userId, 'Condomínio', `Condomínio - ${mesCapitalized}`, imovel.condominio_estimado, dataCusto]
+                [imovelId, req.session.userId, 'Condomínio', `Condomínio - ${mesCapitalized} `, imovel.condominio_estimado, dataCusto]
             );
             added++;
         }
@@ -3802,7 +3835,7 @@ app.post('/api/portfolio/imoveis/:id/lancar-mensais', isAuthenticated, async (re
         if (imovel.iptu_estimado > 0) {
             await db.run(
                 'INSERT INTO carteira_custos (imovel_id, user_id, tipo_custo, descricao, valor, data_custo) VALUES (?, ?, ?, ?, ?, ?)',
-                [imovelId, req.session.userId, 'Impostos', `IPTU - ${mesCapitalized}`, imovel.iptu_estimado, dataCusto]
+                [imovelId, req.session.userId, 'Impostos', `IPTU - ${mesCapitalized} `, imovel.iptu_estimado, dataCusto]
             );
             added++;
         }
@@ -3841,12 +3874,12 @@ app.get('/api/financeiro/minhas-mineracoes', isAuthenticated, async (req, res) =
     try {
         const rows = await db.all(`
             SELECT c.*, u.username as vendedor, i.descricao as imovel_desc,
-                   strftime('%d/%m/%Y', c.data_geracao) as data_fmt
+    strftime('%d/%m/%Y', c.data_geracao) as data_fmt
             FROM comissoes_mineracao c
             JOIN users u ON c.assessor_venda_id = u.id
             JOIN carteira_imoveis i ON c.imovel_id = i.id
             WHERE c.minerador_id = ?
-            ORDER BY c.data_geracao DESC
+    ORDER BY c.data_geracao DESC
         `, [req.session.userId]);
 
         let totalRecebido = 0;
@@ -3888,11 +3921,11 @@ app.post('/api/oportunidades/:id/arrematar', isAuthenticated, async (req, res) =
         // Status inicial: 'Em Andamento'
         // Salva quem minerou (op.user_id) em minerador_original_id
         await db.run(`
-            INSERT INTO carteira_imoveis (
-                user_id, descricao, endereco, valor_compra, valor_venda_estimado, 
-                status, lucro_estimado, roi_estimado, data_aquisicao, minerador_original_id, cliente_id
-            )
-            VALUES (?, ?, ?, ?, ?, 'Em Andamento', ?, ?, ?, ?, ?)
+            INSERT INTO carteira_imoveis(
+            user_id, descricao, endereco, valor_compra, valor_venda_estimado,
+            status, lucro_estimado, roi_estimado, data_aquisicao, minerador_original_id, cliente_id
+        )
+VALUES(?, ?, ?, ?, ?, 'Em Andamento', ?, ?, ?, ?, ?)
         `, [
             req.session.userId,
             op.titulo,
@@ -3938,11 +3971,11 @@ app.post('/api/carteira/:id/finalizar-arremate', isAuthenticated, async (req, re
                 const feeSetting = await db.get("SELECT value FROM system_settings WHERE key = 'default_mining_fee'");
                 const feeValue = parseFloat(feeSetting?.value || 500);
 
-                await db.run(`INSERT INTO comissoes_mineracao (imovel_id, minerador_id, assessor_venda_id, valor, status) 
-                              VALUES (?, ?, ?, ?, 'pendente')`,
+                await db.run(`INSERT INTO comissoes_mineracao(imovel_id, minerador_id, assessor_venda_id, valor, status)
+VALUES(?, ?, ?, ?, 'pendente')`,
                     [imovel.id, imovel.minerador_original_id, req.session.userId, feeValue]);
 
-                console.log(`💰 Comissão Gerada (Finalização): R$${feeValue} para ${imovel.minerador_original_id}`);
+                console.log(`💰 Comissão Gerada(Finalização): R$${feeValue} para ${imovel.minerador_original_id} `);
                 return res.json({ success: true, message: 'Arremate confirmado e comissão gerada!' });
             }
         }

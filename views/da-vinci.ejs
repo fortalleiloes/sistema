@@ -780,50 +780,19 @@
                         </select>
                     </div>
 
-                    <div class="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-3">
-                            <i class="fa-solid fa-keyboard mr-2"></i>Ou preencha manualmente:
-                        </label>
-                        <div class="grid grid-cols-3 gap-4">
-                            <div>
-                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Valor
-                                    do Arremate (R$)</label>
-                                <input type="text" id="inputValorArremate"
-                                    class="w-full p-2 border rounded dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:placeholder-gray-400 currency-input"
-                                    placeholder="Ex: R$ 100.000,00" oninput="updateManualFinancialData()">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Valor
-                                    de Avaliação (R$)</label>
-                                <input type="text" id="inputValorAvaliacao"
-                                    class="w-full p-2 border rounded dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:placeholder-gray-400 currency-input"
-                                    placeholder="Ex: R$ 150.000,00" oninput="updateManualFinancialData()">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Valor
-                                    de Venda (R$)</label>
-                                <input type="text" id="inputValorVenda"
-                                    class="w-full p-2 border rounded dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:placeholder-gray-400 currency-input"
-                                    placeholder="Ex: R$ 180.000,00" oninput="updateManualFinancialData()">
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                    <!-- Manual Inputs Removed -->
 
 
 
-                <!-- PDF PREVIEW SECTION -->
-                <div class="mb-12 no-print">
+                </div> <!-- Close Step 3 -->
+
+                <!-- PDF PREVIEW SECTION (Separated) -->
+                <div class="mb-12 no-print mt-12">
                     <div class="flex justify-between items-center mb-6">
                         <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
                             <i class="fa-solid fa-eye mr-2"></i>Prévia do PDF (6 Páginas)
                         </h2>
                         <div class="flex gap-3">
-                            <button type="button" onclick="salvarOportunidade()" id="btnSalvarOportunidade"
-                                class="bg-green-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-green-700 flex items-center gap-2 transition-colors">
-                                <i class="fa-solid fa-cloud-arrow-up"></i>
-                                Salvar em Oportunidades
-                            </button>
                             <button onclick="generateDaVinciPDF()" id="btnGerarPDF"
                                 class="bg-gray-900 text-white px-8 py-3 rounded-lg font-bold hover:bg-gray-800 flex items-center gap-2">
                                 <i class="fa-solid fa-file-pdf"></i>
@@ -835,7 +804,6 @@
                     <div id="pdf-preview-container" class="space-y-8" style="max-width: 900px; margin: 0 auto;">
                         <!-- As 4 páginas do PDF serão exibidas aqui -->
                     </div>
-                </div>
                 </div>
 
                 <!-- PDF CONTENT (Visible on screen for preview, used for print) -->
@@ -1805,97 +1773,11 @@
                 };
 
                 // Update PDF with manual financial data
+                // Update PDF with manual financial data
                 function updateManualFinancialData() {
-                    const valorArremate = parseCurrency(document.getElementById('inputValorArremate')?.value || '0');
-                    const valorAvaliacao = parseCurrency(document.getElementById('inputValorAvaliacao')?.value || '0');
-                    const valorVenda = parseCurrency(document.getElementById('inputValorVenda')?.value || '0');
-
-                    // Update PDF header values (target SOURCE elements in #pdf-content, not preview)
-                    const pdfLance = document.querySelector('#pdf-content #pdfLance');
-                    const pdfAvaliacao = document.querySelector('#pdf-content #pdfAvaliacao');
-
-                    if (pdfLance) pdfLance.innerText = fmt(valorArremate);
-                    if (pdfAvaliacao) pdfAvaliacao.innerText = fmt(valorAvaliacao);
-
-                    // Simple viability calculation
-                    if (valorArremate > 0) {
-                        const leiloeiro = valorArremate * 0.05;
-                        const itbi = valorArremate * 0.03;
-                        const assessoria = 6000;
-                        const condominio = parseCurrency(document.getElementById('inputCondominio')?.value || '0');
-                        const cartorio = 3000; // Custos cartorários estimados
-                        const seguro = 190;
-                        const desocupacao = 0; // Pode ser ajustado se necessário
-
-                        // Cálculo do investimento total (12 meses)
-                        const custosMensais = condominio;
-                        const investTotal = valorArremate + leiloeiro + itbi + assessoria + cartorio + seguro + desocupacao + (custosMensais * 12);
-
-                        const vendaFinal = valorVenda > 0 ? valorVenda : valorAvaliacao;
-                        const corretagem = vendaFinal * 0.06;
-                        const lucro = vendaFinal - corretagem - investTotal;
-                        const imposto = lucro > 0 ? lucro * 0.15 : 0;
-                        const lucroLiquido = lucro - imposto;
-                        const roi = investTotal > 0 ? (lucroLiquido / investTotal) * 100 : 0;
-
-                        // Update PDF viability content (target the SOURCE element in #pdf-content, not the preview)
-                        const container = document.querySelector('#pdf-content #pdfViabilityContent');
-                        if (container) {
-                            container.innerHTML = `
-                                <div class="grid grid-cols-3 gap-4 mb-6">
-                                    <div class="bg-gray-50 rounded p-3 border border-gray-200">
-                                        <p class="text-[9px] uppercase font-bold text-gray-500 tracking-wider">Investimento Total</p>
-                                        <p class="text-xl font-bold text-gray-900 tracking-tight mt-1">${fmt(investTotal)}</p>
-                                        <p class="text-[9px] text-gray-400 mt-0.5">Base 12 Meses</p>
-                                    </div>
-                                    <div class="bg-gray-50 rounded p-3 border border-gray-200">
-                                        <p class="text-[9px] uppercase font-bold text-gray-500 tracking-wider">Venda Estimada</p>
-                                        <p class="text-xl font-bold text-gray-900 tracking-tight mt-1">${fmt(vendaFinal)}</p>
-                                        <p class="text-[9px] text-gray-400 mt-0.5">Valor de Mercado</p>
-                                    </div>
-                                    <div class="bg-gray-900 rounded p-3 border border-gray-900">
-                                        <p class="text-[9px] uppercase font-bold text-gray-400 tracking-wider">Lucro Líquido</p>
-                                        <p class="text-2xl font-black text-[#FFD60A] tracking-tight mt-0 leading-none">${fmt(lucroLiquido)}</p>
-                                        <p class="text-[10px] text-white font-bold mt-1">ROI ${roi.toFixed(1)}%</p>
-                                    </div>
-                                </div>
-
-                                <div class="grid grid-cols-2 gap-8 mb-6">
-                                    <div>
-                                        <h3 class="text-[10px] font-black uppercase tracking-widest border-b border-gray-200 pb-1 mb-2">Custos de Aquisição</h3>
-                                        <table class="w-full text-xs">
-                                            <tbody class="divide-y divide-gray-50">
-                                                <tr><td class="py-1.5 text-gray-500 font-medium">Lance Arrematação</td><td class="py-1.5 text-right font-mono font-bold text-gray-800">${fmt(valorArremate)}</td></tr>
-                                                <tr><td class="py-1.5 text-gray-500 font-medium">Comissão (5%)</td><td class="py-1.5 text-right font-mono font-bold text-gray-800">${fmt(leiloeiro)}</td></tr>
-                                                <tr><td class="py-1.5 text-gray-500 font-medium">ITBI (3%)</td><td class="py-1.5 text-right font-mono font-bold text-gray-800">${fmt(itbi)}</td></tr>
-                                                <tr><td class="py-1.5 text-gray-500 font-medium">Assessoria</td><td class="py-1.5 text-right font-mono font-bold text-gray-800">${fmt(assessoria)}</td></tr>
-                                                <tr><td class="py-1.5 text-gray-500 font-medium">Cartório</td><td class="py-1.5 text-right font-mono font-bold text-gray-800">${fmt(cartorio)}</td></tr>
-                                                <tr><td class="py-1.5 text-gray-500 font-medium">Seguro</td><td class="py-1.5 text-right font-mono font-bold text-gray-800">${fmt(seguro)}</td></tr>
-                                                <tr><td class="py-1.5 text-gray-500 font-medium">Cond./IPTU (12m)</td><td class="py-1.5 text-right font-mono font-bold text-gray-800">${fmt(condominio * 12)}</td></tr>
-                                            </tbody>
-                                            <tfoot class="border-t border-gray-200">
-                                                <tr><td class="py-2 text-[10px] font-bold uppercase">Total Saídas</td><td class="py-2 text-right font-mono font-bold">${fmt(investTotal)}</td></tr>
-                                            </tfoot>
-                                        </table>
-                                    </div>
-                                    <div>
-                                        <h3 class="text-[10px] font-black uppercase tracking-widest border-b border-gray-200 pb-1 mb-2">Retorno Financeiro</h3>
-                                        <table class="w-full text-xs">
-                                            <tbody class="divide-y divide-gray-50">
-                                                <tr><td class="py-1.5 text-gray-500 font-medium">Valor de Venda</td><td class="py-1.5 text-right font-mono font-bold text-blue-700">${fmt(vendaFinal)}</td></tr>
-                                                <tr><td class="py-1.5 text-gray-500 font-medium">Corretagem (6%)</td><td class="py-1.5 text-right font-mono font-bold text-red-500">-${fmt(corretagem)}</td></tr>
-                                                <tr><td class="py-1.5 text-gray-500 font-medium">Imposto Lucro (15%)</td><td class="py-1.5 text-right font-mono font-bold text-red-500">-${fmt(imposto)}</td></tr>
-                                                <tr><td class="py-1.5 text-gray-500 font-medium">Recuperação Capital</td><td class="py-1.5 text-right font-mono font-bold text-gray-400">-${fmt(investTotal)}</td></tr>
-                                            </tbody>
-                                            <tfoot class="border-t border-gray-200">
-                                                <tr><td class="py-2 text-[10px] font-black uppercase text-gray-900">Resultado Líquido</td><td class="py-2 text-right font-mono font-black text-lg text-gray-900">${fmt(lucroLiquido)}</td></tr>
-                                            </tfoot>
-                                        </table>
-                                    </div>
-                                </div>
-                            `;
-                        }
-                    }
+                    // Manual inputs removed. 
+                    // Financial data is now strictly handled by loadCalculationData().
+                    console.log("Manual update disabled.");
                 }
 
                 // Refresh PDF preview after manual data update
@@ -1961,9 +1843,11 @@
                         if (document.getElementById('inputCondominio')) document.getElementById('inputCondominio').value = fmt(num(data.condominioMensal));
 
                         // 2. UPDATE PDF HEADERS
+                        // 2. UPDATE PDF HEADERS (Preview AND Source)
                         const setText = (id, txt) => {
-                            const el = document.getElementById(id);
-                            if (el) el.innerText = txt;
+                            // Robust update for duplicate IDs (Preview + Hidden Source)
+                            const elements = document.querySelectorAll('#' + id);
+                            elements.forEach(el => el.innerText = txt);
                         }
 
                         setText('pdfAvaliacao', fmt(num(data.valorAvaliacao)));
@@ -2395,155 +2279,158 @@
                 // Descomente a linha abaixo se quiser carregar automaticamente
                 // window.addEventListener('DOMContentLoaded', carregarRascunho);
 
-                // ===== SALVAR OPORTUNIDADE =====
-                async function salvarOportunidade() {
-                    const btn = document.getElementById('btnSalvarOportunidade');
-                    const originalText = btn.innerHTML;
 
-                    try {
-                        btn.disabled = true;
-                        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Salvando...';
-
-                        // Coletar Dados
-                        const endereco = document.getElementById('inputEndereco')?.value || 'Novo Imóvel';
-                        const cidadeEstadoMatch = endereco.match(/([a-zA-Z\s]+)\s*-\s*([A-Z]{2})/); // Tenta achar "Cidade - UF"
-
-                        // Validar ROI
-                        let roiValue = "0";
-                        const roiEl = document.querySelector('#pdfViabilityContent .text-[#FFD60A] + p.text-white'); // Tenta pegar do HTML do Card Preto
-                        // Fallback para o card pequeno do modal details (se o layout for diferente)
-                        const roiElAlt = document.querySelector('p.text-2xl.font-black.text-\\[\\#FFD60A\\] + p');
-
-                        if (roiEl) roiValue = roiEl.innerText;
-                        else if (roiElAlt) roiValue = roiElAlt.innerText;
-
-                        const dados = {
-                            titulo: document.getElementById('inputNome')?.value || endereco,
-                            valorArremate: document.getElementById('inputValorArremate')?.value,
-                            valorVenda: document.getElementById('inputValorVenda')?.value,
-                            lucroEstimado: "0",
-                            roiEstimado: roiValue,
-                            cidade: cidadeEstadoMatch ? cidadeEstadoMatch[1].trim() : "Não Identificado",
-                            estado: cidadeEstadoMatch ? cidadeEstadoMatch[2].trim() : "",
-                            tipoImovel: (document.getElementById('inputApto')?.value ? "Apartamento" : "Casa"),
-                            linkCaixa: "",
-                            fotoCapa: document.getElementById('previewFachada')?.src || "",
-                        };
-
-                        // Limpeza extra no ROI
-                        if (dados.roiEstimado && dados.roiEstimado.includes('ROI')) dados.roiEstimado = dados.roiEstimado.replace('ROI', '').trim();
-
-                        const response = await fetch('/api/oportunidades/save-from-proposal', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(dados)
-                        });
-
-                        const result = await response.json();
-
-                        if (result.success) {
-                            mostrarNotificacao('Oportunidade salva nos seus imóveis!', 'success');
-                            btn.innerHTML = '<i class="fa-solid fa-check"></i> Salvo!';
-                            setTimeout(() => {
-                                btn.disabled = false;
-                                btn.innerHTML = originalText;
-                            }, 3000);
-                        } else {
-                            throw new Error(result.error);
-                        }
-
-                    } catch (error) {
-                        console.error('Erro ao salvar:', error);
-                        mostrarNotificacao('Erro ao salvar: ' + error.message, 'error');
-                        btn.disabled = false;
-                        btn.innerHTML = originalText;
-                    }
-                }
 
                 // NEW APPROACH: Clean Window Print
                 // This opens a popup with ONLY the content we want, ensuring no UI interference and native rendering.
-                function generateDaVinciPDF() {
-                    const content = document.getElementById('pdf-content').innerHTML;
 
-                    // Get all stylesheets to ensure proper styling
+                function generateDaVinciPDF() {
+                    console.log("Starting PDF Generation...");
+
+                    // 0. FORCE UPDATE FINANCIALS
+                    // Ensure #pdf-content has fresh calculations for headers (Lance, Avaliacao)
+                    if (typeof updateManualFinancialData === 'function') {
+                        updateManualFinancialData();
+                    }
+
+                    // Helper: Title Case Transform
+                    const toTitleCase = (val) => {
+                        if (!val) return '';
+                        return val.toLowerCase().split(' ').map(word => {
+                            return (word.length > 2) ? word.charAt(0).toUpperCase() + word.slice(1) : word;
+                        }).join(' ');
+                    };
+
+                    // 1. SYNC TEXT FIELDS
+                    const sync = (srcId, destSelector, defaultText = '--', transform = null) => {
+                        const src = document.getElementById(srcId);
+                        const dest = document.querySelector('#pdf-content ' + destSelector);
+                        if (src && dest) {
+                            let val = src.value || defaultText;
+                            if (transform) val = transform(val);
+                            dest.innerText = val;
+                        }
+                    };
+
+                    // Apply Title Case to Names
+                    sync('inputCliente', '#pdfNomeImovel', 'Nome do Cliente', toTitleCase);
+                    sync('inputNome', '#pdfNomeImovel', 'Nome do Imóvel', toTitleCase);
+
+                    sync('inputLicitacao', '#pdfLicitacao', '--/--/----');
+                    sync('inputBem', '#pdfBem', '00000.0000');
+
+                    // Apply Title Case to Address
+                    sync('inputEndereco', '#pdfEndereco', 'Endereço não informado', toTitleCase);
+
+                    sync('inputMetragem', '#pdfMetragem', '-- m²');
+                    sync('inputQuartos', '#pdfQuartos', '--');
+                    sync('inputBanheiros', '#pdfBanheiros', '--');
+                    sync('inputVaga', '#pdfVaga', '--');
+                    sync('inputApto', '#pdfApto', '--');
+
+                    // 1.1 SYNC COMPANY INFO (Fix for missing company details)
+                    sync('inputFooter', '#pdfFooter', ''); // Footer small text
+
+                    // Main Company Name (from Creci input, split by dash)
+                    sync('inputCreci', '#pdfCreci', 'Nome da Empresa', (val) => {
+                        return val.split('-')[0].trim() || 'Nome da Empresa';
+                    });
+
+                    // Instagram
+                    sync('inputInstagram', '#pdfInstagram', '@instagram');
+
+                    // Sync Text-based Company Name for the body text
+                    const creciInput = document.getElementById('inputCreci');
+                    const textTarget = document.querySelector('#pdf-content #pdfCompanyInText'); // This ID might not exist in template, but keeping safe logic
+                    if (creciInput && textTarget) {
+                        const companyName = creciInput.value.split('-')[0].trim();
+                        textTarget.innerText = companyName || "Sua Empresa";
+                    }
+
+                    // 2. FORCE RE-CALCULATE FINANCIALS
+                    // Updates the #pdf-content DOM directly with new values (Lance, Avaliacao)
+                    if (typeof updateManualFinancialData === 'function') {
+                        updateManualFinancialData();
+                    }
+
+                    // 3. SYNC FINANCIAL TABLE (Visual Preview -> Hidden Source)
+                    const visibleCalc = document.querySelector('#pdf-preview-container #pdfViabilityContent');
+                    const hiddenCalc = document.querySelector('#pdf-content #pdfViabilityContent');
+
+                    if (visibleCalc && hiddenCalc && visibleCalc.innerHTML.trim() !== "") {
+                        hiddenCalc.innerHTML = visibleCalc.innerHTML;
+                    }
+
+                    // 3. CAPTURE CONTENT
+                    const pdfSource = document.getElementById('pdf-content');
+                    if (!pdfSource) { alert("Erro fatal: Modelo PDF não encontrado."); return; }
+                    const content = pdfSource.innerHTML; // Capture FRESH content
+
+                    // 4. GET STYLES
                     const styles = Array.from(document.querySelectorAll('link[rel="stylesheet"], style'))
                         .map(style => style.outerHTML)
                         .join('');
 
-                    // Create a focused print window
-                    const printWindow = window.open('', '_blank', 'width=1000,height=900');
-
-                    if (!printWindow) {
-                        alert('Por favor, permita pop-ups para gerar o PDF.');
-                        return;
+                    // 5. OPEN PRINT WINDOW
+                    // 5. IFRAME METHOD (Invisible Print)
+                    // This triggers ONLY the system print dialog (the "detailed" one), skipping the popup window.
+                    let iframe = document.getElementById('print-iframe');
+                    if (!iframe) {
+                        iframe = document.createElement('iframe');
+                        iframe.id = 'print-iframe';
+                        iframe.style.position = 'fixed';
+                        iframe.style.left = '-10000px';
+                        iframe.style.top = '0';
+                        iframe.style.width = '1px';
+                        iframe.style.height = '1px';
+                        iframe.style.border = '0';
+                        document.body.appendChild(iframe);
                     }
 
-                    const printDoc = printWindow.document;
-
-                    printDoc.open();
-                    printDoc.write(`
+                    const doc = iframe.contentWindow.document;
+                    doc.open();
+                    doc.write(`
                         <!DOCTYPE html>
                         <html>
                         <head>
-                            <title>Proposta Fortal - ${document.getElementById('inputCliente').value || 'Cliente'}</title>
+                            <base href="${window.location.origin}/">
+                            <title>Proposta - ${document.getElementById('inputCliente').value || 'Fortal'}</title>
                             <meta charset="utf-8">
-                            <meta name="viewport" content="width=device-width, initial-scale=1.0">
                             ${styles}
                             <style>
-                                /* FORCE A4 & PRINT RESET */
-                                @page {
-                                    size: A4 portrait;
-                                    margin: 0;
+                                @page { size: A4 portrait; margin: 0; }
+                                html, body { 
+                                    margin: 0; 
+                                    padding: 0; 
+                                    width: 210mm; 
+                                    background: white; 
+                                    -webkit-print-color-adjust: exact; 
+                                    print-color-adjust: exact; 
                                 }
-                                html, body {
-                                    margin: 0;
-                                    padding: 0;
-                                    width: 210mm;
-                                    height: 100%;
-                                    background: white;
-                                    -webkit-print-color-adjust: exact;
-                                    print-color-adjust: exact;
+                                .pdf-sheet { 
+                                    width: 210mm !important; 
+                                    page-break-after: always !important; 
+                                    overflow: hidden !important; 
+                                    margin: 0 !important; 
                                 }
-                                body {
-                                    width: 210mm;
-                                }
-                                /* Ensure strict sheet sizing */
-                                .pdf-sheet {
-                                    width: 210mm !important;
-                                    height: 296mm !important; /* Single page strict */
-                                    page-break-after: always !important;
-                                    break-after: page !important;
-                                    overflow: hidden !important;
-                                    margin: 0 !important;
-                                    position: relative !important;
-                                    box-sizing: border-box !important;
-                                }
-                                .pdf-sheet:last-child {
-                                    page-break-after: auto !important;
-                                    break-after: avoid !important;
-                                }
-                                /* Hide any UI that might have slipped in (though unlikely in this method) */
-                                .no-print, .macos-toolbar, header, aside { display: none !important; }
+                                .no-print { display: none !important; }
                             </style>
                         </head>
                         <body>
                             ${content}
                             <script>
-                                // Auto-print when resources are loaded
                                 window.onload = function() {
+                                    // Delay to allow images/fonts to load
                                     setTimeout(() => {
                                         window.print();
-                                        // Optional: Close after print (commented out to allow user to retry if needed)
-                                        // window.close(); 
                                     }, 1000);
                                 };
                             <\/script>
                         </body>
                         </html>
                     `);
-                    printDoc.close();
+                    doc.close();
                 }
-
                 function handlePrint() {
                     const noPrintElements = document.querySelectorAll('.no-print, .macos-toolbar, .macos-sidebar, .page-container');
                     const pdfContent = document.getElementById('pdf-content');

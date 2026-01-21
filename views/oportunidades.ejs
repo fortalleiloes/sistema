@@ -523,6 +523,16 @@
                                                         <%= op.cidade %>
                                                     </div>
 
+                                                    <!-- Author Email Display -->
+                                                    <div style="font-size: 11px; color: var(--macos-text-tertiary); margin-bottom: 12px; display: flex; align-items: center; gap: 4px;"
+                                                        title="Adicionado por: <%= op.autor_email %>">
+                                                        <i class="fa-solid fa-user-tag" style="font-size: 10px;"></i>
+                                                        <span
+                                                            style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;">
+                                                            <%= op.autor_email || op.autor || 'Sistema' %>
+                                                        </span>
+                                                    </div>
+
                                                     <div class="card-metrics-grid">
                                                         <div class="metric-mini">
                                                             <label>Valor Venda</label>
@@ -533,8 +543,10 @@
                                                             </span>
                                                         </div>
                                                         <div class="metric-mini">
-                                                            <label>Lucro Est.</label>
-                                                            <span class="green">
+                                                            <label>Comissão Est.</label>
+                                                            <span class="green"
+                                                                style="cursor: pointer; text-decoration: underline; text-decoration-style: dotted;"
+                                                                onclick="event.stopPropagation(); openCommissionModal('<%= op.id %>')">
                                                                 <%= (op.lucro_estimado || 0).toLocaleString('pt-BR',
                                                                     {style: 'currency' , currency: 'BRL' ,
                                                                     maximumFractionDigits:0}) %>
@@ -613,17 +625,24 @@
                         placeholder="Ex: Apartamento no Meireles" style="font-weight: 500;">
                 </div>
 
-                <div class="macos-form-group" style="margin-bottom: 20px; position: relative;">
-                    <label class="macos-form-label">Localização (Busca Inteligente)</label>
-                    <div style="position: relative;">
-                        <input type="text" id="inpBuscaEnd" class="macos-input"
-                            placeholder="Digite rua, número, cidade..." autocomplete="off"
-                            oninput="handleAddressInput(this.value)">
-
-                        <!-- Dropdown Sugestões -->
-                        <div id="addressSuggestions" class="suggestions-dropdown"></div>
+                <div style="display: grid; grid-template-columns: 1fr 100px; gap: 16px; margin-bottom: 20px;">
+                    <div class="macos-form-group" style="position: relative;">
+                        <label class="macos-form-label">Endereço (Busca Inteligente)</label>
+                        <div style="position: relative;">
+                            <input type="text" id="inpBuscaEnd" class="macos-input" placeholder="Digite rua, avenida..."
+                                autocomplete="off" oninput="handleAddressInput(this.value)">
+                            <!-- Dropdown Sugestões -->
+                            <div id="addressSuggestions" class="suggestions-dropdown"></div>
+                        </div>
                     </div>
+                    <div class="macos-form-group">
+                        <label class="macos-form-label">Número</label>
+                        <input type="text" name="numero" id="inpNumero" class="macos-input" placeholder="Ex: 100"
+                            onblur="refinePinPosition()">
+                    </div>
+                </div>
 
+                <div class="macos-form-group" style="margin-bottom: 20px;">
                     <!-- Mini Mapa de Confirmação -->
                     <div id="miniMap"></div>
                     <div id="mapHelpText"
@@ -1029,13 +1048,26 @@
             if (!opt) return;
             const data = JSON.parse(opt.dataset.json);
 
-            document.getElementById('inpTitulo').value = opt.textContent;
-            document.getElementById('invArremate').value = data.valorArremate || 0;
-            document.getElementById('invVenda').value = data.valorVenda || 0;
+            const valArremate = parseFloat(data.valorArrematado || data.valorArremate || 0);
+            const valVenda = parseFloat(data.valorVendaFinal || data.valorVenda || 0);
 
-            // Estimar Lucro simples
-            const lucro = (data.valorVenda || 0) - (data.valorArremate || 0); // Simplificado
+            console.log('Importing Calculation:', { valArremate, valVenda });
+
+            document.getElementById('inpTitulo').value = opt.textContent;
+            document.getElementById('invArremate').value = valArremate;
+            document.getElementById('invVenda').value = valVenda;
+            document.getElementById('invCalcId').value = id;
+
+            // Estimar Lucro simples (Bruto)
+            const lucro = valVenda - valArremate; // Simplificado
             document.getElementById('invLucro').value = lucro;
+
+            // Calcular ROI Estimado
+            let roi = 0;
+            if (valArremate > 0) {
+                roi = (lucro / valArremate) * 100;
+            }
+            document.getElementById('invRoi').value = roi.toFixed(2);
 
             // Tentar extrair cidade (heuristica)
             // ...
@@ -1090,21 +1122,91 @@
             }, 600); // 600ms debounce
         }
 
+
+        async function refinePinPosition() {
+            const streetRaw = document.getElementById('inpBuscaEnd').value;
+            const number = document.getElementById('inpNumero').value;
+
+            if (!streetRaw || !number) return;
+
+            // Se o usuário selecionou do autocomplete, o streetRaw é bem completo.
+            // Tentar montar uma query focada: "Rua X, 123, Cidade - UF"
+            // Se o streetRaw for longo, o Nominatim as vezes se perde se colocarmos o numero na frente de tudo.
+            // Mas geralmente "Número, Endereço" funciona.
+
+            // Vamos usar o valor dos inputs de cidade/uf pra garantir
+            const city = document.getElementById('inpCidade').value;
+            const uf = document.getElementById('inpUF').value;
+
+            let query = `${streetRaw}, ${number}`;
+            // Se a string do endereço já tiver a cidade, ok. Se não, adiciona.
+            if (city && !streetRaw.includes(city)) query += `, ${city}`;
+            if (uf && !streetRaw.includes(uf)) query += ` - ${uf}`;
+
+            console.log('Refining Pin for:', query);
+
+            try {
+                const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=br&limit=1`;
+                const res = await fetch(url);
+                const data = await res.json();
+
+                if (data.length > 0) {
+                    const place = data[0];
+                    console.log('Refined Location Found:', place.lat, place.lon);
+                    updateLocation(place.lat, place.lon);
+                }
+            } catch (e) {
+                console.error('Error refining pin', e);
+            }
+        }
+
         function selectAddress(place) {
             const dropdown = document.getElementById('addressSuggestions');
             dropdown.style.display = 'none';
-            document.getElementById('inpBuscaEnd').value = place.display_name;
+
+            // Clean Address Display
+            const addr = place.address || {};
+            // Preferimos mostrar "Rua, Bairro" no input principal pra ficar limpo
+            const streetObj = addr.road || addr.street || place.display_name.split(',')[0];
+            const suburbObj = addr.suburb || addr.neighbourhood;
+
+            let cleanDisplay = streetObj;
+            if (suburbObj) cleanDisplay += ` - ${suburbObj}`;
+
+            document.getElementById('inpBuscaEnd').value = cleanDisplay;
 
             // Preenche campos
-            const addr = place.address || {};
             if (addr.city || addr.town || addr.municipality) {
                 document.getElementById('inpCidade').value = addr.city || addr.town || addr.municipality;
             }
-            // Tenta pegar UF (Nominatim retorna nome extenso as vezes, ideal seria mapping mas vamos simplificar)
-            // O user pode corrigir manualmente
+            // Tenta pegar UF 
+            // Melhor não setar UF automaticamente se for incerto, mas podemos tentar extrair do display_name se tiver sigla
+            const stateMap = {
+                'Acre': 'AC', 'Alagoas': 'AL', 'Amapá': 'AP', 'Amazonas': 'AM', 'Bahia': 'BA', 'Ceará': 'CE',
+                'Distrito Federal': 'DF', 'Espírito Santo': 'ES', 'Goiás': 'GO', 'Maranhão': 'MA', 'Mato Grosso': 'MT',
+                'Mato Grosso do Sul': 'MS', 'Minas Gerais': 'MG', 'Pará': 'PA', 'Paraíba': 'PB', 'Paraná': 'PR',
+                'Pernambuco': 'PE', 'Piauí': 'PI', 'Rio de Janeiro': 'RJ', 'Rio Grande do Norte': 'RN',
+                'Rio Grande do Sul': 'RS', 'Rondônia': 'RO', 'Roraima': 'RR', 'Santa Catarina': 'SC',
+                'São Paulo': 'SP', 'Sergipe': 'SE', 'Tocantins': 'TO'
+            };
 
-            // Set Lat/Lng
+            if (addr.state) {
+                const st = addr.state;
+                if (stateMap[st]) document.getElementById('inpUF').value = stateMap[st];
+                else {
+                    // Tenta achar value direto
+                    const sel = document.getElementById('inpUF');
+                    for (let i = 0; i < sel.options.length; i++) {
+                        if (sel.options[i].value === st) sel.selectedIndex = i;
+                    }
+                }
+            }
+
+            // Set Lat/Lng inicial (do endereço geral)
             updateLocation(place.lat, place.lon);
+
+            // Foca no numero
+            document.getElementById('inpNumero').focus();
         }
 
         function updateLocation(lat, lng) {
@@ -1359,6 +1461,159 @@
 
     <script>
         // ... Existing scripts ...
+    </script>
+    <!-- Modal Comissões (Detalhado) -->
+    <div id="commissionModal" class="macos-modal-overlay" style="z-index: 99999;">
+        <div class="macos-window"
+            style="width: 480px; max-width: 90%; background: var(--macos-bg-secondary); border-radius: 16px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);">
+
+            <!-- Header -->
+            <div class="modal-header"
+                style="background: var(--macos-bg-base); padding: 20px 24px; border-bottom: 1px solid var(--macos-divider); display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h3 style="margin:0; font-size: 16px; font-weight: 700; color: var(--macos-text-primary);">Simulador
+                        de Comissões</h3>
+                    <p style="margin:0; font-size: 12px; color: var(--macos-text-secondary);" id="commModalSubtitle">
+                        Detalhamento Financeiro</p>
+                </div>
+                <button onclick="closeCommissionModal()"
+                    style="border:none; background:var(--macos-bg-tertiary); width:28px; height:28px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; color: var(--macos-text-primary);">
+                    <i class="fa-solid fa-times"></i>
+                </button>
+            </div>
+
+            <!-- Body -->
+            <div style="padding: 24px; background: var(--macos-bg-base);">
+
+                <!-- Top Summary -->
+                <div style="text-align: center; margin-bottom: 24px;">
+                    <p
+                        style="font-size: 12px; text-transform: uppercase; font-weight: 600; color: var(--macos-text-secondary); margin-bottom: 4px;">
+                        Resultado Líquido Estimado</p>
+                    <h2 style="font-size: 32px; font-weight: 800; color: #10b981; margin: 0;" id="commModalLucro">R$
+                        0,00</h2>
+                </div>
+
+                <!-- Breakdown List -->
+                <div
+                    style="background: var(--macos-bg-tertiary); border-radius: 12px; padding: 16px; border: 1px solid var(--macos-divider);">
+
+                    <!-- Item 1: Mineração (Estudo) -->
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid var(--macos-divider); margin-bottom: 12px;">
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <div
+                                style="width: 32px; height: 32px; background: #FFF7ED; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #F97316;">
+                                <i class="fa-solid fa-microscope" style="font-size: 14px;"></i>
+                            </div>
+                            <div>
+                                <p
+                                    style="font-size: 13px; font-weight: 600; color: var(--macos-text-primary); margin: 0;">
+                                    Fominha de Estudo</p>
+                                <p style="font-size: 11px; color: var(--macos-text-secondary); margin: 0;">Para <span
+                                        id="commModalMineradorName">...</span></p>
+                            </div>
+                        </div>
+                        <div style="text-align: right;">
+                            <p style="font-size: 13px; font-weight: 700; color: #F97316; margin: 0;"
+                                id="commModalMiningFee">R$ 500,00</p>
+                            <p style="font-size: 10px; color: var(--macos-text-secondary); margin: 0;">Fixo por estudo
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Item 2: Corretagem (Venda) -->
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid var(--macos-divider); margin-bottom: 12px;">
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <div
+                                style="width: 32px; height: 32px; background: #EFF6FF; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #3B82F6;">
+                                <i class="fa-solid fa-handshake" style="font-size: 14px;"></i>
+                            </div>
+                            <div>
+                                <p
+                                    style="font-size: 13px; font-weight: 600; color: var(--macos-text-primary); margin: 0;">
+                                    Comissão de Venda</p>
+                                <p style="font-size: 11px; color: var(--macos-text-secondary); margin: 0;">Responsável
+                                    Pela Venda</p>
+                            </div>
+                        </div>
+                        <div style="text-align: right;">
+                            <p style="font-size: 13px; font-weight: 700; color: #3B82F6; margin: 0;"
+                                id="commModalSalesFee">R$ 0,00</p>
+                            <p style="font-size: 10px; color: var(--macos-text-secondary); margin: 0;">6% do VGV</p>
+                        </div>
+                    </div>
+
+                    <!-- Item 3: Investidor -->
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <div
+                                style="width: 32px; height: 32px; background: #F0FDF4; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #10B981;">
+                                <i class="fa-solid fa-coins" style="font-size: 14px;"></i>
+                            </div>
+                            <div>
+                                <p
+                                    style="font-size: 13px; font-weight: 600; color: var(--macos-text-primary); margin: 0;">
+                                    Resultado Final</p>
+                                <p style="font-size: 11px; color: var(--macos-text-secondary); margin: 0;">Lucro Líquido
+                                </p>
+                            </div>
+                        </div>
+                        <div style="text-align: right;">
+                            <p style="font-size: 13px; font-weight: 700; color: #10B981; margin: 0;"
+                                id="commModalNetResult">R$ 0,00</p>
+                            <p style="font-size: 10px; color: var(--macos-text-secondary); margin: 0;">Após taxas</p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script para Modal de Comissões -->
+    <script>
+        function openCommissionModal(id) {
+            const rawData = JSON.parse(document.getElementById('opportunities-raw-data').textContent);
+            const op = rawData.find(o => String(o.id) === String(id));
+
+            if (!op) return;
+
+            // Formatter
+            const fmt = (v) => (v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+            // 1. Dados Básicos
+            document.getElementById('commModalSubtitle').innerText = op.titulo || 'Imóvel sem título';
+            document.getElementById('commModalLucro').innerText = fmt(op.lucro_estimado);
+
+            // 2. Cálculo da Taxa de Mineração (Estudo)
+            // Lógica: Se não tiver definido no objeto, assume 500. Se tiver, usa o do objeto.
+            const miningFee = 500.00; // Valor padrão fixo do sistema
+            document.getElementById('commModalMiningFee').innerText = fmt(miningFee);
+            document.getElementById('commModalMineradorName').innerText = op.autor || 'Sistema';
+
+            // 3. Cálculo da Comissão de Venda (6% do Valor de Venda)
+            const salesValue = op.valor_venda || 0;
+            const salesFee = salesValue * 0.06;
+            document.getElementById('commModalSalesFee').innerText = fmt(salesFee);
+
+            // 4. Resultado Final
+            document.getElementById('commModalNetResult').innerText = fmt(op.lucro_estimado);
+
+            // Show Modal
+            const modal = document.getElementById('commissionModal');
+            modal.classList.add('is-visible');
+        }
+
+        function closeCommissionModal() {
+            document.getElementById('commissionModal').classList.remove('is-visible');
+        }
+
+        // Close on click outside
+        document.getElementById('commissionModal').addEventListener('click', function (e) {
+            if (e.target === this) closeCommissionModal();
+        });
     </script>
 </body>
 

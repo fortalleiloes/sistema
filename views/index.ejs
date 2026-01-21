@@ -38,6 +38,32 @@
                 border-color: var(--macos-border);
                 transform: translateY(-2px);
             }
+
+            /* Modal Overlay Styles - Critical for preventing click blocking */
+            .macos-modal-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 9999;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                opacity: 0;
+                visibility: hidden;
+                pointer-events: none;
+                /* Ensure it doesn't block clicks when hidden */
+                transition: opacity 0.3s ease, visibility 0.3s ease;
+            }
+
+            .macos-modal-overlay.is-visible {
+                opacity: 1;
+                visibility: visible;
+                pointer-events: auto;
+                /* Re-enable clicks when visible */
+            }
         </style>
 </head>
 
@@ -131,8 +157,8 @@
                                 </div>
                             </div>
 
-                            <!-- KPI 2: Comissão -->
-                            <div class="kpi-card group relative overflow-hidden">
+                            <div class="kpi-card group relative overflow-hidden cursor-pointer"
+                                style="pointer-events: auto;" onclick="openCommissionDashboardModal()">
                                 <div class="absolute right-0 top-0 p-4 opacity-10 transition-opacity">
                                     <i class="fa-solid fa-sack-dollar text-6xl text-green-500"></i>
                                 </div>
@@ -143,8 +169,9 @@
                                         <%= Number(stats.comissao_prevista || 0).toLocaleString('pt-BR', {
                                             style: 'currency' , currency: 'BRL' }) %>
                                     </h3>
-                                    <div class="flex items-center text-xs text-gray-400">
-                                        <span>Projeção atual</span>
+                                    <div class="flex items-center text-xs text-blue-400 group-hover:underline">
+                                        <i class="fa-solid fa-eye mr-1"></i>
+                                        <span>Clique para detalhar</span>
                                     </div>
                                 </div>
                             </div>
@@ -437,6 +464,156 @@
                         if (d.success) window.location.reload();
                     } catch (e) { alert('Erro'); }
                 }
+            </script>
+
+            <!-- SAFE DATA STORAGE -->
+            <script>
+                window.dashboardCommissionData = <% - JSON.stringify(commissionDetails || []) %>;
+            </script>
+
+            <!-- MODAL DASHBOARD COMISSÕES -->
+            <div id="dashboardCommissionModal" class="macos-modal-overlay" style="z-index: 99999;">
+                <div class="macos-window"
+                    style="width: 500px; max-width: 90%; background: var(--macos-bg-secondary); border-radius: 16px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); display: flex; flex-direction: column; max-height: 85vh;">
+
+                    <!-- Header -->
+                    <div class="modal-header"
+                        style="background: var(--macos-bg-base); padding: 20px 24px; border-bottom: 1px solid var(--macos-divider); display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;">
+                        <div>
+                            <h3 style="margin:0; font-size: 16px; font-weight: 700; color: var(--macos-text-primary);">
+                                Detalhamento de Comissões</h3>
+                            <p style="margin:0; font-size: 12px; color: var(--macos-text-secondary);">Breakdown
+                                financeiro da carteira</p>
+                        </div>
+                        <button onclick="closeDashboardCommissionModal()"
+                            style="border:none; background:var(--macos-bg-tertiary); width:28px; height:28px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; color: var(--macos-text-primary);">
+                            <i class="fa-solid fa-times"></i>
+                        </button>
+                    </div>
+
+                    <!-- Body (Scrollable) -->
+                    <div style="padding: 24px; background: var(--macos-bg-base); overflow-y: auto; flex-grow: 1;">
+
+                        <!-- Total Big Number -->
+                        <div style="text-align: center; margin-bottom: 24px;">
+                            <p
+                                style="font-size: 12px; text-transform: uppercase; font-weight: 600; color: var(--macos-text-secondary); margin-bottom: 4px;">
+                                Comissão Total Prevista</p>
+                            <h2 style="font-size: 36px; font-weight: 800; color: #10b981; margin: 0;"
+                                id="dashCommTotal">R$ 0,00</h2>
+                        </div>
+
+                        <!-- Stats Row -->
+                        <div style="display: flex; gap: 12px; margin-bottom: 20px;">
+                            <div
+                                style="flex: 1; background: #FFF7ED; padding: 12px; border-radius: 12px; border: 1px solid rgba(249, 115, 22, 0.2);">
+                                <p style="font-size: 11px; color: #C2410C; margin-bottom: 4px; font-weight: 600;">
+                                    MINERAÇÃO</p>
+                                <p style="font-size: 16px; font-weight: 700; color: #9A3412;" id="dashCommMiningTotal">
+                                    R$ 0,00</p>
+                            </div>
+                            <div
+                                style="flex: 1; background: #EFF6FF; padding: 12px; border-radius: 12px; border: 1px solid rgba(59, 130, 246, 0.2);">
+                                <p style="font-size: 11px; color: #1D4ED8; margin-bottom: 4px; font-weight: 600;">
+                                    CORRETAGEM</p>
+                                <p style="font-size: 16px; font-weight: 700; color: #1E40AF;" id="dashCommSalesTotal">R$
+                                    0,00</p>
+                            </div>
+                        </div>
+
+                        <!-- List Header -->
+                        <h4
+                            style="font-size: 13px; font-weight: 600; color: var(--macos-text-secondary); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px;">
+                            Extrato Detalhado</h4>
+
+                        <!-- The List -->
+                        <div id="dashCommList" style="display: flex; flex-direction: column; gap: 8px;">
+                            <!-- Items injected here via JS -->
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- Script -->
+            <script>
+                function openCommissionDashboardModal() {
+                    try {
+                        // Get data from global variable
+                        const data = window.dashboardCommissionData || [];
+
+                        let total = 0;
+                        let mining = 0;
+                        let sales = 0;
+                        const fmt = (v) => (v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+                        const listEl = document.getElementById('dashCommList');
+                        listEl.innerHTML = '';
+
+                        if (data.length === 0) {
+                            listEl.innerHTML = '<p style="text-align:center; color: var(--macos-text-secondary); font-size: 13px; padding: 20px;">Nenhuma comissão registrada.</p>';
+                        }
+
+                        data.forEach(item => {
+                            const val = parseFloat(item.valor || 0);
+                            total += val;
+
+                            let iconClass = 'fa-coins';
+                            let bgClass = '#F3F4F6';
+                            let colorClass = '#6B7280';
+
+                            if (item.tipo.includes('Mineração')) {
+                                mining += val;
+                                iconClass = 'fa-microscope';
+                                bgClass = '#FFF7ED';
+                                colorClass = '#F97316';
+                            } else if (item.tipo.includes('Venda') || item.tipo.includes('Corretagem')) {
+                                sales += val;
+                                iconClass = 'fa-handshake';
+                                bgClass = '#EFF6FF';
+                                colorClass = '#3B82F6';
+                            }
+
+                            // Create Row
+                            const row = document.createElement('div');
+                            row.style.cssText = 'display: flex; justify-content: space-between; align-items: center; padding: 12px; background: var(--macos-bg-tertiary); border-radius: 10px; border: 1px solid var(--macos-divider);';
+
+                            row.innerHTML = `
+                        <div style="display: flex; gap: 12px; align-items: center;">
+                            <div style="width: 32px; height: 32px; background: ${bgClass}; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: ${colorClass}; flex-shrink: 0;">
+                                <i class="fa-solid ${iconClass}" style="font-size: 14px;"></i>
+                            </div>
+                            <div style="overflow: hidden;">
+                                <p style="font-size: 13px; font-weight: 600; color: var(--macos-text-primary); margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px;">${item.descricao}</p>
+                                <p style="font-size: 11px; color: var(--macos-text-secondary); margin: 0;">${item.tipo}</p>
+                            </div>
+                        </div>
+                        <div style="text-align: right; flex-shrink: 0;">
+                            <p style="font-size: 13px; font-weight: 700; color: var(--macos-text-primary); margin: 0;">${fmt(val)}</p>
+                        </div>
+                    `;
+                            listEl.appendChild(row);
+                        });
+
+                        document.getElementById('dashCommTotal').innerText = fmt(total);
+                        document.getElementById('dashCommMiningTotal').innerText = fmt(mining);
+                        document.getElementById('dashCommSalesTotal').innerText = fmt(sales);
+
+                        document.getElementById('dashboardCommissionModal').classList.add('is-visible');
+
+                    } catch (e) {
+                        console.error("Erro abrir modal comissao dashboard:", e);
+                        // Fail silently or simplistic alert, but don't break the page
+                    }
+                }
+
+                function closeDashboardCommissionModal() {
+                    document.getElementById('dashboardCommissionModal').classList.remove('is-visible');
+                }
+
+                document.getElementById('dashboardCommissionModal').addEventListener('click', function (e) {
+                    if (e.target === this) closeDashboardCommissionModal();
+                });
             </script>
 </body>
 

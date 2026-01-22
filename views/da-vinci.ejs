@@ -1862,7 +1862,7 @@
                         const vlrAvaliacao = num(data.valorAvaliacao);
 
                         // Leiloeiro
-                        const leiloeiro = data.incluirLeiloeiro === false ? 0 : vlrArremate * 0.05;
+                        const leiloeiro = (data.incluirLeiloeiro === false || data.incluirLeiloeiro === 'false') ? 0 : vlrArremate * 0.05;
 
                         // ITBI
                         const itbiPercent = num(data.itbi) > 0 ? num(data.itbi) / 100 : 0.03;
@@ -1923,7 +1923,18 @@
                             // Formula: Base + Operational(Months) + Desocupacao + Seguro + Assessoria
                             const investTotal = investTotalBasico + opCost + desocupacao + seguro + assessoria;
 
-                            const bruto = venda - corretagem - investTotal;
+                            // Determine Sales Value (Short vs Long Term)
+                            let vendaCenario = venda;
+                            if (s.m >= 12) {
+                                const vendaLongo = num(data.valorVendaLongo);
+                                if (vendaLongo > 0) {
+                                    vendaCenario = vendaLongo;
+                                }
+                            }
+                            // Recalculate brokerage/taxes based on the specific sales value
+                            const corretagemCenario = vendaCenario * 0.06;
+
+                            const bruto = vendaCenario - corretagemCenario - investTotal;
                             const imposto = bruto > 0 ? bruto * 0.15 : 0;
                             const liq = bruto - imposto;
                             const roi = investTotal > 0 ? (liq / investTotal) * 100 : 0;
@@ -1962,7 +1973,7 @@
                                     <div style="margin-bottom: 16px;">
                                         <p style="font-size: 10px; color: #6b7280; margin-bottom: 1px;">Valor de Venda</p>
                                         <p style="font-size: 14px; font-weight: 600; color: #34C759; margin: 0;">
-                                            ${fmt(venda)}
+                                            ${fmt(vendaCenario)}
                                         </p>
                                     </div>
 

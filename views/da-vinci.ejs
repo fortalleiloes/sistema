@@ -826,8 +826,7 @@
                     <!-- PAGE 1: CAPA PREMIUM -->
                     <div contenteditable="true" spellcheck="false"
                         class="pdf-sheet cover-page flex flex-col justify-center">
-                        <div class="absolute inset-0 opacity-[0.1] pointer-events-none force-print-bg pdf-watermark-bg"
-                            style="background-image: url('/images/logo-fortal.png'); background-repeat: repeat !important; background-size: 150px auto !important; background-position: center !important;">
+                        <div class="absolute inset-0 opacity-[0.1] pointer-events-none force-print-bg pdf-watermark-bg">
                         </div>
 
                         <div class="relative z-10 w-full flex flex-col h-full py-12">
@@ -898,8 +897,7 @@
 
                     <!-- PAGE 2: INFORMAÇÕES -->
                     <div class="pdf-sheet" contenteditable="true" spellcheck="false">
-                        <div class="absolute inset-0 opacity-[0.1] pointer-events-none force-print-bg pdf-watermark-bg"
-                            style="background-image: url('/images/logo-fortal.png'); background-repeat: repeat !important; background-size: 150px auto !important; background-position: center !important;">
+                        <div class="absolute inset-0 opacity-[0.1] pointer-events-none force-print-bg pdf-watermark-bg">
                         </div>
 
                         <div class="brand-header">
@@ -1029,8 +1027,7 @@
 
                     <!-- PAGE 3: MERCADO -->
                     <div class="pdf-sheet" contenteditable="true" spellcheck="false">
-                        <div class="absolute inset-0 opacity-[0.1] pointer-events-none force-print-bg pdf-watermark-bg"
-                            style="background-image: url('/images/logo-fortal.png'); background-repeat: repeat !important; background-size: 150px auto !important; background-position: center !important;">
+                        <div class="absolute inset-0 opacity-[0.1] pointer-events-none force-print-bg pdf-watermark-bg">
                         </div>
 
                         <div class="brand-header">
@@ -1057,8 +1054,7 @@
 
                     <!-- PAGE 4: VIABILIDADE FINANCEIRA (REDESIGNED) -->
                     <div class="pdf-sheet" contenteditable="true" spellcheck="false">
-                        <div class="absolute inset-0 opacity-[0.1] pointer-events-none force-print-bg pdf-watermark-bg"
-                            style="background-image: url('/images/logo-fortal.png'); background-repeat: repeat !important; background-size: 150px auto !important; background-position: center !important;">
+                        <div class="absolute inset-0 opacity-[0.1] pointer-events-none force-print-bg pdf-watermark-bg">
                         </div>
 
                         <div class="brand-header">
@@ -1085,8 +1081,7 @@
 
                     <!-- PAGE 5: CONCLUSÃO -->
                     <div class="pdf-sheet" contenteditable="true" spellcheck="false">
-                        <div class="absolute inset-0 opacity-[0.1] pointer-events-none force-print-bg pdf-watermark-bg"
-                            style="background-image: url('/images/logo-fortal.png'); background-repeat: repeat !important; background-size: 150px auto !important; background-position: center !important;">
+                        <div class="absolute inset-0 opacity-[0.1] pointer-events-none force-print-bg pdf-watermark-bg">
                         </div>
 
                         <div>
@@ -1199,8 +1194,7 @@
 
                     <!-- PAGE 6: CONSIDERAÇÕES FINAIS -->
                     <div class="pdf-sheet flex flex-col" contenteditable="true" spellcheck="false">
-                        <div class="absolute inset-0 opacity-[0.1] pointer-events-none force-print-bg pdf-watermark-bg"
-                            style="background-image: url('/images/logo-fortal.png'); background-repeat: repeat !important; background-size: 150px auto !important; background-position: center !important;">
+                        <div class="absolute inset-0 opacity-[0.1] pointer-events-none force-print-bg pdf-watermark-bg">
                         </div>
 
                         <div class="brand-header">
@@ -1733,6 +1727,27 @@
                     setTimeout(() => {
                         updateManualFinancialData();
                         initializePDFPreview();
+
+                        // Force Default Logo through Canvas Cleaner to fix iOS Orientation/Tiling
+                        // Only do this if no custom logo is present (which would be handled by other logic ideally, but here we enforce default)
+                        // If there IS a custom logo saved in profile, loadCompanyProfile will overwrite this shortly after via refreshCompanySelect->loadCompany.
+
+                        // Fetch default logo to process it
+                        fetch('/images/logo-fortal.png')
+                            .then(res => res.blob())
+                            .then(blob => {
+                                const reader = new FileReader();
+                                reader.onloadend = () => {
+                                    // Use the cleaner function!
+                                    if (typeof applyWatermarkFromBase64 === 'function') {
+                                        console.log("Applying Default Logo via Canvas Cleaner...");
+                                        applyWatermarkFromBase64(reader.result);
+                                    }
+                                }
+                                reader.readAsDataURL(blob);
+                            })
+                            .catch(err => console.error("Error loading default logo for watermark:", err));
+
                     }, 500);
                 });
 

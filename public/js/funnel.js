@@ -2,11 +2,26 @@
 // Funnel Logic
 let currentStep = 1;
 const totalSteps = 7;
+let iti; // Instance for IntlTelInput
 
-// JQuery Masks
+// JQuery Masks & IntlTelInput Init
 $(document).ready(function () {
     $('#capital_input').mask('#.##0,00', { reverse: true });
-    $('#whatsapp_input').mask('(00) 00000-0000');
+
+    // Initialize Intl Tel Input
+    const input = document.querySelector("#whatsapp_input");
+    // Ensure we don't init twice
+    if (input && !window.intlTelInputGlobals?.getInstance(input)) {
+        iti = window.intlTelInput(input, {
+            // Point to utilities script for formatting
+            utilsScript: "https://cdn.jsdelivr.net/npm/intl-tel-input@18.2.1/build/js/utils.js",
+            initialCountry: "br",
+            preferredCountries: ["br", "pt", "us"],
+            separateDialCode: true,
+            autoPlaceholder: "aggressive",
+            formatOnDisplay: true
+        });
+    }
 });
 
 function updateProgress() {
@@ -106,10 +121,26 @@ document.getElementById('funnelForm').addEventListener('submit', async function 
 
     // Validate final step
     const nome = $('input[name="nome"]').val();
-    const whatsapp = $('input[name="whatsapp"]').val();
 
-    if (!nome || !whatsapp || whatsapp.length < 14) {
-        alert('Por favor, preencha seus dados de contato corretamente.');
+    // Get Full Number from IntlTelInput
+    let whatsapp = '';
+
+    // Safety check if iti failed to init
+    if (iti) {
+        if (!iti.isValidNumber()) {
+            // Optional: allow soft fail or strict validation
+            alert('Por favor, digite um número de WhatsApp válido para o país selecionado.');
+            return;
+        }
+        whatsapp = iti.getNumber(); // E.164 format including country code
+    } else {
+        // Fallback
+        whatsapp = $('input[name="whatsapp"]').val();
+    }
+
+    // Basic Name Check
+    if (!nome || nome.trim().length < 2) {
+        alert('Por favor, preencha seu nome.');
         return;
     }
 
@@ -130,6 +161,9 @@ document.getElementById('funnelForm').addEventListener('submit', async function 
 
     // Clean monetary value
     data.capital_disponivel = parseFloat(data.capital_disponivel.replace(/\./g, '').replace(',', '.')) || 0;
+
+    // OVERWRITE WHATSAPP WITH FORMATTED VALUE
+    data.whatsapp = whatsapp;
 
     // Get Fingerprint
     let fingerprint = null;

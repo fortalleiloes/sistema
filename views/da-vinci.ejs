@@ -1336,21 +1336,22 @@
                 const updateFieldVisibility = (id, value) => {
                     const cardId = optionalFields[id];
                     if (cardId) {
-                        const card = document.getElementById(cardId);
-                        if (card) {
+                        // Use querySelectorAll to target BOTH Preview and Source elements (due to ID duplication from cloning)
+                        const cards = document.querySelectorAll(`[id="${cardId}"]`);
+                        cards.forEach(card => {
                             if (!value || value.trim() === '') {
                                 card.style.display = 'none';
                             } else {
                                 card.style.display = ''; // Reverts to CSS (flex)
                             }
-                        }
+                        });
                     }
                 };
 
                 // Campos que precisam de unidades/sufixos
                 const fieldSuffixes = {
                     'Metragem': ' m²',
-                    'Quartos': '', // Rótulo visual pode já existir, mas se for texto corrido: ' Quartos'
+                    'Quartos': '',
                     'Banheiros': '',
                     'Vaga': ''
                 };
@@ -1366,9 +1367,10 @@
 
                             // 1. Update Text with Suffixes and Capitalization logic
                             // Special handling for 'Nome' which updates Title and Subtitle areas if needed
-                            const target = document.getElementById('pdf' + (id === 'Nome' ? 'NomeImovel' : id));
+                            const targetId = 'pdf' + (id === 'Nome' ? 'NomeImovel' : id);
+                            const targets = document.querySelectorAll(`[id="${targetId}"]`);
 
-                            if (target) {
+                            targets.forEach(target => {
                                 // Adicionar sufixo se existir e se houver valor
                                 let displayVal = val;
 
@@ -1382,17 +1384,20 @@
                                     displayVal += ' m²';
                                 }
 
+                                // Default fallback (syncs with sync function logic)
+                                if (!displayVal) displayVal = (id === 'Metragem') ? '-- m²' : '--';
+
                                 target.innerText = displayVal;
-                            }
+                            });
 
                             // 2. Handle Creci/Company Name special update in text body
                             if (id === 'Creci') {
                                 const companyName = val.split('-')[0].trim();
-                                const textTarget = document.getElementById('pdfCompanyInText');
-                                if (textTarget) textTarget.innerText = companyName || "Sua Empresa";
+                                const textTargets = document.querySelectorAll('[id="pdfCompanyInText"]');
+                                textTargets.forEach(el => el.innerText = companyName || "Sua Empresa");
                             }
 
-                            // 3. Update Visibility for Optional Cards
+                            // 3. Update Visibility for Optional Cards (All instances)
                             updateFieldVisibility(id, val);
                         });
                     }

@@ -1528,6 +1528,41 @@
                 // --- Company Profile Management (LocalStorage) ---
                 let currentLogoBase64 = null;
 
+                // Helper to sanitize Base64 (strip EXIF/Rotation) on load
+                function sanitizeBase64Image(base64) {
+                    return new Promise((resolve) => {
+                        if (!base64) return resolve(null);
+
+                        const img = new Image();
+                        img.onload = function () {
+                            // Use createImageBitmap if available for robust rotation
+                            if (window.createImageBitmap) {
+                                createImageBitmap(img).then(bitmap => {
+                                    const canvas = document.createElement('canvas');
+                                    canvas.width = bitmap.width;
+                                    canvas.height = bitmap.height;
+                                    const ctx = canvas.getContext('2d');
+                                    ctx.drawImage(bitmap, 0, 0);
+                                    resolve(canvas.toDataURL('image/png'));
+                                }).catch(() => {
+                                    // Fallback
+                                    resolve(base64);
+                                });
+                            } else {
+                                // Simple Canvas fallback
+                                const canvas = document.createElement('canvas');
+                                canvas.width = img.width;
+                                canvas.height = img.height;
+                                const ctx = canvas.getContext('2d');
+                                ctx.drawImage(img, 0, 0);
+                                resolve(canvas.toDataURL('image/png'));
+                            }
+                        };
+                        img.onerror = () => resolve(base64); // If fail, return original
+                        img.src = base64;
+                    });
+                }
+
                 function getSavedProfiles() {
                     try {
                         return JSON.parse(localStorage.getItem('savedCompanies') || '[]');
@@ -1657,7 +1692,7 @@
                     alert("Empresa removida.");
                 }
 
-                function loadCompanyProfile(id) {
+                async function loadCompanyProfile(id) {
                     if (!id) {
                         newCompanyProfile(); // Clear if deselecting
                         return;
@@ -1680,8 +1715,13 @@
                         setVal('inputFooter', profile.footer);
 
                         if (profile.logo) {
-                            currentLogoBase64 = profile.logo;
-                            applyWatermarkFromBase64(profile.logo);
+                            // Sanitize on load to fix legacy saved profiles
+                            const cleanLogo = await sanitizeBase64Image(profile.logo);
+                            currentLogoBase64 = cleanLogo;
+                            applyWatermarkFromBase64(cleanLogo);
+
+                            // Optional: Update storage with clean version to avoid re-processing?
+                            // For now, just fix the view.
                         }
                     }
                 }

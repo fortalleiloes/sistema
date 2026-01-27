@@ -1458,6 +1458,11 @@
 
                                 const cleanDataUrl = canvas.toDataURL('image/png');
 
+                                // CRITICAL: Update global state if this is the watermark logo
+                                if (inputId === 'fileLogoWatermark') {
+                                    currentLogoBase64 = cleanDataUrl;
+                                }
+
                                 const preview = document.getElementById(previewId);
                                 if (preview.tagName === 'IMG') {
                                     preview.src = cleanDataUrl;
@@ -1488,7 +1493,6 @@
                             })
                             .catch(err => {
                                 console.error("Bitmap Error, fallback to FileReader:", err);
-                                // Fallback for very old browsers (unlikely to be used here but good practice)
                                 const img = new Image();
                                 img.onload = function () {
                                     const canvas = document.createElement('canvas');
@@ -1497,6 +1501,11 @@
                                     const ctx = canvas.getContext('2d');
                                     ctx.drawImage(img, 0, 0);
                                     const cleanDataUrl = canvas.toDataURL('image/png');
+
+                                    // CRITICAL: Update global state
+                                    if (inputId === 'fileLogoWatermark') {
+                                        currentLogoBase64 = cleanDataUrl;
+                                    }
 
                                     const preview = document.getElementById(previewId);
                                     if (preview.tagName === 'IMG') preview.src = cleanDataUrl;
@@ -1513,6 +1522,24 @@
                                 };
                                 img.src = URL.createObjectURL(input.files[0]);
                             });
+                        ctx.drawImage(img, 0, 0);
+                        const cleanDataUrl = canvas.toDataURL('image/png');
+
+                        const preview = document.getElementById(previewId);
+                        if (preview.tagName === 'IMG') preview.src = cleanDataUrl;
+                        else preview.style.backgroundImage = `url(${cleanDataUrl})`;
+                        preview.classList.remove('hidden');
+
+                        if (pdfTargetId) {
+                            const elements = document.querySelectorAll(`[id="${pdfTargetId}"]`);
+                            elements.forEach(el => {
+                                if (el.tagName === 'IMG') el.src = cleanDataUrl;
+                                else el.style.backgroundImage = `url(${cleanDataUrl})`;
+                            });
+                        }
+                    };
+                    img.src = URL.createObjectURL(input.files[0]);
+                });
                     }
                 }
 

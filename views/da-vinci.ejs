@@ -1916,18 +1916,56 @@
 
                 function updateWatermark(input) {
                     if (input.files && input.files[0]) {
-                        const reader = new FileReader();
-                        reader.onload = function (e) {
-                            currentLogoBase64 = e.target.result;
-                            applyWatermarkFromBase64(currentLogoBase64);
+                        // Use createImageBitmap to enforce EXIF orientation baking (same as previewUpload)
+                        createImageBitmap(input.files[0])
+                            .then(bitmap => {
+                                const canvas = document.createElement('canvas');
+                                canvas.width = bitmap.width;
+                                canvas.height = bitmap.height;
+                                const ctx = canvas.getContext('2d');
 
-                            // SHOW DELETE BUTTON
-                            if (input.parentElement) {
-                                const btn = input.parentElement.querySelector('.remove-image-btn');
-                                if (btn) btn.classList.remove('hidden');
-                            }
-                        }
-                        reader.readAsDataURL(input.files[0]);
+                                // Draw the pre-orientated bitmap
+                                ctx.drawImage(bitmap, 0, 0);
+
+                                const cleanDataUrl = canvas.toDataURL('image/png');
+
+                                // Update global state with CLEAN image
+                                currentLogoBase64 = cleanDataUrl;
+                                applyWatermarkFromBase64(cleanDataUrl);
+
+                                // SHOW DELETE BUTTON
+                                if (input.parentElement) {
+                                    const btn = input.parentElement.querySelector('.remove-image-btn');
+                                    if (btn) btn.classList.remove('hidden');
+                                }
+                            })
+                            .catch(err => {
+                                console.error("Bitmap Error in updateWatermark, fallback:", err);
+                                // Fallback to FileReader (old browsers)
+                                const reader = new FileReader();
+                                reader.onload = function (e) {
+                                    // Even in fallback, try to sanitize via canvas
+                                    const img = new Image();
+                                    img.onload = function () {
+                                        const canvas = document.createElement('canvas');
+                                        canvas.width = img.width;
+                                        canvas.height = img.height;
+                                        const ctx = canvas.getContext('2d');
+                                        ctx.drawImage(img, 0, 0);
+                                        const cleanDataUrl = canvas.toDataURL('image/png');
+
+                                        currentLogoBase64 = cleanDataUrl;
+                                        applyWatermarkFromBase64(cleanDataUrl);
+
+                                        if (input.parentElement) {
+                                            const btn = input.parentElement.querySelector('.remove-image-btn');
+                                            if (btn) btn.classList.remove('hidden');
+                                        }
+                                    };
+                                    img.src = e.target.result;
+                                };
+                                reader.readAsDataURL(input.files[0]);
+                            });
                     }
                 }
 

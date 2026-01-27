@@ -499,6 +499,7 @@
                         }
                     }
                 }
+            }
         </style>
 </head>
 
@@ -2018,6 +2019,26 @@
                         // --- 1. CALCULATIONS ---
                         const getNum = (v) => window.num(v);
 
+                        // Helper for deep search locally
+                        const findDeepLocal = (obj, key) => {
+                            if (!obj || typeof obj !== 'object') return null;
+                            if (obj[key] !== undefined && obj[key] !== null && obj[key] !== '') return obj[key];
+                            for (const k in obj) {
+                                if (typeof obj[k] === 'object' && obj[k] !== null) {
+                                    const val = obj[k][key];
+                                    if (val !== undefined && val !== null && val !== '') return val;
+                                }
+                            }
+                            return null;
+                        };
+                        const getAnyDeepLocal = (...keys) => {
+                            for (const k of keys) {
+                                const val = findDeepLocal(data, k);
+                                if (val) return val;
+                            }
+                            return null;
+                        };
+
                         // Acquisition Strings
                         const vlrArremate = getNum(data.valorArrematado);
                         const vlrAvaliacao = getNum(data.valorAvaliacao);
@@ -2025,7 +2046,19 @@
                         // Expenses
                         const leiloeiro = (String(data.incluirLeiloeiro) === 'false') ? 0 : vlrArremate * 0.05;
                         const itbiPct = getNum(data.itbi) > 0 ? getNum(data.itbi) / 100 : 0.03;
-                        const itbi = vlrArremate * itbiPct;
+
+                        // Try to use explicit saved ITBI value first (for legacy compatibility)
+                        let itbi = 0;
+                        const savedItbi = getAnyDeep ? getAnyDeep('valorITBI', 'itbi_value') : null;
+
+                        if (savedItbi) {
+                            itbi = getNum(savedItbi);
+                        } else {
+                            // Fallback to calculation
+                            const itbiBaseStr = (data.itbiBase || data.itbi_base || 'avaliacao');
+                            const baseItbi = (itbiBaseStr === 'avaliacao') ? vlrAvaliacao : vlrArremate;
+                            itbi = baseItbi * itbiPct;
+                        }
                         const cartorio = getNum(data.custosCartorarios);
                         const reforma = getNum(data.reforma);
                         const debitos = getNum(data.debitosPendentes);
@@ -2329,7 +2362,32 @@
 
                         // ITBI
                         const itbiPercent = num(data.itbi) > 0 ? num(data.itbi) / 100 : 0.03;
-                        const itbi = vlrArremate * itbiPercent;
+
+                        let itbi = 0;
+                        // Robust retrieval of ITBI base preference
+                        const rawItbiBase = getAnyDeep('itbiBase', 'itbi_base', 'base_itbi');
+                        // Also try to find a pre-calculated ITBI value to ensure full match
+                        const rawItbiValue = getAnyDeep('valorITBI', 'itbi_value');
+
+                        if (rawItbiValue && parseFloat(rawItbiValue) > 0) {
+                            itbi = num(rawItbiValue);
+                        } else {
+                            // Determine Base ITBI
+                            let baseMode = 'avaliacao'; // Default safest option
+
+                            // Check explicit preference
+                            if (rawItbiBase && typeof rawItbiBase === 'string') {
+                                const s = rawItbiBase.toLowerCase().trim();
+                                if (s === 'arremate' || s === 'lance') baseMode = 'arremate';
+                                else if (s === 'avaliacao') baseMode = 'avaliacao';
+                            }
+
+                            // Safety: If Avaliacao is missing/zero, fallback to Arremate
+                            if (vlrAvaliacao <= 0.1) baseMode = 'arremate';
+
+                            const baseItbi = (baseMode === 'avaliacao') ? vlrAvaliacao : vlrArremate;
+                            itbi = baseItbi * itbiPercent;
+                        }
 
                         // Assessoria
                         let assessoria = 6000;

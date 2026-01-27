@@ -1852,64 +1852,76 @@
                 // --- Watermark Logic Refactored ---
                 function applyWatermarkFromBase64(base64) {
                     const img = new Image();
-                    // Removed experimental image-orientation
 
                     img.onload = function () {
-                        const canvas = document.createElement('canvas');
-                        const ctx = canvas.getContext('2d');
-                        const tileSize = 200;
-                        const maxLogoSize = 80;
+                        // STEP 1: Sanitize the image through canvas first to ensure no rotation
+                        const tempCanvas = document.createElement('canvas');
+                        tempCanvas.width = img.width;
+                        tempCanvas.height = img.height;
+                        const tempCtx = tempCanvas.getContext('2d');
+                        tempCtx.drawImage(img, 0, 0);
+                        const sanitizedBase64 = tempCanvas.toDataURL('image/png');
 
-                        canvas.width = tileSize;
-                        canvas.height = tileSize;
+                        // STEP 2: Create a new image from the sanitized data
+                        const cleanImg = new Image();
+                        cleanImg.onload = function () {
+                            // STEP 3: Create the tiled pattern
+                            const canvas = document.createElement('canvas');
+                            const ctx = canvas.getContext('2d');
+                            const tileSize = 200;
+                            const maxLogoSize = 80;
 
-                        const aspect = img.width / img.height;
-                        let drawW = maxLogoSize;
-                        let drawH = maxLogoSize;
+                            canvas.width = tileSize;
+                            canvas.height = tileSize;
 
-                        if (aspect > 1) drawH = maxLogoSize / aspect;
-                        else drawW = maxLogoSize * aspect;
+                            const aspect = cleanImg.width / cleanImg.height;
+                            let drawW = maxLogoSize;
+                            let drawH = maxLogoSize;
 
-                        const x = (tileSize - drawW) / 2;
-                        const y = (tileSize - drawH) / 2;
+                            if (aspect > 1) drawH = maxLogoSize / aspect;
+                            else drawW = maxLogoSize * aspect;
 
-                        // Clear canvas first
-                        ctx.clearRect(0, 0, tileSize, tileSize);
+                            const x = (tileSize - drawW) / 2;
+                            const y = (tileSize - drawH) / 2;
 
-                        // Save context state
-                        ctx.save();
+                            // Clear canvas first
+                            ctx.clearRect(0, 0, tileSize, tileSize);
 
-                        // Set proper image rendering
-                        ctx.imageSmoothingEnabled = true;
-                        ctx.imageSmoothingQuality = 'high';
+                            // Save context state
+                            ctx.save();
 
-                        // Draw image
-                        ctx.globalAlpha = 1.0;
-                        ctx.drawImage(img, x, y, drawW, drawH);
+                            // Set proper image rendering
+                            ctx.imageSmoothingEnabled = true;
+                            ctx.imageSmoothingQuality = 'high';
 
-                        // Restore context
-                        ctx.restore();
+                            // Draw image
+                            ctx.globalAlpha = 1.0;
+                            ctx.drawImage(cleanImg, x, y, drawW, drawH);
 
-                        const patternUrl = `url('${canvas.toDataURL('image/png')}')`;
+                            // Restore context
+                            ctx.restore();
 
-                        const preview = document.getElementById('previewWatermark');
-                        if (preview) {
-                            preview.src = base64;
-                            preview.classList.remove('hidden');
-                        }
+                            const patternUrl = `url('${canvas.toDataURL('image/png')}')`;
 
-                        const watermarks = document.querySelectorAll('.pdf-watermark-bg');
-                        watermarks.forEach(div => {
-                            div.style.backgroundImage = patternUrl;
-                            div.style.backgroundSize = `${tileSize}px ${tileSize}px`;
-                            div.style.backgroundPosition = 'center';
-                            div.style.backgroundRepeat = 'repeat';
-                            // Removed image-orientation
+                            const preview = document.getElementById('previewWatermark');
+                            if (preview) {
+                                preview.src = sanitizedBase64;
+                                preview.classList.remove('hidden');
+                            }
 
-                            // Force print color adjustment
-                            div.style.webkitPrintColorAdjust = 'exact';
-                            div.style.printColorAdjust = 'exact';
-                        });
+                            const watermarks = document.querySelectorAll('.pdf-watermark-bg');
+                            watermarks.forEach(div => {
+                                div.style.backgroundImage = patternUrl;
+                                div.style.backgroundSize = `${tileSize}px ${tileSize}px`;
+                                div.style.backgroundPosition = 'center';
+                                div.style.backgroundRepeat = 'repeat';
+
+                                // Force print color adjustment
+                                div.style.webkitPrintColorAdjust = 'exact';
+                                div.style.printColorAdjust = 'exact';
+                            });
+                        };
+                        cleanImg.src = sanitizedBase64;
                     };
                     img.src = base64;
                 }

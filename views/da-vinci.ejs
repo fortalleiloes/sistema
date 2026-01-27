@@ -2051,14 +2051,20 @@
                         let itbi = 0;
                         const savedItbi = getAnyDeep ? getAnyDeep('valorITBI', 'itbi_value') : null;
 
-                        if (savedItbi) {
-                            itbi = getNum(savedItbi);
-                        } else {
-                            // Fallback to calculation
-                            const itbiBaseStr = (data.itbiBase || data.itbi_base || 'avaliacao');
-                            const baseItbi = (itbiBaseStr === 'avaliacao') ? vlrAvaliacao : vlrArremate;
-                            itbi = baseItbi * itbiPct;
+                        // Force Recalculation (Ignore stale saved values)
+                        const itbiBaseRaw = getAnyDeepLocal('itbiBase', 'itbi_base', 'base_itbi');
+
+                        // Determine Base ITBI
+                        let baseMode = 'avaliacao'; // Default
+                        if (itbiBaseRaw && typeof itbiBaseRaw === 'string') {
+                            const s = itbiBaseRaw.toLowerCase().trim();
+                            if (s === 'arremate' || s === 'lance') baseMode = 'arremate';
                         }
+                        // Safety: If Avaliacao is 0/missing, use Arremate
+                        if (vlrAvaliacao <= 0) baseMode = 'arremate';
+
+                        const baseItbi = (baseMode === 'avaliacao') ? vlrAvaliacao : vlrArremate;
+                        itbi = baseItbi * itbiPct;
                         const cartorio = getNum(data.custosCartorarios);
                         const reforma = getNum(data.reforma);
                         const debitos = getNum(data.debitosPendentes);
@@ -2369,9 +2375,16 @@
                         // Also try to find a pre-calculated ITBI value to ensure full match
                         const rawItbiValue = getAnyDeep('valorITBI', 'itbi_value');
 
-                        if (rawItbiValue && parseFloat(rawItbiValue) > 0) {
-                            itbi = num(rawItbiValue);
-                        } else {
+                        console.log('🔍 Debug ITBI - Raw Values:', {
+                            rawItbiValue,
+                            rawItbiBase,
+                            vlrAvaliacao: window.fmt(vlrAvaliacao),
+                            vlrArremate: window.fmt(vlrArremate),
+                            itbiPercent: data.itbi
+                        });
+
+                        if (true) {
+                            // IGNORE saved 'valorITBI' to ensure correctness. always recalculate.
                             // Determine Base ITBI
                             let baseMode = 'avaliacao'; // Default safest option
 
@@ -2387,7 +2400,9 @@
 
                             const baseItbi = (baseMode === 'avaliacao') ? vlrAvaliacao : vlrArremate;
                             itbi = baseItbi * itbiPercent;
+                            console.log('👉 Force Recalculated ITBI:', { baseMode, baseItbi, itbiPercent, result: itbi });
                         }
+
 
                         // Assessoria
                         let assessoria = 6000;
@@ -2624,6 +2639,7 @@
                         alert("Erro no carregamento: " + e.message);
                     }
                 }
+
 
                 // ===== FUNÇÕES DE RASCUNHO =====
                 const RASCUNHO_KEY = 'davinci_rascunho';

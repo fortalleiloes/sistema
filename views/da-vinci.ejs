@@ -1444,40 +1444,75 @@
                 // Image Preview Handler
                 function previewUpload(input, previewId, pdfTargetId) {
                     if (input.files && input.files[0]) {
-                        const reader = new FileReader();
-                        reader.onload = function (e) {
-                            const preview = document.getElementById(previewId);
-                            // Handle both img tags and background divs depending on what's consistent
-                            if (preview.tagName === 'IMG') {
-                                preview.src = e.target.result;
-                            } else {
-                                preview.style.backgroundImage = `url(${e.target.result})`;
-                            }
-                            preview.classList.remove('hidden');
+                        // Use createImageBitmap to enforce EXIF orientation baking
+                        // This is supported in modern browsers and correctly handles "imageOrientation: from-image" default
+                        createImageBitmap(input.files[0])
+                            .then(bitmap => {
+                                const canvas = document.createElement('canvas');
+                                canvas.width = bitmap.width;
+                                canvas.height = bitmap.height;
+                                const ctx = canvas.getContext('2d');
 
-                            if (pdfTargetId) {
-                                // Update ALL instances (Source + Preview) in case of duplicate IDs
-                                const elements = document.querySelectorAll(`[id="${pdfTargetId}"]`);
-                                elements.forEach(el => {
-                                    if (el.tagName === 'IMG') {
-                                        el.src = e.target.result;
-                                        el.style.transform = 'none';
-                                        el.style.rotate = '0deg';
-                                    }
-                                    else {
-                                        el.style.backgroundImage = `url(${e.target.result})`;
-                                        el.style.transform = 'none';
-                                    }
-                                });
-                            }
+                                // Draw the pre-orientated bitmap
+                                ctx.drawImage(bitmap, 0, 0);
 
-                            // SHOW DELETE BUTTON
-                            if (input.parentElement) {
-                                const btn = input.parentElement.querySelector('.remove-image-btn');
-                                if (btn) btn.classList.remove('hidden');
-                            }
-                        }
-                        reader.readAsDataURL(input.files[0]);
+                                const cleanDataUrl = canvas.toDataURL('image/png');
+
+                                const preview = document.getElementById(previewId);
+                                if (preview.tagName === 'IMG') {
+                                    preview.src = cleanDataUrl;
+                                } else {
+                                    preview.style.backgroundImage = `url(${cleanDataUrl})`;
+                                }
+                                preview.classList.remove('hidden');
+
+                                if (pdfTargetId) {
+                                    const elements = document.querySelectorAll(`[id="${pdfTargetId}"]`);
+                                    elements.forEach(el => {
+                                        if (el.tagName === 'IMG') {
+                                            el.src = cleanDataUrl;
+                                            el.style.transform = 'none';
+                                            el.style.rotate = '0deg';
+                                        } else {
+                                            el.style.backgroundImage = `url(${cleanDataUrl})`;
+                                            el.style.transform = 'none';
+                                        }
+                                    });
+                                }
+
+                                // SHOW DELETE BUTTON
+                                if (input.parentElement) {
+                                    const btn = input.parentElement.querySelector('.remove-image-btn');
+                                    if (btn) btn.classList.remove('hidden');
+                                }
+                            })
+                            .catch(err => {
+                                console.error("Bitmap Error, fallback to FileReader:", err);
+                                // Fallback for very old browsers (unlikely to be used here but good practice)
+                                const img = new Image();
+                                img.onload = function () {
+                                    const canvas = document.createElement('canvas');
+                                    canvas.width = img.width;
+                                    canvas.height = img.height;
+                                    const ctx = canvas.getContext('2d');
+                                    ctx.drawImage(img, 0, 0);
+                                    const cleanDataUrl = canvas.toDataURL('image/png');
+
+                                    const preview = document.getElementById(previewId);
+                                    if (preview.tagName === 'IMG') preview.src = cleanDataUrl;
+                                    else preview.style.backgroundImage = `url(${cleanDataUrl})`;
+                                    preview.classList.remove('hidden');
+
+                                    if (pdfTargetId) {
+                                        const elements = document.querySelectorAll(`[id="${pdfTargetId}"]`);
+                                        elements.forEach(el => {
+                                            if (el.tagName === 'IMG') el.src = cleanDataUrl;
+                                            else el.style.backgroundImage = `url(${cleanDataUrl})`;
+                                        });
+                                    }
+                                };
+                                img.src = URL.createObjectURL(input.files[0]);
+                            });
                     }
                 }
 

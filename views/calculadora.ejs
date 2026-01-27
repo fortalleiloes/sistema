@@ -1370,6 +1370,10 @@
                                         <input type="text" id="edit-custoDesocupacao" name="custoDesocupacao" value="${formatMoney(dados.custoDesocupacao)}" class="macos-input currency-input">
                                     </div>
                                     <div class="macos-form-group">
+                                        <label class="macos-form-label">Custos Adicionais</label>
+                                        <input type="text" id="edit-custosAdicionais" name="custosAdicionais" value="${formatMoney(dados.custosAdicionais)}" class="macos-input currency-input">
+                                    </div>
+                                    <div class="macos-form-group">
                                         <label class="macos-form-label">Condomínio (Mensal)</label>
                                         <input type="text" id="edit-condominioMensal" name="condominioMensal" value="${formatMoney(dados.condominioMensal)}" class="macos-input currency-input">
                                     </div>
@@ -1451,6 +1455,7 @@
                                 custosCartorarios: getCurrencyValue('edit-custosCartorarios'),
                                 debitosPendentes: getCurrencyValue('edit-debitosPendentes'),
                                 custoDesocupacao: getCurrencyValue('edit-custoDesocupacao'),
+                                custosAdicionais: getCurrencyValue('edit-custosAdicionais'),
                                 condominioMensal: getCurrencyValue('edit-condominioMensal'),
                                 iptuMensal: getCurrencyValue('edit-iptuMensal'),
                                 taxaSeguroCaixa: getCurrencyValue('edit-taxaSeguroCaixa'),

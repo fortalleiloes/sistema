@@ -348,7 +348,6 @@
             .pdf-watermark-bg {
                 background-repeat: repeat !important;
                 background-position: center !important;
-                /* Removed experimental image-orientation */
             }
 
             /* Forçar capitalização em todo o conteúdo PDF */
@@ -1460,8 +1459,15 @@
                                 // Update ALL instances (Source + Preview) in case of duplicate IDs
                                 const elements = document.querySelectorAll(`[id="${pdfTargetId}"]`);
                                 elements.forEach(el => {
-                                    if (el.tagName === 'IMG') el.src = e.target.result;
-                                    else el.style.backgroundImage = `url(${e.target.result})`;
+                                    if (el.tagName === 'IMG') {
+                                        el.src = e.target.result;
+                                        el.style.transform = 'none';
+                                        el.style.rotate = '0deg';
+                                    }
+                                    else {
+                                        el.style.backgroundImage = `url(${e.target.result})`;
+                                        el.style.transform = 'none';
+                                    }
                                 });
                             }
 

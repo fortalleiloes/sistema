@@ -1834,15 +1834,15 @@
 
 
 
-                // --- Watermark Logic Refactored (Single Centered Logo Strategy) ---
-                // Simpler approach requested by user: One logo per page, somewhere specific (Centered).
+                // --- Watermark Logic Refactored (Bottom Logo Strategy) ---
+                // User Request: One logo per page, at the bottom.
                 function applyWatermarkFromBase64(base64) {
                     const watermarks = document.querySelectorAll('.pdf-watermark-bg');
 
-                    // Single Centered Big Logo
+                    // Single Logo at Bottom
                     const singleLogoHtml = `
-                        <div style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;">
-                            <img src="${base64}" style="width: 300px; height: auto; object-fit: contain; opacity: 0.08;"> 
+                        <div style="position: absolute; bottom: 80px; width: 100%; display: flex; align-items: flex-end; justify-content: center; pointer-events: none;">
+                            <img src="${base64}" style="width: 120px; height: auto; object-fit: contain; opacity: 0.15; padding-bottom: 20px;"> 
                         </div>
                     `;
 

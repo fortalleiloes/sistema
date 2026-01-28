@@ -1459,7 +1459,7 @@
                                 const cleanDataUrl = canvas.toDataURL('image/png');
 
                                 // CRITICAL: Update global state if this is the watermark logo
-                                if (inputId === 'fileLogoWatermark') {
+                                if (input.id === 'fileLogoWatermark') {
                                     currentLogoBase64 = cleanDataUrl;
                                 }
 
@@ -1503,7 +1503,7 @@
                                     const cleanDataUrl = canvas.toDataURL('image/png');
 
                                     // CRITICAL: Update global state
-                                    if (inputId === 'fileLogoWatermark') {
+                                    if (input.id === 'fileLogoWatermark') {
                                         currentLogoBase64 = cleanDataUrl;
                                     }
 

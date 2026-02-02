@@ -266,10 +266,10 @@
                                                         <!-- Inputs ocultos para enviar os parâmetros da regra -->
                                                         <input type="hidden" name="assessoriaThreshold"
                                                             id="assessoriaThreshold"
-                                                            value="<%= locals.inputData?.assessoriaThreshold || '120000' %>">
+                                                            value="<%= locals.inputData?.assessoriaThreshold || '140000' %>">
                                                         <input type="hidden" name="assessoriaFeeBelow"
                                                             id="assessoriaFeeBelow"
-                                                            value="<%= locals.inputData?.assessoriaFeeBelow || '6000' %>">
+                                                            value="<%= locals.inputData?.assessoriaFeeBelow || '7000' %>">
                                                         <input type="hidden" name="assessoriaFeeAbovePercent"
                                                             id="assessoriaFeeAbovePercent"
                                                             value="<%= locals.inputData?.assessoriaFeeAbovePercent || '5' %>">
@@ -1622,8 +1622,8 @@
                                 return el ? (parseFloat(el.value) || def) : def;
                             };
 
-                            const threshold = getVal('assessoriaThreshold', 120000);
-                            const feeBelow = getVal('assessoriaFeeBelow', 6000);
+                            const threshold = getVal('assessoriaThreshold', 140000);
+                            const feeBelow = getVal('assessoriaFeeBelow', 7000);
                             const feeAbovePercent = getVal('assessoriaFeeAbovePercent', 5);
 
                             // Calcular
@@ -1743,7 +1743,7 @@
                                                 style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--macos-text-secondary); font-size: 14px;">R$</span>
                                             <input type="text" id="modalAssessoriaThreshold" class="macos-input"
                                                 oninput="formatCurrencyInput(this)" style="padding-left: 36px;"
-                                                placeholder="120.000,00">
+                                                placeholder="140.000,00">
                                         </div>
                                         <p
                                             style="font-size: 12px; color: var(--macos-text-secondary); margin-top: 6px;">
@@ -1757,7 +1757,7 @@
                                                 style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--macos-text-secondary); font-size: 14px;">R$</span>
                                             <input type="text" id="modalAssessoriaFeeBelow" class="macos-input"
                                                 oninput="formatCurrencyInput(this)" style="padding-left: 36px;"
-                                                placeholder="6.000,00">
+                                                placeholder="7.000,00">
                                         </div>
                                         <p
                                             style="font-size: 12px; color: var(--macos-text-secondary); margin-top: 6px;">
@@ -1780,16 +1780,77 @@
                             </div>
 
                             <div
-                                style="padding: 20px 28px; background: var(--macos-bg-tertiary); border-radius: 0 0 16px 16px; border-top: 1px solid var(--macos-divider); display: flex; justify-content: flex-end; gap: 12px;">
-                                <button type="button" class="macos-btn-secondary"
-                                    onclick="fecharModalAssessoriaV2()">Cancelar</button>
-                                <button type="button" class="macos-btn-primary"
-                                    onclick="saveAssessoriaConfigV2()">Confirmar</button>
+                                style="padding: 20px 28px; background: var(--macos-bg-tertiary); border-radius: 0 0 16px 16px; border-top: 1px solid var(--macos-divider); display: flex; justify-content: space-between; align-items: center; gap: 12px;">
+                                <button type="button" class="macos-btn-secondary" onclick="saveAssessoriaDefaults()"
+                                    style="margin-right: auto; display: flex; align-items: center; gap: 6px;">
+                                    <i class="fa-solid fa-floppy-disk"></i> Salvar Padrão
+                                </button>
+
+                                <div style="display: flex; gap: 12px;">
+                                    <button type="button" class="macos-btn-secondary"
+                                        onclick="fecharModalAssessoriaV2()">Cancelar</button>
+                                    <button type="button" class="macos-btn-primary"
+                                        onclick="saveAssessoriaConfigV2()">Confirmar</button>
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     <script>
+                        // --- Logic for Saving Defaults ---
+                        function saveAssessoriaDefaults() {
+                            const thresholdStr = document.getElementById('modalAssessoriaThreshold').value;
+                            const feeBelowStr = document.getElementById('modalAssessoriaFeeBelow').value;
+                            const feeAbove = document.getElementById('modalAssessoriaFeeAbovePercent').value;
+
+                            const defaults = {
+                                threshold: parseCurrency(thresholdStr),
+                                feeBelow: parseCurrency(feeBelowStr),
+                                feeAbove: feeAbove
+                            };
+
+                            localStorage.setItem('assessoriaDefaults', JSON.stringify(defaults));
+                            alert('Padrão salvo com sucesso! Seus próximos cálculos usarão estes valores.');
+                        }
+
+                        function loadAssessoriaDefaults() {
+                            const saved = localStorage.getItem('assessoriaDefaults');
+                            if (!saved) return;
+
+                            try {
+                                const defaults = JSON.parse(saved);
+                                const tField = document.getElementById('assessoriaThreshold');
+                                const fField = document.getElementById('assessoriaFeeBelow');
+                                const pField = document.getElementById('assessoriaFeeAbovePercent');
+
+                                // Only override if current values are factory defaults (meaning not explicitly set by server/edit)
+                                // Factory defaults: 120000, 6000, 5
+                                // Or if we want to enforce defaults on new blank pages
+                                const currentT = parseFloat(tField.value);
+                                const currentF = parseFloat(fField.value);
+                                const currentP = parseFloat(pField.value);
+
+                                // Check loose equality to factory defaults to avoid overwriting existing edits
+                                // But if it IS the factory default, we replace with user preference.
+                                if (currentT === 140000 && currentF === 7000 && currentP === 5) {
+                                    tField.value = defaults.threshold;
+                                    fField.value = defaults.feeBelow;
+                                    pField.value = defaults.feeAbove;
+                                    console.log('✅ Carregados padrões de assessoria do usuário:', defaults);
+
+                                    // Also trigger update to recalculate if needed
+                                    if (typeof updateAssessoriaFromRule === 'function') {
+                                        updateAssessoriaFromRule();
+                                    }
+                                }
+                            } catch (e) {
+                                console.error('Erro ao carregar padrões de assessoria:', e);
+                            }
+                        }
+
+                        // Run on load
+                        document.addEventListener('DOMContentLoaded', loadAssessoriaDefaults);
+
                         function abrirModalAssessoriaV2() {
                             console.log('🔵 abrirModalAssessoriaV2 CHAMADA');
                             const modal = document.getElementById('assessoriaModalV2');

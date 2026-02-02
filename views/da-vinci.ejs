@@ -1635,26 +1635,52 @@
                     const inputId = zone.id.replace('dropzone_', '');
                     const fileInput = document.getElementById(inputId);
 
-                    if (e.clipboardData && e.clipboardData.files.length > 0) {
-                        const file = e.clipboardData.files[0];
-                        if (file.type.startsWith('image/')) {
-                            e.preventDefault();
+                    // Robust retrieval of clipboard data (works better for Windows screenshots)
+                    const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+                    let file = null;
 
-                            // Manually assigning files to input (DataTransfer hack)
-                            const dataTransfer = new DataTransfer();
-                            dataTransfer.items.add(file);
-                            fileInput.files = dataTransfer.files;
+                    // 1. Try finding in Items (Best for screenshots/blobs)
+                    if (items) {
+                        for (let i = 0; i < items.length; i++) {
+                            if (items[i].type.indexOf("image") !== -1) {
+                                file = items[i].getAsFile();
+                                break;
+                            }
+                        }
+                    }
 
-                            // Trigger change event manually
-                            const event = new Event('change', { bubbles: true });
-                            fileInput.dispatchEvent(event);
+                    // 2. Fallback to Files array if items didn't yield file
+                    if (!file && e.clipboardData && e.clipboardData.files.length > 0) {
+                        file = e.clipboardData.files[0];
+                    }
 
-                            // Optional: Visual feedback
-                            const originalBg = zone.style.backgroundColor;
-                            zone.style.backgroundColor = 'rgba(0, 255, 0, 0.1)';
-                            setTimeout(() => zone.style.backgroundColor = originalBg, 300);
-                        } else {
-                            alert('O que foi colado não é uma imagem.');
+                    if (file && file.type.startsWith('image/')) {
+                        e.preventDefault();
+
+                        // Manually assigning files to input (DataTransfer hack)
+                        const dataTransfer = new DataTransfer();
+                        dataTransfer.items.add(file);
+                        fileInput.files = dataTransfer.files;
+
+                        // Trigger change event manually
+                        const event = new Event('change', { bubbles: true });
+                        fileInput.dispatchEvent(event);
+
+                        // Visual feedback
+                        const originalBg = zone.style.backgroundColor;
+                        zone.style.backgroundColor = 'rgba(0, 255, 0, 0.1)';
+                        setTimeout(() => zone.style.backgroundColor = originalBg, 300);
+                    } else if (items) {
+                        // Check if user is trying to paste non-image content into image field
+                        // Only alert if we found items but none were images
+                        let hasItems = items.length > 0;
+                        if (hasItems) {
+                            // Verify if it is text
+                            let isText = false;
+                            for (let i = 0; i < items.length; i++) {
+                                if (items[i].type.indexOf("text") !== -1) isText = true;
+                            }
+                            if (isText && !file) console.log("Pasted content was text, ignoring for image upload.");
                         }
                     }
                 }
@@ -2146,14 +2172,23 @@
                         // Assessoria Logic (Default 0 if no value)
                         let assessoria = 0;
                         if (vlrArremate > 0) {
-                            assessoria = 6000; // Default base
+                            // New Standard: 7k up to 140k, then 5%
+                            const stdThresh = 140000;
+                            const stdFee = 7000;
+                            const stdPct = 0.05;
+
                             if (data.assessoriaThreshold !== undefined) {
-                                const thresh = getNum(data.assessoriaThreshold) || 120000;
-                                const feeLow = getNum(data.assessoriaFeeBelow) || 6000;
+                                // Custom Logic from Saved Calc
+                                const thresh = getNum(data.assessoriaThreshold) || stdThresh;
+                                const feeLow = getNum(data.assessoriaFeeBelow) || stdFee;
                                 const feeHighPct = (getNum(data.assessoriaFeeAbovePercent) || 5) / 100;
                                 assessoria = vlrArremate <= thresh ? feeLow : vlrArremate * feeHighPct;
-                            } else if (data.valorAssessoria) {
+                            } else if (data.valorAssessoria && getNum(data.valorAssessoria) > 0) {
+                                // Legacy fixed value
                                 assessoria = getNum(data.valorAssessoria);
+                            } else {
+                                // Standard Default
+                                assessoria = vlrArremate <= stdThresh ? stdFee : vlrArremate * stdPct;
                             }
                         }
 
@@ -2476,15 +2511,23 @@
 
 
                         // Assessoria
-                        let assessoria = 6000;
+                        // Assessoria (Standard: 7k up to 140k, then 5%)
+                        let assessoria = 0;
+                        const stdThresh = 140000;
+                        const stdFee = 7000;
+                        const stdPct = 0.05;
+
                         if (data.assessoriaThreshold !== undefined) {
-                            const thresh = num(data.assessoriaThreshold) || 120000;
-                            const feeLow = num(data.assessoriaFeeBelow) || 6000;
+                            const thresh = num(data.assessoriaThreshold) || stdThresh;
+                            const feeLow = num(data.assessoriaFeeBelow) || stdFee;
                             const feeHighPct = (num(data.assessoriaFeeAbovePercent) || 5) / 100;
 
                             assessoria = vlrArremate <= thresh ? feeLow : vlrArremate * feeHighPct;
-                        } else if (data.valorAssessoria) {
+                        } else if (data.valorAssessoria && num(data.valorAssessoria) > 0) {
                             assessoria = num(data.valorAssessoria);
+                        } else {
+                            // Standard Default
+                            assessoria = vlrArremate <= stdThresh ? stdFee : vlrArremate * stdPct;
                         }
 
                         // Other Costs

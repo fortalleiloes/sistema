@@ -908,27 +908,49 @@ app.post('/api/analise-documentos/process', isAuthenticated, memoryUpload.fields
         const matriculaPart = fileToPart(req.files['matricula'][0].buffer, "application/pdf");
 
         const prompt = `
-        Você é um Advogado Especialista em Leilões de Imóveis.
-        Analise os arquivos PDF anexos (Edital e Matrícula).
-        Eles podem ser texto digital ou imagens escaneadas (OCR necessário).
+        ATUE COMO UM EXPERT JURÍDICO EM LEILÕES DE IMÓVEIS (ADVOGADO SÊNIOR).
+        Sua missão é realizar uma "Due Diligence" completa e rigorosa nos documentos anexos (Edital e Matrícula).
+        O objetivo é fornecer segurança total para um investidor arrematar o imóvel.
 
-        Gere um RElATÓRIO JURÍDICO em MARKDOWN com:
-        # Análise Jurídica de Viabilidade
+        ⚠️DIRETRIZES TÉCNICAS:
+        - Os arquivos podem conter imagens escaneadas: USE OCR AVANÇADO.
+        - Seja EXTREMAMENTE PRECISO com valores, datas e números de processos.
+        - Se uma informação não estiver nos documentos, diga explicitamente: "NÃO CONSTA NOS DOCUMENTOS ANALISADOS".
 
-        ## 1. Resumo do Imóvel
-        - Endereço e Dados Básicos.
+        GERE UM RELATÓRIO TÉCNICO ESTRUTURADO EM MARKDOWN SEGUINDO ESTE MODELO RIGOROSAMENTE:
 
-        ## 2. Análise da Matrícula
-        - Proprietário.
-        - Ônus e Gravames (quais caem no leilão?).
-        - Riscos (Baixo/Médio/Alto).
+        ## 1. VEREDITO EXECUTIVO (Resumo Rápido)
+        **Classificação de Risco:** (🟢 BAIXO / 🟡 MÉDIO / 🔴 ALTO)
+        **Parecer Final:** (Recomendado / Recomendado com Ressalvas / Não Recomendado)
+        > *Resumo em 2 linhas justificando a classificação.*
 
-        ## 3. Análise do Edital
-        - Datas, Valores e Regras.
-        - Débitos (IPTU/Condomínio).
+        ## 2. DADOS DO IMÓVEL E LEILÃO
+        - **Imóvel:** [Endereço Completo conforme Matrícula]
+        - **Matrícula:** [Número] | **Cartório:** [Nome do Cartório]
+        - **Leilão/Leiloeiro:** [Nome]
+        - **Datas do Leilão:** 1ª Praça: [Data/Valor] | 2ª Praça: [Data/Valor]
+        - **Condições de Pagamento:** [Detalhar se aceita financiamento, parcelamento ou desconto à vista]
 
-        ## 4. CONCLUSÃO
-        - Viável ou Inviável?
+        ## 3. ANÁLISE DA MATRÍCULA (O Cação Jurídico)
+        *Liste cronologicamente os ônus ativos.*
+        - **Proprietário Atual:** [Nome]
+        - **Ônus R.X / Av.X:** [Descreva a penhora/hipoteca/arresto] -> *Análise: É baixado com o leilão?*
+        - **Alerta de Riscos Específicos:** (Usufruto, Doação, Cláusulas de Inalienabilidade, Locação averbada?)
+
+        ## 4. ANÁLISE DO EDITAL (Regras do Jogo)
+        - **Responsabilidade por Débitos de Condomínio:** [Quem paga? O arrematante ou o valor da venda?]
+        - **Responsabilidade por IPTU:** [Sub-roga no preço (Art. 130 CTN) ou arrematante paga?]
+        - **Situação da Ocupação:** [Ocupado ou Desocupado? Quem paga desocupação?]
+        - **Comissão do Leiloeiro:** [Percentual]
+
+        ## 5. RECOMENDAÇÕES ESTRATÉGICAS AO ASSESSOR
+        *O que o assessor deve fazer antes de dar o lance?*
+        1. [Ex: Levantar débitos de condomínio atualizados junto à administradora]
+        2. [Ex: Verificar existência de recursos pendentes no processo X]
+        3. [Ex: Visitar o local para confirmar ocupação]
+
+        ---
+        **AVISO LEGAL:** Esta análise é baseada exclusivamente nos documentos fornecidos e serve como triagem preliminar.
         `;
 
         console.log(`Enviando para Gemini (${modelName})...`);

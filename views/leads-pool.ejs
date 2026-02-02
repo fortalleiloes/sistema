@@ -407,9 +407,12 @@
                                                                         <%= lead.nome %>
                                                                     </p>
                                                                     <p
-                                                                        class="text-xs text-[var(--macos-text-tertiary)]">
-                                                                        <%= new Date(lead.created_at).toLocaleString()
-                                                                            %>
+                                                                        class="text-xs text-[var(--macos-text-tertiary)] flex items-center gap-1">
+                                                                        <i
+                                                                            class="fa-brands fa-whatsapp text-[10px]"></i>
+                                                                        <%= lead.whatsapp %> • <%= new
+                                                                                Date(lead.created_at).toLocaleString()
+                                                                                %>
                                                                     </p>
                                                                 </div>
                                                             </div>

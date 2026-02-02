@@ -3648,29 +3648,28 @@ SELECT * FROM leads
             let isDuplicate = false;
             let reason = '';
 
-            // 1. Checagem de Telefone
+            // 1. Checagem de Telefone (Check Rígido)
             if (phone && phone.length > 6) {
                 if (knownPhones.has(phone)) { isDuplicate = true; reason = 'Telefone Histórico'; }
                 if (seenBatchPhones.has(phone)) { isDuplicate = true; reason = 'Telefone Duplicado (Lote)'; }
                 seenBatchPhones.add(phone);
             }
 
-            // 2. Checagem de Dispositivo (Fingerprint)
+            // 2. Checagem de Dispositivo (Fingerprint) - (Check Médio)
             if (!isDuplicate && fingerprint && fingerprint.length > 5) {
                 if (knownFingerprints.has(fingerprint)) { isDuplicate = true; reason = 'Mesmo Dispositivo (Histórico)'; }
                 if (seenBatchFingerprints.has(fingerprint)) { isDuplicate = true; reason = 'Mesmo Dispositivo (Lote)'; }
                 seenBatchFingerprints.add(fingerprint);
             }
 
-            // 3. Checagem de IP
+            // 3. Checagem de IP (Apenas Lote - Anti-Flood)
+            // REMOVIDO CHECK HISTÓRICO DE IP para evitar bloquear usuários em redes compartilhadas
             if (!isDuplicate && ip && ip.length > 5) {
-                if (knownIPs.has(ip)) { isDuplicate = true; reason = 'Mesmo IP (Histórico)'; }
-                if (seenBatchIPs.has(ip)) { isDuplicate = true; reason = 'Mesmo IP (Lote)'; }
+                if (seenBatchIPs.has(ip)) { isDuplicate = true; reason = 'Flood de IP (Lote)'; }
                 seenBatchIPs.add(ip);
             }
 
             if (isDuplicate) {
-                console.log(`🚫 Blacklist: ${lead.nome} - Motivo: ${reason} `);
                 lead.blacklist_reason = reason;
                 blacklistLeads.push(lead);
                 blacklistValue += potentialValue;
@@ -3694,11 +3693,11 @@ SELECT * FROM leads
                 icon = 'fa-whatsapp';
             } else if (lead.blacklist_reason.includes('Dispositivo')) {
                 groupKey = lead.fingerprint;
-                keyLabel = 'ID do Dispositivo';
+                keyLabel = 'Dispositivo Repetido';
                 icon = 'fa-mobile-screen';
             } else if (lead.blacklist_reason.includes('IP')) {
                 groupKey = lead.ip_address;
-                keyLabel = 'IP: ' + lead.ip_address;
+                keyLabel = 'Flood IP: ' + lead.ip_address;
                 icon = 'fa-network-wired';
             } else {
                 groupKey = 'unknown';
@@ -3734,6 +3733,7 @@ SELECT * FROM leads
         const groupedBlacklist = Object.values(groupedBlacklistMap).sort((a, b) => b.count - a.count);
 
         console.log(`✅ Resultado: ${validLeads.length} Válidos | ${blacklistLeads.length} Recusados Agrupados em ${groupedBlacklist.length} Clusters`);
+
 
         // Calcular KPIs
         let kpis = {

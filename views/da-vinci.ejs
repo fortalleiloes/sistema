@@ -1245,13 +1245,18 @@
                                         <div class="flex items-center gap-2 mb-1.5">
                                             <div class="h-[2px] w-6 bg-[#FFD60A]"></div>
                                             <p class="text-[10px] uppercase font-bold text-gray-400 tracking-[0.25em]">
-                                                Responsável pela Arrematação</p>
+                                                Responsável pelo Estudo</p>
                                         </div>
 
-                                        <h3 class="text-3xl font-serif font-black text-gray-900 leading-none tracking-tight mb-3"
+                                        <h3 class="text-3xl font-serif font-black text-gray-900 leading-none tracking-tight mb-1"
                                             id="pdfCreci">
                                             Nome da Empresa
                                         </h3>
+
+                                        <!-- CRECI Number -->
+                                        <p class="text-sm font-bold text-gray-600 mb-3" id="pdfCreciNumero">
+                                            CRECI: ----
+                                        </p>
 
                                         <!-- Social & Contact Badge -->
                                         <div class="flex items-center gap-3">
@@ -1413,6 +1418,18 @@
                                 const companyName = val.split('-')[0].trim();
                                 const textTargets = document.querySelectorAll('[id="pdfCompanyInText"]');
                                 textTargets.forEach(el => el.innerText = companyName || "Sua Empresa");
+
+                                // Extract and display CRECI number
+                                const creciPart = val.split('-')[1]?.trim() || '';
+                                const creciTargets = document.querySelectorAll('[id="pdfCreciNumero"]');
+                                creciTargets.forEach(el => {
+                                    if (creciPart) {
+                                        el.innerText = creciPart;
+                                        el.style.display = 'block';
+                                    } else {
+                                        el.style.display = 'none';
+                                    }
+                                });
                             }
 
                             // 3. Update Visibility for Optional Cards (All instances)

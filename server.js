@@ -2094,6 +2094,7 @@ app.post('/oportunidades', isAuthenticated, upload.any(), async (req, res) => {
         const {
             titulo,
             descricao,
+            observacoes,
             valor_arremate,
             valor_venda,
             lucro_estimado,
@@ -2141,12 +2142,12 @@ app.post('/oportunidades', isAuthenticated, upload.any(), async (req, res) => {
 
         await db.run(
             `INSERT INTO oportunidades(
-            user_id, titulo, descricao, valor_arremate, valor_venda, lucro_estimado,
+            user_id, titulo, descricao, observacoes, valor_arremate, valor_venda, lucro_estimado,
             roi_estimado, cidade, estado, latitude, longitude, tipo_imovel, link_caixa, foto_capa, calculo_origem_id,
             pdf_proposta, pdf_matricula, pdf_analise_juridica
-        ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
-                req.session.userId, titulo, descricao, valorArremateNum, valorVendaNum, lucroEstimadoNum,
+                req.session.userId, titulo, descricao, observacoes, valorArremateNum, valorVendaNum, lucroEstimadoNum,
                 roiEstimadoNum, cidade, estado, req.body.latitude || null, req.body.longitude || null,
                 tipo_imovel, link_caixa, finalFotoCapa, calculo_origem_id,
                 pdfPropostaPath, pdfMatriculaPath, pdfAnaliseJuridicaPath

@@ -697,6 +697,14 @@
 
                 <div class="macos-divider" style="margin-bottom: 24px;"></div>
 
+                <!-- Observações -->
+                <div class="macos-form-group" style="margin-bottom: 24px;">
+                    <label class="macos-form-label">Observações</label>
+                    <textarea name="observacoes" id="inpObservacoes" class="macos-input"
+                        style="height: 100px; resize: none; line-height: 1.5;"
+                        placeholder="Adicione observações importantes para os assessores..."></textarea>
+                </div>
+
                 <!-- Uploads -->
                 <label class="macos-form-label" style="margin-bottom:12px;">Arquivos e Imagens</label>
                 <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px;">
@@ -860,6 +868,14 @@
                             Selecione um cliente para vincular e iniciar o processo.
                         </p>
                     </div>
+                </div>
+
+                <!-- Observações -->
+                <div style="margin-top: 24px;">
+                    <h4 style="margin:0 0 12px 0; color:var(--macos-text-primary);">Observações</h4>
+                    <div id="detObservacoes"
+                        style="background: var(--macos-bg-tertiary); border-radius: 8px; padding: 16px; border: 1px solid var(--macos-divider); font-size: 13px; color: var(--macos-text-primary); line-height: 1.5; white-space: pre-wrap;">
+                        Nenhuma observação.</div>
                 </div>
 
             </div>
@@ -1280,6 +1296,7 @@
 
             document.getElementById('detVenda').textContent = (op.valor_venda || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
             document.getElementById('detLance').textContent = (op.valor_arremate || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            document.getElementById('detObservacoes').textContent = op.observacoes || 'Nenhuma observação.';
 
             const imgEl = document.getElementById('detImg');
             if (op.foto_capa) { imgEl.src = op.foto_capa; imgEl.style.display = 'block'; }

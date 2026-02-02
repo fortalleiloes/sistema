@@ -3679,15 +3679,70 @@ SELECT * FROM leads
             }
         });
 
-        console.log(`✅ Resultado: ${validLeads.length} Válidos | ${blacklistLeads.length} Recusados`);
+        // --- GROUPING LOGIC FOR BLACKLIST (Novo) ---
+        const groupedBlacklistMap = {};
 
-        // Calcular KPIs para Admin (Apenas Válidos)
+        blacklistLeads.forEach(lead => {
+            // Determinar a chave de agrupamento baseada no motivo
+            let groupKey = '';
+            let keyLabel = '';
+            let icon = '';
+
+            if (lead.blacklist_reason.includes('Telefone')) {
+                groupKey = normalizePhone(lead.whatsapp);
+                keyLabel = lead.whatsapp; // Visual
+                icon = 'fa-whatsapp';
+            } else if (lead.blacklist_reason.includes('Dispositivo')) {
+                groupKey = lead.fingerprint;
+                keyLabel = 'ID do Dispositivo';
+                icon = 'fa-mobile-screen';
+            } else if (lead.blacklist_reason.includes('IP')) {
+                groupKey = lead.ip_address;
+                keyLabel = 'IP: ' + lead.ip_address;
+                icon = 'fa-network-wired';
+            } else {
+                groupKey = 'unknown';
+                keyLabel = 'Desconhecido';
+                icon = 'fa-question';
+            }
+
+            if (!groupedBlacklistMap[groupKey]) {
+                groupedBlacklistMap[groupKey] = {
+                    id: groupKey,
+                    reason: lead.blacklist_reason,
+                    displayLabel: keyLabel,
+                    icon: icon,
+                    count: 0,
+                    totalPotencial: 0,
+                    leads: [],
+                    latestDate: lead.created_at
+                };
+            }
+
+            groupedBlacklistMap[groupKey].leads.push(lead);
+            groupedBlacklistMap[groupKey].count++;
+            const val = Math.max(parseFloat(lead.capital_entrada || 0), parseFloat(lead.capital_vista || 0));
+            groupedBlacklistMap[groupKey].totalPotencial += val;
+
+            // Manter data mais recente
+            if (new Date(lead.created_at) > new Date(groupedBlacklistMap[groupKey].latestDate)) {
+                groupedBlacklistMap[groupKey].latestDate = lead.created_at;
+            }
+        });
+
+        // Converter para array e ordenar
+        const groupedBlacklist = Object.values(groupedBlacklistMap).sort((a, b) => b.count - a.count);
+
+        console.log(`✅ Resultado: ${validLeads.length} Válidos | ${blacklistLeads.length} Recusados Agrupados em ${groupedBlacklist.length} Clusters`);
+
+        // Calcular KPIs
         let kpis = {
             totalCapital: 0,
             avgScore: 0,
-            totalLeads: validLeads.length, // Contagem corrigida
-            blacklistCount: blacklistLeads.length, // Novo KPI
-            blacklistValue: blacklistValue, // Novo KPI
+            totalLeads: validLeads.length,
+            blacklistCount: blacklistLeads.length,
+            blacklistClusterCount: groupedBlacklist.length,
+            blacklistValue: blacklistValue,
             qualityLabel: 'N/A'
         };
 
@@ -3701,8 +3756,9 @@ SELECT * FROM leads
         }
 
         res.render('leads-pool', {
-            leads: validLeads, // Lista limpa
-            blacklist: blacklistLeads, // Lista de "Lixo"
+            leads: validLeads,
+            blacklist: groupedBlacklist, // Agora passamos a lista AGRUPADA
+            rawBlacklist: blacklistLeads,
             kpis: kpis,
             user: getUserContext(req.session),
             username: req.session.username,

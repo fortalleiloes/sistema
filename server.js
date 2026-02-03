@@ -3804,7 +3804,7 @@ SELECT * FROM leads
         // Converter para array e ordenar blacklist
         const groupedBlacklist = Object.values(groupedBlacklistMap).sort((a, b) => b.count - a.count);
 
-        console.log(`✅ Resultado: ${cleanLeads.length} Limpos + ${attentionClusters.length} Clusters | ${blacklistLeads.length} Recusados`);
+        console.log(`✅ Resultado: ${cleanLeads.length} Limpos + ${leadsWithAttention.length} Com Atenção | ${blacklistLeads.length} Recusados`);
 
         // Calcular KPIs (Considerando TODOS os válidos)
         let kpis = {

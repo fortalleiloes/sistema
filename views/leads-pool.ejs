@@ -577,121 +577,145 @@
                 <!-- Blacklist Table (Recusados) -->
                 <!-- Blacklist Table (Recusados) -->
                 <div id="panel-blacklist" class="macos-card p-0 overflow-hidden hidden">
-                    </thead>
-                    <tbody class="divide-y divide-[var(--macos-divider)]">
-                        <% if (locals.blacklist && blacklist.length> 0) { %>
-                            <% blacklist.forEach((group, index)=> { %>
-                                <!-- Group Header Row -->
-                                <tr class="hover:bg-[var(--macos-bg-secondary)] transition-colors cursor-pointer border-l-4 border-l-transparent hover:border-l-red-500"
-                                    onclick="document.getElementById('details-<%= index %>').classList.toggle('hidden');">
-                                    <td class="p-4" colspan="2">
-                                        <div class="flex items-center gap-3">
-                                            <div
-                                                class="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center text-red-500 border border-red-500/20">
-                                                <i class="fa-solid <%= group.icon %>"></i>
-                                            </div>
-                                            <div>
-                                                <div class="flex items-center gap-2">
-                                                    <p class="font-bold text-[var(--macos-text-primary)] text-sm">
-                                                        <%= group.reason %>
-                                                    </p>
-                                                    <% if (group.count> 1) { %>
-                                                        <span
-                                                            class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-700 border border-red-200">
-                                                            <%= group.count %> logs
-                                                        </span>
-                                                        <% } %>
-                                                </div>
-                                                <p class="text-xs text-[var(--macos-text-tertiary)] font-mono mt-0.5">
-                                                    <%= group.displayLabel %>
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </td>
-
-                                    <td class="p-4 text-right">
-                                        <div class="flex flex-col items-end">
-                                            <span class="font-medium text-[var(--macos-text-primary)] text-sm">
-                                                <%= group.totalPotencial.toLocaleString('pt-BR', { style: 'currency' ,
-                                                    currency: 'BRL' }) %>
-                                            </span>
-                                            <span class="text-[10px] text-[var(--macos-text-tertiary)]">
-                                                Último: <%= new Date(group.latestDate).toLocaleDateString() %>
-                                            </span>
-                                        </div>
-                                    </td>
-                                    <td class="p-4 text-[var(--macos-text-tertiary)] text-center w-10">
-                                        <i class="fa-solid fa-chevron-down text-xs"></i>
-                                    </td>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead class="bg-[var(--macos-bg-secondary)] border-b border-[var(--macos-divider)]">
+                                <tr>
+                                    <th
+                                        class="p-4 text-xs font-semibold text-[var(--macos-text-secondary)] uppercase tracking-wider w-1/2">
+                                        Motivo da Recusa</th>
+                                    <th
+                                        class="p-4 text-xs font-semibold text-[var(--macos-text-secondary)] uppercase tracking-wider">
+                                        Identificador</th>
+                                    <th
+                                        class="p-4 text-xs font-semibold text-[var(--macos-text-secondary)] uppercase tracking-wider text-right">
+                                        Potencial Perdido</th>
+                                    <th
+                                        class="p-4 text-xs font-semibold text-[var(--macos-text-secondary)] uppercase tracking-wider w-10">
+                                    </th>
                                 </tr>
-
-                                <!-- Group Details Row (Collapsible) -->
-                                <tr id="details-<%= index %>" class="hidden bg-[var(--macos-bg-secondary)]">
-                                    <td colspan="5" class="p-4 pl-16">
-                                        <p class="text-xs font-bold text-[var(--macos-text-tertiary)] uppercase mb-3">
-                                            Tentativas Individuais Neste Grupo:</p>
-                                        <div class="space-y-2">
-                                            <% group.leads.forEach(lead=> { %>
-                                                <div
-                                                    class="flex items-center justify-between p-3 bg-[var(--macos-bg-tertiary)] rounded border border-[var(--macos-divider)]">
-                                                    <div class="flex items-center gap-3">
-                                                        <div class="w-2 h-2 rounded-full bg-red-400"></div>
-                                                        <div>
+                            </thead>
+                            <tbody class="divide-y divide-[var(--macos-divider)]">
+                                <% if (locals.blacklist && blacklist.length> 0) { %>
+                                    <% blacklist.forEach((group, index)=> { %>
+                                        <!-- Group Header Row -->
+                                        <tr class="hover:bg-[var(--macos-bg-secondary)] transition-colors cursor-pointer border-l-4 border-l-transparent hover:border-l-red-500"
+                                            onclick="document.getElementById('details-<%= index %>').classList.toggle('hidden');">
+                                            <td class="p-4" colspan="2">
+                                                <div class="flex items-center gap-3">
+                                                    <div
+                                                        class="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center text-red-500 border border-red-500/20">
+                                                        <i class="fa-solid <%= group.icon %>"></i>
+                                                    </div>
+                                                    <div>
+                                                        <div class="flex items-center gap-2">
                                                             <p
-                                                                class="text-sm font-medium text-[var(--macos-text-primary)]">
-                                                                <%= lead.nome %>
+                                                                class="font-bold text-[var(--macos-text-primary)] text-sm">
+                                                                <%= group.reason %>
                                                             </p>
-                                                            <div
-                                                                class="flex items-center gap-2 text-xs text-[var(--macos-text-tertiary)]">
-                                                                <span class="flex items-center gap-1"><i
-                                                                        class="fa-brands fa-whatsapp text-[10px]"></i>
-                                                                    <%= lead.whatsapp %>
+                                                            <% if (group.count> 1) { %>
+                                                                <span
+                                                                    class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-700 border border-red-200">
+                                                                    <%= group.count %> logs
                                                                 </span>
-                                                                <span>•</span>
-                                                                <span>
-                                                                    <%= new Date(lead.created_at).toLocaleString() %>
-                                                                </span>
-                                                                <% if (lead.ip_address) { %>
-                                                                    <span>•</span>
-                                                                    <a href="https://whatismyipaddress.com/ip/<%= lead.ip_address %>"
-                                                                        target="_blank"
-                                                                        class="flex items-center gap-1 text-blue-500 hover:text-blue-600 transition-colors"
-                                                                        title="Rastrear Localização deste IP">
-                                                                        <i
-                                                                            class="fa-solid fa-map-location-dot text-[10px]"></i>
-                                                                        <%= lead.ip_address %>
-                                                                    </a>
-                                                                    <% } %>
-                                                            </div>
+                                                                <% } %>
                                                         </div>
-                                                    </div>
-                                                    <div class="text-right">
                                                         <p
-                                                            class="text-sm font-medium text-[var(--macos-text-secondary)]">
-                                                            <%= ((lead.capital_entrada || 0) + (lead.capital_vista ||
-                                                                0)).toLocaleString('pt-BR', { style: 'currency' ,
-                                                                currency: 'BRL' }) %>
-                                                        </p>
-                                                        <p class="text-xs text-[var(--macos-text-tertiary)]">
-                                                            Score: <%= lead.score %>
+                                                            class="text-xs text-[var(--macos-text-tertiary)] font-mono mt-0.5">
+                                                            <%= group.displayLabel %>
                                                         </p>
                                                     </div>
                                                 </div>
-                                                <% }); %>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <% }); %>
-                                    <% } else { %>
-                                        <tr>
-                                            <td colspan="5" class="p-8 text-center text-[var(--macos-text-tertiary)]">
-                                                <p>Nenhum lead na blacklist.</p>
+                                            </td>
+
+                                            <td class="p-4 text-right">
+                                                <div class="flex flex-col items-end">
+                                                    <span class="font-medium text-[var(--macos-text-primary)] text-sm">
+                                                        <%= group.totalPotencial.toLocaleString('pt-BR', {
+                                                            style: 'currency' , currency: 'BRL' }) %>
+                                                    </span>
+                                                    <span class="text-[10px] text-[var(--macos-text-tertiary)]">
+                                                        Último: <%= new Date(group.latestDate).toLocaleDateString() %>
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            <td class="p-4 text-[var(--macos-text-tertiary)] text-center w-10">
+                                                <i class="fa-solid fa-chevron-down text-xs"></i>
                                             </td>
                                         </tr>
-                                        <% } %>
-                    </tbody>
-                    </table>
-                </div>
+
+                                        <!-- Group Details Row (Collapsible) -->
+                                        <tr id="details-<%= index %>" class="hidden bg-[var(--macos-bg-secondary)]">
+                                            <td colspan="5" class="p-4 pl-16">
+                                                <p
+                                                    class="text-xs font-bold text-[var(--macos-text-tertiary)] uppercase mb-3">
+                                                    Tentativas Individuais Neste Grupo:</p>
+                                                <div class="space-y-2">
+                                                    <% group.leads.forEach(lead=> { %>
+                                                        <div
+                                                            class="flex items-center justify-between p-3 bg-[var(--macos-bg-tertiary)] rounded border border-[var(--macos-divider)]">
+                                                            <div class="flex items-center gap-3">
+                                                                <div class="w-2 h-2 rounded-full bg-red-400"></div>
+                                                                <div>
+                                                                    <p
+                                                                        class="text-sm font-medium text-[var(--macos-text-primary)]">
+                                                                        <%= lead.nome %>
+                                                                    </p>
+                                                                    <div
+                                                                        class="flex items-center gap-2 text-xs text-[var(--macos-text-tertiary)]">
+                                                                        <span class="flex items-center gap-1"><i
+                                                                                class="fa-brands fa-whatsapp text-[10px]"></i>
+                                                                            <%= lead.whatsapp %>
+                                                                        </span>
+                                                                        <span>•</span>
+                                                                        <span>
+                                                                            <%= new
+                                                                                Date(lead.created_at).toLocaleString()
+                                                                                %>
+                                                                        </span>
+                                                                        <% if (lead.ip_address) { %>
+                                                                            <span>•</span>
+                                                                            <a href="https://whatismyipaddress.com/ip/<%= lead.ip_address %>"
+                                                                                target="_blank"
+                                                                                class="flex items-center gap-1 text-blue-500 hover:text-blue-600 transition-colors"
+                                                                                title="Rastrear Localização deste IP">
+                                                                                <i
+                                                                                    class="fa-solid fa-map-location-dot text-[10px]"></i>
+                                                                                <%= lead.ip_address %>
+                                                                            </a>
+                                                                            <% } %>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="text-right">
+                                                                <p
+                                                                    class="text-sm font-medium text-[var(--macos-text-secondary)]">
+                                                                    <%= ((lead.capital_entrada || 0) +
+                                                                        (lead.capital_vista ||
+                                                                        0)).toLocaleString('pt-BR', { style: 'currency'
+                                                                        , currency: 'BRL' }) %>
+                                                                </p>
+                                                                <p class="text-xs text-[var(--macos-text-tertiary)]">
+                                                                    Score: <%= lead.score %>
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                        <% }); %>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <% }); %>
+                                            <% } else { %>
+                                                <tr>
+                                                    <td colspan="5"
+                                                        class="p-8 text-center text-[var(--macos-text-tertiary)]">
+                                                        <p>Nenhum lead na blacklist.</p>
+                                                    </td>
+                                                </tr>
+                                                <% } %>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
 
                 <script>

@@ -3704,18 +3704,32 @@ SELECT * FROM leads
         });
 
         // 2. Classificação e Agrupamento
+        // 2. Classificação e Agrupamento
+        // MUDANÇA CRÍTICA: O agrupamento agora é feito EXCLUSIVAMENTE pelo número de TELEFONE (WhatsApp).
+        // Motivo: Fingerprint e IP geram muitos falsos positivos (colisões) em redes móveis e navegadores in-app (Instagram/Facebook),
+        // agupando pessoas diferentes (nomes/contatos diferentes) no mesmo card.
+        // Se a pessoa usou o mesmo telefone, é 99.9% certeza que é a mesma pessoa.
+
+        // Mapa auxiliar para contagem de telefones
+        const phoneCounts = {};
+        validLeads.forEach(l => {
+            if (l.whatsapp) {
+                const p = l.whatsapp.replace(/\D/g, '');
+                phoneCounts[p] = (phoneCounts[p] || 0) + 1;
+            }
+        });
+
         validLeads.forEach(lead => {
             let groupKey = null;
             let reason = null;
 
-            // NOVA LÓGICA MUDANÇA: APENAS FINGERPRINT (DISPOSITIVO) É CONSIDERADO DUPLICATA
-            // IPs compartilhados (escritórios, wi-fi público, CGNAT) são comuns e não devem agrupar leads diferentes.
-            if (lead.fingerprint && fpFreq[lead.fingerprint] > 1) {
-                groupKey = 'fp_' + lead.fingerprint;
-                reason = `Mesmo Dispositivo`;
+            if (lead.whatsapp) {
+                const safePhone = lead.whatsapp.replace(/\D/g, '');
+                if (phoneCounts[safePhone] > 1) {
+                    groupKey = 'phone_' + safePhone;
+                    reason = 'Mesmo Telefone';
+                }
             }
-
-            // IP foi removido da lógica de agrupamento para evitar falsos positivos.
 
             if (groupKey) {
                 if (!groupedLeadsMap[groupKey]) {
@@ -3726,7 +3740,7 @@ SELECT * FROM leads
                 }
                 groupedLeadsMap[groupKey].leads.push(lead);
             } else {
-                // Se não for o mesmo dispositivo, tratamos como ÚNICO (mesmo que tenha mesmo IP)
+                // Se o telefone é único na lista, é um lead único.
                 cleanLeads.push(lead);
             }
         });
@@ -3784,22 +3798,23 @@ SELECT * FROM leads
             let keyLabel = '';
             let icon = '';
 
-            if (lead.blacklist_reason.includes('Telefone')) {
-                groupKey = normalizePhone(lead.whatsapp);
+            // Lógica Refinada de Agrupamento para Blacklist
+            // Evitar agrupar por IP para não criar "clusters fantasmas"
+
+            if (lead.blacklist_reason && lead.blacklist_reason.includes('Telefone')) {
+                groupKey = 'phone_' + normalizePhone(lead.whatsapp);
                 keyLabel = lead.whatsapp;
                 icon = 'fa-whatsapp';
-            } else if (lead.blacklist_reason.includes('Dispositivo')) {
-                groupKey = lead.fingerprint;
+            } else if (lead.blacklist_reason && lead.blacklist_reason.includes('Dispositivo')) {
+                groupKey = 'fp_' + lead.fingerprint;
                 keyLabel = 'Dispositivo Repetido';
                 icon = 'fa-mobile-screen';
-            } else if (lead.blacklist_reason.includes('IP')) {
-                groupKey = lead.ip_address;
-                keyLabel = 'Flood IP: ' + lead.ip_address;
-                icon = 'fa-network-wired';
             } else {
-                groupKey = 'unknown';
-                keyLabel = 'Desconhecido';
-                icon = 'fa-question';
+                // Outros motivos (IP, Score Baixo, etc) tratamos como itens individuais 
+                // para não poluir a visualização com agrupamentos errados.
+                groupKey = 'unique_' + lead.id;
+                keyLabel = lead.nome || 'Lead Recusado';
+                icon = 'fa-ban';
             }
 
             if (!groupedBlacklistMap[groupKey]) {
@@ -3825,7 +3840,7 @@ SELECT * FROM leads
             }
         });
 
-        // Converter para array e ordenar blacklist
+        // Converter para array e ordenar blacklist (Maiores ofensores primeiro)
         const groupedBlacklist = Object.values(groupedBlacklistMap).sort((a, b) => b.count - a.count);
 
         console.log(`✅ Resultado: ${cleanLeads.length} Limpos + ${leadsWithAttention.length} Com Atenção | ${blacklistLeads.length} Recusados`);

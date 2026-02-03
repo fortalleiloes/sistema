@@ -3689,6 +3689,65 @@ SELECT * FROM leads
             }
         });
 
+        // --- DETECÇÃO DE "ATENÇÃO" EM LEADS VÁLIDOS ---
+        // Objetivo: Agrupar leads que passaram na Malha Fina (são válidos), mas compartilham padrões suspeitos (mesmo IP, Device, etc)
+        const attentionMap = {};
+        const cleanLeads = [];
+        const seenInAttention = new Set();
+
+        // 1. Mapa de Frequência para Válidos
+        const ipFreq = {};
+        const fpFreq = {};
+
+        validLeads.forEach(l => {
+            if (l.ip_address && l.ip_address.length > 5) ipFreq[l.ip_address] = (ipFreq[l.ip_address] || 0) + 1;
+            if (l.fingerprint && l.fingerprint.length > 5) fpFreq[l.fingerprint] = (fpFreq[l.fingerprint] || 0) + 1;
+        });
+
+        // 2. Classificação: Clean vs Attention
+        validLeads.forEach(lead => {
+            let attentionReason = null;
+
+            // Se IP aparece mais de 1x nos VÁLIDOS
+            if (lead.ip_address && ipFreq[lead.ip_address] > 1) {
+                attentionReason = 'IP Compartilhado (' + ipFreq[lead.ip_address] + 'x)';
+            }
+            // Se Fingerprint aparece mais de 1x nos VÁLIDOS
+            else if (lead.fingerprint && fpFreq[lead.fingerprint] > 1) {
+                attentionReason = 'Dispositivo Compartilhado (' + fpFreq[lead.fingerprint] + 'x)';
+            }
+
+            if (attentionReason) {
+                let groupKey = lead.ip_address || lead.fingerprint || 'unknown';
+
+                if (!attentionMap[groupKey]) {
+                    attentionMap[groupKey] = {
+                        id: groupKey,
+                        reason: attentionReason,
+                        displayLabel: groupKey,
+                        icon: attentionReason.includes('IP') ? 'fa-network-wired' : 'fa-mobile-screen',
+                        count: 0,
+                        totalPotencial: 0,
+                        leads: [],
+                        latestDate: lead.created_at
+                    };
+                }
+                attentionMap[groupKey].leads.push(lead);
+                attentionMap[groupKey].count++;
+                const val = Math.max(parseFloat(lead.capital_entrada || 0), parseFloat(lead.capital_vista || 0));
+                attentionMap[groupKey].totalPotencial += val;
+
+                if (new Date(lead.created_at) > new Date(attentionMap[groupKey].latestDate)) {
+                    attentionMap[groupKey].latestDate = lead.created_at;
+                }
+            } else {
+                cleanLeads.push(lead);
+            }
+        });
+
+        // Converter Attention Map para Array
+        const attentionList = Object.values(attentionMap).sort((a, b) => b.count - a.count);
+
         // --- GROUPING LOGIC FOR BLACKLIST (Novo) ---
         const groupedBlacklistMap = {};
 
@@ -3746,20 +3805,21 @@ SELECT * FROM leads
         console.log(`✅ Resultado: ${validLeads.length} Válidos | ${blacklistLeads.length} Recusados Agrupados em ${groupedBlacklist.length} Clusters`);
 
 
-        // Calcular KPIs
+        // Calcular KPIs (Baseado apenas nos LIMPOS)
         let kpis = {
             totalCapital: 0,
             avgScore: 0,
-            totalLeads: validLeads.length,
+            totalLeads: cleanLeads.length, // Agora reflete só os sem alerta
+            attentionCount: validLeads.length - cleanLeads.length, // Novo KPI
             blacklistCount: blacklistLeads.length,
             blacklistClusterCount: groupedBlacklist.length,
             blacklistValue: blacklistValue,
             qualityLabel: 'N/A'
         };
 
-        if (validLeads.length > 0) {
-            kpis.totalCapital = validLeads.reduce((sum, l) => sum + (l.capital_entrada || 0), 0);
-            kpis.avgScore = Math.round(validLeads.reduce((sum, l) => sum + (l.score || 0), 0) / validLeads.length);
+        if (cleanLeads.length > 0) {
+            kpis.totalCapital = cleanLeads.reduce((sum, l) => sum + (l.capital_entrada || 0), 0);
+            kpis.avgScore = Math.round(cleanLeads.reduce((sum, l) => sum + (l.score || 0), 0) / cleanLeads.length);
 
             if (kpis.avgScore >= 75) kpis.qualityLabel = 'Excelente 🌟';
             else if (kpis.avgScore >= 50) kpis.qualityLabel = 'Bom ✅';
@@ -3767,8 +3827,9 @@ SELECT * FROM leads
         }
 
         res.render('leads-pool', {
-            leads: validLeads,
-            blacklist: groupedBlacklist, // Agora passamos a lista AGRUPADA
+            leads: cleanLeads, // Lista "Pura"
+            attention: attentionList, // Lista "Atenção"
+            blacklist: groupedBlacklist,
             rawBlacklist: blacklistLeads,
             kpis: kpis,
             user: getUserContext(req.session),

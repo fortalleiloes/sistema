@@ -341,7 +341,8 @@
                                                                     <div class="flex items-center gap-3">
                                                                         <span
                                                                             class="text-xs text-[var(--macos-text-tertiary)]">Score:
-                                                                            <%= dup.score %></span>
+                                                                            <%= dup.score %>
+                                                                        </span>
                                                                         <form action="/api/leads/claim/<%= dup.id %>"
                                                                             method="POST">
                                                                             <button type="submit"
@@ -581,38 +582,45 @@
                         <% if (locals.blacklist && blacklist.length> 0) { %>
                             <% blacklist.forEach((group, index)=> { %>
                                 <!-- Group Header Row -->
-                                <tr class="hover:bg-[var(--macos-bg-secondary)] transition-colors cursor-pointer"
+                                <tr class="hover:bg-[var(--macos-bg-secondary)] transition-colors cursor-pointer border-l-4 border-l-transparent hover:border-l-red-500"
                                     onclick="document.getElementById('details-<%= index %>').classList.toggle('hidden');">
-                                    <td class="p-4">
+                                    <td class="p-4" colspan="2">
                                         <div class="flex items-center gap-3">
                                             <div
-                                                class="w-8 h-8 rounded-full bg-red-500/10 flex items-center justify-center text-red-500">
+                                                class="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center text-red-500 border border-red-500/20">
                                                 <i class="fa-solid <%= group.icon %>"></i>
                                             </div>
                                             <div>
-                                                <p class="font-bold text-[var(--macos-text-primary)]">
-                                                    <%= group.reason %>
-                                                </p>
-                                                <p class="text-xs text-[var(--macos-text-tertiary)]">Última
-                                                    tentativa: <%= new Date(group.latestDate).toLocaleDateString() %>
+                                                <div class="flex items-center gap-2">
+                                                    <p class="font-bold text-[var(--macos-text-primary)] text-sm">
+                                                        <%= group.reason %>
+                                                    </p>
+                                                    <% if (group.count> 1) { %>
+                                                        <span
+                                                            class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-700 border border-red-200">
+                                                            <%= group.count %> logs
+                                                        </span>
+                                                        <% } %>
+                                                </div>
+                                                <p class="text-xs text-[var(--macos-text-tertiary)] font-mono mt-0.5">
+                                                    <%= group.displayLabel %>
                                                 </p>
                                             </div>
                                         </div>
                                     </td>
-                                    <td class="p-4 font-mono text-sm text-[var(--macos-text-secondary)]">
-                                        <%= group.displayLabel %>
+
+                                    <td class="p-4 text-right">
+                                        <div class="flex flex-col items-end">
+                                            <span class="font-medium text-[var(--macos-text-primary)] text-sm">
+                                                <%= group.totalPotencial.toLocaleString('pt-BR', { style: 'currency' ,
+                                                    currency: 'BRL' }) %>
+                                            </span>
+                                            <span class="text-[10px] text-[var(--macos-text-tertiary)]">
+                                                Último: <%= new Date(group.latestDate).toLocaleDateString() %>
+                                            </span>
+                                        </div>
                                     </td>
-                                    <td class="p-4">
-                                        <span
-                                            class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300">
-                                            <%= group.count %> tentativas
-                                        </span>
-                                    </td>
-                                    <td class="p-4 font-medium text-[var(--macos-text-primary)]">
-                                        <%= group.totalPotencial.toLocaleString('pt-BR', { style: 'currency' ,
-                                            currency: 'BRL' }) %>
-                                    </td>
-                                    <td class="p-4 text-[var(--macos-text-tertiary)]">
+                                    <td class="p-4 text-[var(--macos-text-tertiary)] text-center w-10">
                                         <i class="fa-solid fa-chevron-down text-xs"></i>
                                     </td>
                                 </tr>

@@ -3708,12 +3708,14 @@ SELECT * FROM leads
             let groupKey = null;
             let reason = null;
 
-            if (lead.ip_address && ipFreq[lead.ip_address] > 1) {
-                groupKey = 'ip_' + lead.ip_address;
-                reason = 'IP Compartilhado';
-            } else if (lead.fingerprint && fpFreq[lead.fingerprint] > 1) {
+            // Prioridade: Fingerprint (Dispositivo) > IP (Rede)
+            // Fingerprint é um sinal muito mais forte de ser a mesma pessoa física.
+            if (lead.fingerprint && fpFreq[lead.fingerprint] > 1) {
                 groupKey = 'fp_' + lead.fingerprint;
-                reason = 'Dispositivo Compartilhado';
+                reason = `Mesmo Dispositivo`;
+            } else if (lead.ip_address && ipFreq[lead.ip_address] > 1) {
+                groupKey = 'ip_' + lead.ip_address;
+                reason = `Mesmo Endereço IP (${lead.ip_address})`;
             }
 
             if (groupKey) {
@@ -3730,27 +3732,50 @@ SELECT * FROM leads
             }
         });
 
-        // 3. Processar os Grupos -> Extrair o Main Lead e Anexar Duplicatas
+        // 3. Processar os Grupos -> Escolher o MELHOR lead para ser o "Rosto" do grupo
         const leadsWithAttention = [];
         Object.values(groupedLeadsMap).forEach(group => {
-            // Ordenar por data (mais recente primeiro)
-            group.leads.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+            // Ordenar leads dentro do grupo para decidir quem é o PRINCIPAL
+            // Critério: Maior Score > Maior Capital > Mais Recente
+            group.leads.sort((a, b) => {
+                const scoreDiff = (b.score || 0) - (a.score || 0);
+                if (scoreDiff !== 0) return scoreDiff;
 
-            const mainLead = group.leads[0]; // O mais recente é o que aparece na lista
-            const duplicates = group.leads.slice(1); // O resto fica escondido
+                const capA = (a.capital_entrada || 0) + (a.capital_vista || 0);
+                const capB = (b.capital_entrada || 0) + (b.capital_vista || 0);
+                const capDiff = capB - capA;
+                if (capDiff !== 0) return capDiff;
+
+                return new Date(b.created_at) - new Date(a.created_at);
+            });
+
+            const mainLead = group.leads[0]; // O melhor lead representa o grupo
+            const duplicates = group.leads.slice(1); // Os outros ficam escondidos
 
             if (duplicates.length > 0) {
                 mainLead.hasAttention = true;
                 mainLead.attentionReason = group.reason;
-                mainLead.duplicates = duplicates; // Anexa as duplicatas ao objeto principal
+                mainLead.duplicates = duplicates;
                 mainLead.duplicateCount = duplicates.length;
             }
 
             leadsWithAttention.push(mainLead);
         });
 
-        // 4. Combinar tudo na lista principal
+        // 4. Combinar e Ordenar a Lista GLOBAL
+        // Critério do Usuário: "Valores mais altos e potencial de compra primeiro"
         const combinedLeads = [...cleanLeads, ...leadsWithAttention].sort((a, b) => {
+            // 1. Score (Qualidade do Lead)
+            const scoreDiff = (b.score || 0) - (a.score || 0);
+            if (scoreDiff !== 0) return scoreDiff;
+
+            // 2. Potencial Financeiro (Capital)
+            const capA = (a.capital_entrada || 0) + (a.capital_vista || 0);
+            const capB = (b.capital_entrada || 0) + (b.capital_vista || 0);
+            const capDiff = capB - capA;
+            if (capDiff !== 0) return capDiff;
+
+            // 3. Recência (Desempate)
             return new Date(b.created_at) - new Date(a.created_at);
         });
         const groupedBlacklistMap = {};

@@ -3657,17 +3657,23 @@ SELECT * FROM leads
             }
 
             // Regra VIP: Se o lead tem alto potencial (Score >= 70), ignoramos bloqueios "soft" (IP/Device).
-            // Isso evita bloquear colegas de trabalho na mesma rede ou familiares no mesmo PC.
             const isVip = (lead.score >= 70);
 
-            // 2. Checagem de Dispositivo (Fingerprint)
+            /* 
+               ⚠️ FINGERPRINT DESATIVADO TEMPORARIAMENTE ⚠️
+               Motivo: O identificador de dispositivo estava gerando colisões (ex: "iPhone de Usuários Diferentes" sendo tratados como iguais),
+               bloqueando pessoas de IPs totalmente diferentes.
+               Apenas o bloqueio por IP e Telefone permanecem ativos.
+            */
+            /*
             if (!isDuplicate && !isVip && fingerprint && fingerprint.length > 5) {
                 if (knownFingerprints.has(fingerprint)) { isDuplicate = true; reason = 'Mesmo Dispositivo (Histórico)'; }
                 if (seenBatchFingerprints.has(fingerprint)) { isDuplicate = true; reason = 'Mesmo Dispositivo (Lote)'; }
                 seenBatchFingerprints.add(fingerprint);
             }
+            */
 
-            // 3. Checagem de IP
+            // 3. Checagem de IP (Mantido conforme solicitado)
             if (!isDuplicate && !isVip && ip && ip.length > 5) {
                 if (knownIPs.has(ip)) { isDuplicate = true; reason = 'Mesmo IP (Histórico)'; }
                 if (seenBatchIPs.has(ip)) { isDuplicate = true; reason = 'Mesmo IP (Lote)'; }

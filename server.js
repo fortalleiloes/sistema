@@ -3648,24 +3648,29 @@ SELECT * FROM leads
             let isDuplicate = false;
             let reason = '';
 
-            // 1. Checagem de Telefone (Check Rígido)
+            // 1. Checagem de Telefone (Check Rígido - Único Identificador 100% Confiável)
+            // Telefone duplicado é SEMPRE blacklist, independente do score.
             if (phone && phone.length > 6) {
                 if (knownPhones.has(phone)) { isDuplicate = true; reason = 'Telefone Histórico'; }
                 if (seenBatchPhones.has(phone)) { isDuplicate = true; reason = 'Telefone Duplicado (Lote)'; }
                 seenBatchPhones.add(phone);
             }
 
-            // 2. Checagem de Dispositivo (Fingerprint) - (Check Médio)
-            if (!isDuplicate && fingerprint && fingerprint.length > 5) {
+            // Regra VIP: Se o lead tem alto potencial (Score >= 70), ignoramos bloqueios "soft" (IP/Device).
+            // Isso evita bloquear colegas de trabalho na mesma rede ou familiares no mesmo PC.
+            const isVip = (lead.score >= 70);
+
+            // 2. Checagem de Dispositivo (Fingerprint)
+            if (!isDuplicate && !isVip && fingerprint && fingerprint.length > 5) {
                 if (knownFingerprints.has(fingerprint)) { isDuplicate = true; reason = 'Mesmo Dispositivo (Histórico)'; }
                 if (seenBatchFingerprints.has(fingerprint)) { isDuplicate = true; reason = 'Mesmo Dispositivo (Lote)'; }
                 seenBatchFingerprints.add(fingerprint);
             }
 
-            // 3. Checagem de IP (Apenas Lote - Anti-Flood)
-            // REMOVIDO CHECK HISTÓRICO DE IP para evitar bloquear usuários em redes compartilhadas
-            if (!isDuplicate && ip && ip.length > 5) {
-                if (seenBatchIPs.has(ip)) { isDuplicate = true; reason = 'Flood de IP (Lote)'; }
+            // 3. Checagem de IP
+            if (!isDuplicate && !isVip && ip && ip.length > 5) {
+                if (knownIPs.has(ip)) { isDuplicate = true; reason = 'Mesmo IP (Histórico)'; }
+                if (seenBatchIPs.has(ip)) { isDuplicate = true; reason = 'Mesmo IP (Lote)'; }
                 seenBatchIPs.add(ip);
             }
 

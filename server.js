@@ -3689,11 +3689,10 @@ SELECT * FROM leads
             }
         });
 
-        // --- DETECÇÃO DE "ATENÇÃO" EM LEADS VÁLIDOS ---
-        // Objetivo: Agrupar leads que passaram na Malha Fina (são válidos), mas compartilham padrões suspeitos (mesmo IP, Device, etc)
-        const attentionMap = {};
+        // --- DETECÇÃO DE "ATENÇÃO" EM LEADS VÁLIDOS (NOVO MODELO) ---
+        // Objetivo: Mostrar o lead mais recente como PRINCIPAL e esconder seus duplicados dentro dele.
         const cleanLeads = [];
-        const seenInAttention = new Set();
+        const groupedLeadsMap = {}; // Key: IP/Fingerprint -> { mainLead: Lead, duplicates: [] }
 
         // 1. Mapa de Frequência para Válidos
         const ipFreq = {};
@@ -3704,60 +3703,56 @@ SELECT * FROM leads
             if (l.fingerprint && l.fingerprint.length > 5) fpFreq[l.fingerprint] = (fpFreq[l.fingerprint] || 0) + 1;
         });
 
-        // 2. Classificação: Clean vs Attention
+        // 2. Classificação e Agrupamento
         validLeads.forEach(lead => {
-            let attentionReason = null;
+            let groupKey = null;
+            let reason = null;
 
-            // Se IP aparece mais de 1x nos VÁLIDOS
             if (lead.ip_address && ipFreq[lead.ip_address] > 1) {
-                attentionReason = 'IP Compartilhado (' + ipFreq[lead.ip_address] + 'x)';
-            }
-            // Se Fingerprint aparece mais de 1x nos VÁLIDOS
-            else if (lead.fingerprint && fpFreq[lead.fingerprint] > 1) {
-                attentionReason = 'Dispositivo Compartilhado (' + fpFreq[lead.fingerprint] + 'x)';
+                groupKey = 'ip_' + lead.ip_address;
+                reason = 'IP Compartilhado';
+            } else if (lead.fingerprint && fpFreq[lead.fingerprint] > 1) {
+                groupKey = 'fp_' + lead.fingerprint;
+                reason = 'Dispositivo Compartilhado';
             }
 
-            if (attentionReason) {
-                let groupKey = lead.ip_address || lead.fingerprint || 'unknown';
-
-                if (!attentionMap[groupKey]) {
-                    attentionMap[groupKey] = {
-                        id: groupKey,
-                        reason: attentionReason,
-                        displayLabel: groupKey,
-                        icon: attentionReason.includes('IP') ? 'fa-network-wired' : 'fa-mobile-screen',
-                        count: 0,
-                        totalPotencial: 0,
+            if (groupKey) {
+                if (!groupedLeadsMap[groupKey]) {
+                    groupedLeadsMap[groupKey] = {
                         leads: [],
-                        latestDate: lead.created_at
+                        reason: reason
                     };
                 }
-                attentionMap[groupKey].leads.push(lead);
-                attentionMap[groupKey].count++;
-                const val = Math.max(parseFloat(lead.capital_entrada || 0), parseFloat(lead.capital_vista || 0));
-                attentionMap[groupKey].totalPotencial += val;
-
-                if (new Date(lead.created_at) > new Date(attentionMap[groupKey].latestDate)) {
-                    attentionMap[groupKey].latestDate = lead.created_at;
-                }
+                groupedLeadsMap[groupKey].leads.push(lead);
             } else {
+                // Sem duplicatas, vai direto pra lista
                 cleanLeads.push(lead);
             }
         });
 
-        // Converter Attention Map para Array e marcar tipo
-        const attentionClusters = Object.values(attentionMap).map(g => ({ ...g, type: 'cluster' }));
-        const cleanLeadsTyped = cleanLeads.map(l => ({ ...l, type: 'lead' }));
+        // 3. Processar os Grupos -> Extrair o Main Lead e Anexar Duplicatas
+        const leadsWithAttention = [];
+        Object.values(groupedLeadsMap).forEach(group => {
+            // Ordenar por data (mais recente primeiro)
+            group.leads.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
-        // Combinar tudo na lista principal de "Qualificados"
-        // Ordenança: Clusters e Leads misturados por data (o mais recente no topo)
-        const combinedLeads = [...attentionClusters, ...cleanLeadsTyped].sort((a, b) => {
-            const dateA = a.type === 'cluster' ? new Date(a.latestDate) : new Date(a.created_at);
-            const dateB = b.type === 'cluster' ? new Date(b.latestDate) : new Date(b.created_at);
-            return dateB - dateA;
+            const mainLead = group.leads[0]; // O mais recente é o que aparece na lista
+            const duplicates = group.leads.slice(1); // O resto fica escondido
+
+            if (duplicates.length > 0) {
+                mainLead.hasAttention = true;
+                mainLead.attentionReason = group.reason;
+                mainLead.duplicates = duplicates; // Anexa as duplicatas ao objeto principal
+                mainLead.duplicateCount = duplicates.length;
+            }
+
+            leadsWithAttention.push(mainLead);
         });
 
-        // --- GROUPING LOGIC FOR BLACKLIST (Novo) ---
+        // 4. Combinar tudo na lista principal
+        const combinedLeads = [...cleanLeads, ...leadsWithAttention].sort((a, b) => {
+            return new Date(b.created_at) - new Date(a.created_at);
+        });
         const groupedBlacklistMap = {};
 
         blacklistLeads.forEach(lead => {

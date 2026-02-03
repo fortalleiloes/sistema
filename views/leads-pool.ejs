@@ -88,6 +88,7 @@
 
                 <!-- Leads Table -->
                 <!-- Tabs Navigation -->
+                <!-- Tabs Navigation -->
                 <!-- Tabs Navigation (Segmented Control Style) -->
                 <div class="flex items-center justify-center mb-6">
                     <div class="bg-[var(--macos-bg-tertiary)] p-1 rounded-lg inline-flex relative shadow-inner">
@@ -97,22 +98,8 @@
                             <span>Qualificados</span>
                             <span
                                 class="bg-green-500/10 text-green-500 text-xs px-2 py-0.5 rounded-full ml-1 font-bold border border-green-500/20">
-                                <%= leads.length %>
+                                <%= kpis.totalLeads %>
                             </span>
-                        </button>
-
-                        <button onclick="switchTab('attention')" id="tab-attention"
-                            class="px-6 py-2 rounded-md text-sm font-medium transition-all duration-200 flex items-center gap-2 text-[var(--macos-text-tertiary)] hover:text-[var(--macos-text-primary)]">
-                            <i class="fa-solid fa-triangle-exclamation text-yellow-500"></i>
-                            <span>Atenção</span>
-                            <% if(locals.attention && attention.length> 0) { %>
-                                <span
-                                    class="bg-yellow-500/10 text-yellow-500 text-xs px-2 py-0.5 rounded-full ml-1 font-bold border border-yellow-500/20">
-                                    <%= attention.length %>
-                                </span>
-                                <% } else { %>
-                                    <span class="text-xs opacity-50 ml-1">0</span>
-                                    <% } %>
                         </button>
 
                         <button onclick="switchTab('blacklist')" id="tab-blacklist"
@@ -161,181 +148,328 @@
                             </thead>
                             <tbody class="divide-y divide-[var(--macos-divider)]" id="leadsTableBody">
                                 <% if (leads && leads.length> 0) { %>
-                                    <% leads.forEach(lead=> { %>
-                                        <tr class="hover:bg-[var(--macos-bg-secondary)] transition-colors group lead-row"
-                                            data-state="<%= lead.estado || '' %>"
-                                            data-tracking="<%= lead.whatsapp %>|<%= lead.fingerprint || '' %>">
-                                            <!-- Score (Advanced Tier UI) -->
-                                            <td class="p-4">
-                                                <% let tierColor='text-gray-400' ; let tierBg='bg-gray-500/10' ; let
-                                                    tierRing='stroke-gray-500/30' ; let icon='' ; let label='Bronze' ;
-                                                    if (lead.score>= 90) {
-                                                    tierColor = 'text-purple-400';
-                                                    tierBg = 'bg-purple-500/10';
-                                                    tierRing = 'stroke-purple-500';
-                                                    icon = 'fa-crown';
-                                                    label = 'Diamond';
-                                                    } else if (lead.score >= 70) {
-                                                    tierColor = 'text-emerald-400';
-                                                    tierBg = 'bg-emerald-500/10';
-                                                    tierRing = 'stroke-emerald-500';
-                                                    icon = 'fa-bolt';
-                                                    label = 'Gold';
-                                                    } else if (lead.score >= 50) {
-                                                    tierColor = 'text-amber-400';
-                                                    tierBg = 'bg-amber-500/10';
-                                                    tierRing = 'stroke-amber-500';
-                                                    icon = 'fa-star';
-                                                    label = 'Silver';
-                                                    }
-
-                                                    // SVG calc
-                                                    const radius = 18;
-                                                    const circumference = 2 * Math.PI * radius;
-                                                    const offset = circumference - ((lead.score / 100) * circumference);
-                                                    %>
-                                                    <div class="flex items-center gap-3">
-                                                        <div
-                                                            class="relative w-12 h-12 flex items-center justify-center">
-                                                            <!-- Background Ring -->
-                                                            <svg class="w-full h-full transform -rotate-90">
-                                                                <circle cx="24" cy="24" r="<%= radius %>"
-                                                                    stroke="currentColor" stroke-width="3"
-                                                                    fill="transparent"
-                                                                    class="text-[var(--macos-bg-tertiary)]" />
-                                                                <!-- Progress Ring -->
-                                                                <circle cx="24" cy="24" r="<%= radius %>"
-                                                                    stroke="currentColor" stroke-width="3"
-                                                                    fill="transparent"
-                                                                    stroke-dasharray="<%= circumference %>"
-                                                                    stroke-dashoffset="<%= offset %>"
-                                                                    stroke-linecap="round"
-                                                                    class="<%= tierRing %> drop-shadow-md transition-all duration-1000 ease-out" />
-                                                            </svg>
-
-                                                            <!-- Score Number -->
+                                    <% leads.forEach((item, index)=> { %>
+                                        <% if (item.type==='cluster' ) { %>
+                                            <!-- CLUSTER ROW (Attention) -->
+                                            <tr class="bg-yellow-500/5 hover:bg-yellow-500/10 transition-colors cursor-pointer border-l-4 border-l-yellow-500"
+                                                onclick="document.getElementById('cluster-<%= index %>').classList.toggle('hidden');">
+                                                <td colspan="6" class="p-4">
+                                                    <div class="flex items-center justify-between">
+                                                        <div class="flex items-center gap-3">
                                                             <div
-                                                                class="absolute inset-0 flex items-center justify-center flex-col">
-                                                                <span class="text-xs font-black <%= tierColor %>">
-                                                                    <%= lead.score %>
-                                                                </span>
+                                                                class="w-8 h-8 rounded-full bg-yellow-500/20 flex items-center justify-center text-yellow-600">
+                                                                <i class="fa-solid <%= item.icon %>"></i>
+                                                            </div>
+                                                            <div>
+                                                                <p
+                                                                    class="font-bold text-[var(--macos-text-primary)] flex items-center gap-2">
+                                                                    <%= item.reason %>
+                                                                        <span
+                                                                            class="text-[10px] bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full border border-yellow-200">Atenção</span>
+                                                                </p>
+                                                                <p class="text-xs text-[var(--macos-text-tertiary)]">
+                                                                    Identificador: <%= item.displayLabel %>
+                                                                </p>
                                                             </div>
                                                         </div>
-
-                                                        <!-- Label & Icon -->
-                                                        <div class="flex flex-col">
-                                                            <span
-                                                                class="text-[10px] uppercase font-bold tracking-wider <%= tierColor %> opacity-90">
-                                                                <%= label %>
-                                                            </span>
-                                                            <% if (lead.score>= 70) { %>
-                                                                <span
-                                                                    class="text-[9px] text-[var(--macos-text-tertiary)] flex items-center gap-1">
-                                                                    <i class="fa-solid <%= icon %> text-[9px]"></i> Alta
-                                                                    Prioridade
-                                                                </span>
-                                                                <% } else { %>
-                                                                    <span
-                                                                        class="text-[9px] text-[var(--macos-text-tertiary)]">Lead
-                                                                        Comum</span>
-                                                                    <% } %>
+                                                        <div class="flex items-center gap-4">
+                                                            <div class="text-right">
+                                                                <p
+                                                                    class="font-medium text-[var(--macos-text-secondary)]">
+                                                                    Agrupamento de <%= item.count %> Leads</p>
+                                                                <p class="text-xs text-[var(--macos-text-tertiary)]">
+                                                                    Clique para expandir</p>
+                                                            </div>
+                                                            <i
+                                                                class="fa-solid fa-chevron-down text-[var(--macos-text-tertiary)] text-xs"></i>
                                                         </div>
                                                     </div>
-                                            </td>
-
-                                            <!-- Nome -->
-                                            <td class="p-4">
-                                                <p class="font-semibold text-[var(--macos-text-primary)]">
-                                                    <%= lead.nome %>
-                                                </p>
-                                                <p
-                                                    class="text-xs text-[var(--macos-text-tertiary)] flex items-center gap-1 mb-1">
-                                                </p>
-                                                <i class="fa-solid fa-location-dot"></i>
-                                                <%= lead.cidade || 'N/A' %> - <%= lead.estado || 'UF' %>
-                                                        </p>
-                                                        <p
-                                                            class="text-sm text-[var(--macos-text-tertiary)] flex items-center gap-1">
-                                                            <i class="fa-brands fa-whatsapp"></i>
-                                                            <%= lead.whatsapp %>
-                                                        </p>
-                                            </td>
-
-                                            <!-- Perfil -->
-                                            <td class="p-4">
-                                                <div class="flex flex-col gap-1">
-                                                    <span class="text-sm text-[var(--macos-text-primary)] capitalize">
-                                                        <i
-                                                            class="<%= lead.objetivo === 'investir' ? 'fa-solid fa-chart-line text-green-500' : 'fa-solid fa-house text-blue-500' %> mr-1"></i>
-                                                        <%= lead.objetivo %>
-                                                    </span>
-
-                                                    <% if (lead.experiencia==='ja_arrematei' ) { %>
-                                                        <span class="text-xs text-yellow-500 font-medium">
-                                                            <i class="fa-solid fa-medal mr-1"></i> Já Arrematou
-                                                        </span>
-                                                        <% } else { %>
-                                                            <span class="text-xs text-slate-500">
-                                                                <i class="fa-solid fa-graduation-cap mr-1"></i> 1ª
-                                                                Viagem
-                                                            </span>
-                                                            <% } %>
-
-                                                                <span
-                                                                    class="text-xs <%= lead.restricao_nome ? 'text-red-500' : 'text-green-500' %>">
-                                                                    <i class="fa-solid fa-id-card mr-1"></i>
-                                                                    <%= lead.restricao_nome ? 'Restrição Ativa'
-                                                                        : 'Nome Limpo' %>
-                                                                </span>
-                                                </div>
-                                            </td>
-
-                                            <!-- Capital -->
-                                            <td class="p-4">
-                                                <p class="font-medium text-[var(--macos-text-primary)]">
-                                                    <%= (lead.capital_entrada || 0).toLocaleString('pt-BR', {
-                                                        style: 'currency' , currency: 'BRL' }) %>
-                                                </p>
-                                                <span
-                                                    class="text-xs px-2 py-0.5 rounded-full <%= lead.preferencia_pgto === 'vista' ? 'bg-green-500/10 text-green-500' : 'bg-blue-500/10 text-blue-500' %>">
-                                                    <%= lead.preferencia_pgto==='vista' ? 'À Vista' : 'Financiado' %>
-                                                </span>
-                                            </td>
-
-                                            <!-- Ação -->
-                                            <td class="p-4">
-                                                <form action="/api/leads/claim/<%= lead.id %>" method="POST"
-                                                    class="inline">
-                                                    <button type="submit"
-                                                        class="macos-btn-primary py-1.5 px-3 text-xs flex items-center gap-2">
-                                                        <i class="fa-solid fa-user-plus"></i> Puxar
-                                                    </button>
-                                                </form>
-                                            </td>
-
-                                            <!-- Rastreio -->
-                                            <% if (locals.isAdmin) { %>
-                                                <td class="p-4 text-xs text-[var(--macos-text-tertiary)] font-mono">
+                                                </td>
+                                            </tr>
+                                            <!-- CLUSTER DETAILS -->
+                                            <tr id="cluster-<%= index %>" class="hidden bg-[var(--macos-bg-secondary)]">
+                                                <td colspan="6" class="p-0">
                                                     <div
-                                                        title="<%= lead.fingerprint ? 'Visitor ID: ' + lead.fingerprint : 'Sem Fingerprint' %>">
-                                                        <i class="fa-solid fa-fingerprint mb-1 mr-1"></i>
-                                                        <%= lead.fingerprint ? lead.fingerprint.substring(0, 8) + '...'
-                                                            : '--' %>
+                                                        class="pl-12 pr-4 py-2 space-y-2 border-l-4 border-l-yellow-500/30">
+                                                        <% item.leads.forEach(lead=> { %>
+                                                            <div
+                                                                class="flex items-center justify-between p-3 bg-[var(--macos-bg-tertiary)] rounded border border-[var(--macos-divider)]">
+                                                                <div class="flex items-center gap-3">
+                                                                    <div class="w-2 h-2 rounded-full bg-green-400">
+                                                                    </div>
+                                                                    <div>
+                                                                        <p
+                                                                            class="text-sm font-medium text-[var(--macos-text-primary)]">
+                                                                            <%= lead.nome %>
+                                                                        </p>
+                                                                        <div
+                                                                            class="flex items-center gap-2 text-xs text-[var(--macos-text-tertiary)]">
+                                                                            <span class="flex items-center gap-1"><i
+                                                                                    class="fa-brands fa-whatsapp text-[10px]"></i>
+                                                                                <%= lead.whatsapp %>
+                                                                            </span>
+                                                                            <span>•</span>
+                                                                            <span>
+                                                                                <%= new
+                                                                                    Date(lead.created_at).toLocaleString()
+                                                                                    %>
+                                                                            </span>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="flex items-center gap-4">
+                                                                    <p
+                                                                        class="text-sm font-medium text-[var(--macos-text-secondary)]">
+                                                                        <%= ((lead.capital_entrada || 0) +
+                                                                            (lead.capital_vista ||
+                                                                            0)).toLocaleString('pt-BR', {
+                                                                            style: 'currency' , currency: 'BRL' }) %>
+                                                                    </p>
+                                                                    <form action="/api/leads/claim/<%= lead.id %>"
+                                                                        method="POST">
+                                                                        <button type="submit"
+                                                                            class="macos-btn-primary py-1 px-2 text-[10px]">Puxar</button>
+                                                                    </form>
+                                                                </div>
+
+                                                            </div>
+                                                            <% }); %>
                                                     </div>
                                                 </td>
-                                                <% } %>
-                                        </tr>
-                                        <% }); %>
+                                            </tr>
                                             <% } else { %>
-                                                <tr>
-                                                    <td colspan="6"
-                                                        class="p-8 text-center text-[var(--macos-text-tertiary)]">
-                                                        <p>Nenhum lead qualificado no momento.</p>
-                                                    </td>
-                                                </tr>
-                                                <% } %>
+                                                <!-- NORMAL LEAD ROW -->
+                                                <% const lead=item; %>
+                                                    <tr class="hover:bg-[var(--macos-bg-secondary)] transition-colors group lead-row"
+                                                        data-state="<%= lead.estado || '' %>"
+                                                        data-tracking="<%= lead.whatsapp %>|<%= lead.fingerprint || '' %>">
+                                                        <!-- Score (Advanced Tier UI) -->
+                                                        <td class="p-4">
+                                                            <% let tierColor='text-gray-400' ; let
+                                                                tierBg='bg-gray-500/10' ; let
+                                                                tierRing='stroke-gray-500/30' ; let icon='' ; let
+                                                                label='Bronze' ; if (lead.score>= 90) {
+                                                                tierColor = 'text-purple-400';
+                                                                tierBg = 'bg-purple-500/10';
+                                                                tierRing = 'stroke-purple-500';
+                                                                icon = 'fa-crown';
+                                                                label = 'Diamond';
+                                                                } else if (lead.score >= 70) {
+                                                                tierColor = 'text-emerald-400';
+                                                                tierBg = 'bg-emerald-500/10';
+                                                                tierRing = 'stroke-emerald-500';
+                                                                icon = 'fa-bolt';
+                                                                label = 'Gold';
+                                                                } else if (lead.score >= 50) {
+                                                                tierColor = 'text-amber-400';
+                                                                tierBg = 'bg-amber-500/10';
+                                                                tierRing = 'stroke-amber-500';
+                                                                icon = 'fa-star';
+                                                                label = 'Silver';
+                                                                }
+
+                                                                // SVG calc
+                                                                const radius = 18;
+                                                                const circumference = 2 * Math.PI * radius;
+                                                                const offset = circumference - ((lead.score / 100) *
+                                                                circumference);
+                                                                %>
+                                                                <div class="flex items-center gap-3">
+                                                                    <div
+                                                                        class="relative w-12 h-12 flex items-center justify-center">
+                                                                        <!-- Background Ring -->
+                                                                        <svg class="w-full h-full transform -rotate-90">
+                                                                            <circle cx="24" cy="24" r="<%= radius %>"
+                                                                                stroke="currentColor" stroke-width="3"
+                                                                                fill="transparent"
+                                                                                class="text-[var(--macos-bg-tertiary)]" />
+                                                                            <!-- Progress Ring -->
+                                                                            <circle cx="24" cy="24" r="<%= radius %>"
+                                                                                stroke="currentColor" stroke-width="3"
+                                                                                fill="transparent"
+                                                                                stroke-dasharray="<%= circumference %>"
+                                                                                stroke-dashoffset="<%= offset %>"
+                                                                                stroke-linecap="round"
+                                                                                class="<%= tierRing %> drop-shadow-md transition-all duration-1000 ease-out" />
+                                                                        </svg>
+
+                                                                        <!-- Score Number -->
+                                                                        <div
+                                                                            class="absolute inset-0 flex items-center justify-center flex-col">
+                                                                            <span
+                                                                                class="text-xs font-black <%= tierColor %>">
+                                                                                <%= lead.score %>
+                                                                            </span>
+                                                                        </div>
+                                                                    </div>
+
+                                                                    <!-- Label & Icon -->
+                                                                    <div class="flex flex-col">
+                                                                        <span
+                                                                            class="text-[10px] uppercase font-bold tracking-wider <%= tierColor %> opacity-90">
+                                                                            <%= label %>
+                                                                        </span>
+                                                                        <% if (lead.score>= 70) { %>
+                                                                            <span
+                                                                                class="text-[9px] text-[var(--macos-text-tertiary)] flex items-center gap-1">
+                                                                                <i
+                                                                                    class="fa-solid <%= icon %> text-[9px]"></i>
+                                                                                Alta
+                                                                                Prioridade
+                                                                            </span>
+                                                                            <% } else { %>
+                                                                                <span
+                                                                                    class="text-[9px] text-[var(--macos-text-tertiary)]">Lead
+                                                                                    Comum</span>
+                                                                                <% } %>
+                                                                    </div>
+                                                                </div>
+                                                        </td>
+
+                                                        <!-- Nome -->
+                                                        <td class="p-4">
+                                                            <p class="font-semibold text-[var(--macos-text-primary)]">
+                                                                <%= lead.nome %>
+                                                            </p>
+                                                            <% } %>
+                                                                <p
+                                                                    class="text-xs text-[var(--macos-text-tertiary)] flex items-center gap-1 mb-1">
+                                                                </p>
+                                                                <i class="fa-solid fa-location-dot"></i>
+                                                                <%= lead.cidade || 'N/A' %> - <%= lead.estado || 'UF' %>
+                                                                        </p>
+                                                                        <p
+                                                                            class="text-sm text-[var(--macos-text-tertiary)] flex items-center gap-1">
+                                                                            <i class="fa-brands fa-whatsapp"></i>
+                                                                            <%= lead.whatsapp %>
+                                                                        </p>
+                                                        </td>
+
+                                                        <!-- Perfil -->
+                                                        <td class="p-4">
+                                                            <div class="flex flex-col gap-1">
+                                                                <span
+                                                                    class="text-sm text-[var(--macos-text-primary)] capitalize">
+                                                                    <i
+                                                                        class="<%= lead.objetivo === 'investir' ? 'fa-solid fa-chart-line text-green-500' : 'fa-solid fa-house text-blue-500' %> mr-1"></i>
+                                                                    <%= lead.objetivo %>
+                                                                </span>
+
+                                                                <% if (lead.experiencia==='ja_arrematei' ) { %>
+                                                                    <span class="text-xs text-yellow-500 font-medium">
+                                                                        <i class="fa-solid fa-medal mr-1"></i> Já
+                                                                        Arrematou
+                                                                    </span>
+                                                                    <% } else { %>
+                                                                        <span class="text-xs text-slate-500">
+                                                                            <i
+                                                                                class="fa-solid fa-graduation-cap mr-1"></i>
+                                                                            1ª
+                                                                            Viagem
+                                                                        </span>
+                                                                        <% } %>
+
+                                                                            <span
+                                                                                class="text-xs <%= lead.restricao_nome ? 'text-red-500' : 'text-green-500' %>">
+                                                                                <i class="fa-solid fa-id-card mr-1"></i>
+                                                                                <%= lead.restricao_nome
+                                                                                    ? 'Restrição Ativa' : 'Nome Limpo'
+                                                                                    %>
+                                                                            </span>
+                                                            </div>
+                                                        </td>
+
+                                                        <!-- Capital -->
+                                                        <td class="p-4">
+                                                            <p class="font-medium text-[var(--macos-text-primary)]">
+                                                                <%= (lead.capital_entrada || 0).toLocaleString('pt-BR',
+                                                                    { style: 'currency' , currency: 'BRL' }) %>
+                                                            </p>
+                                                            <span
+                                                                class="text-xs px-2 py-0.5 rounded-full <%= lead.preferencia_pgto === 'vista' ? 'bg-green-500/10 text-green-500' : 'bg-blue-500/10 text-blue-500' %>">
+                                                                <%= lead.preferencia_pgto==='vista' ? 'À Vista'
+                                                                    : 'Financiado' %>
+                                                            </span>
+                                                        </td>
+
+                                                        <!-- Ação -->
+                                                        <td class="p-4">
+                                                            <form action="/api/leads/claim/<%= lead.id %>" method="POST"
+                                                                class="inline">
+                                                                <button type="submit"
+                                                                    class="macos-btn-primary py-1.5 px-3 text-xs flex items-center gap-2">
+                                                                    <i class="fa-solid fa-user-plus"></i> Puxar
+                                                                </button>
+                                                            </form>
+                                                        </td>
+
+                                                        <!-- Rastreio -->
+                                                        <% if (locals.isAdmin) { %>
+                                                            <td
+                                                                class="p-4 text-xs text-[var(--macos-text-tertiary)] font-mono">
+                                                                <div
+                                                                    title="<%= lead.fingerprint ? 'Visitor ID: ' + lead.fingerprint : 'Sem Fingerprint' %>">
+                                                                    <i class="fa-solid fa-fingerprint mb-1 mr-1"></i>
+                                                                    <%= lead.fingerprint ? lead.fingerprint.substring(0,
+                                                                        8) + '...' : '--' %>
+                                                                </div>
+                                                            </td>
+                                                            <% } %>
+                                                    </tr>
+                                                    <% } %>
+                                                        <% }); %>
+                                                            <% } else { %>
+                                                                <tr>
+                                                                    <td colspan="6"
+                                                                        class="p-8 text-center text-[var(--macos-text-tertiary)]">
+                                                                        <p>Nenhum lead qualificado no momento.</p>
+                                                                    </td>
+                                                                </tr>
+                                                                <% } %>
                             </tbody>
                         </table>
+
+                        <!-- PAGINATION -->
+                        <% if (locals.pagination && pagination.total> 1) { %>
+                            <div
+                                class="flex items-center justify-between p-4 bg-[var(--macos-bg-secondary)] border-t border-[var(--macos-divider)]">
+                                <div class="text-xs text-[var(--macos-text-tertiary)]">
+                                    Página <%= pagination.current %> de <%= pagination.total %>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <% if (pagination.hasPrev) { %>
+                                        <a href="?page=<%= pagination.current - 1 %>"
+                                            class="px-3 py-1 text-sm bg-[var(--macos-bg-tertiary)] rounded-md hover:bg-[var(--macos-bg-primary)] transition-colors border border-[var(--macos-divider)]">
+                                            <i class="fa-solid fa-chevron-left mr-1"></i> Anterior
+                                        </a>
+                                        <% } %>
+
+                                            <!-- Page Numbers (Simples) -->
+                                            <div class="flex items-center gap-1">
+                                                <% for(let i=1; i <=pagination.total; i++) { %>
+                                                    <% if (i==pagination.current) { %>
+                                                        <span
+                                                            class="px-3 py-1 text-sm font-bold bg-blue-500 text-white rounded-md">
+                                                            <%= i %>
+                                                        </span>
+                                                        <% } else { %>
+                                                            <a href="?page=<%= i %>"
+                                                                class="px-3 py-1 text-sm bg-[var(--macos-bg-tertiary)] text-[var(--macos-text-secondary)] rounded-md hover:bg-[var(--macos-bg-primary)] transition-colors">
+                                                                <%= i %>
+                                                            </a>
+                                                            <% } %>
+                                                                <% } %>
+                                            </div>
+
+                                            <% if (pagination.hasNext) { %>
+                                                <a href="?page=<%= pagination.current + 1 %>"
+                                                    class="px-3 py-1 text-sm bg-[var(--macos-bg-tertiary)] rounded-md hover:bg-[var(--macos-bg-primary)] transition-colors border border-[var(--macos-divider)]">
+                                                    Próxima <i class="fa-solid fa-chevron-right ml-1"></i>
+                                                </a>
+                                                <% } %>
+                                </div>
+                            </div>
+                            <% } %>
                     </div>
                 </div>
 
@@ -483,146 +617,121 @@
                 </div>
 
                 <!-- Blacklist Table (Recusados) -->
+                <!-- Blacklist Table (Recusados) -->
                 <div id="panel-blacklist" class="macos-card p-0 overflow-hidden hidden">
-                    <div class="bg-red-500/5 p-4 border-b border-red-500/10">
-                        <p class="text-sm text-red-500 flex items-center">
-                            <i class="fa-solid fa-triangle-exclamation mr-2"></i>
-                            Estes leads foram identificados como duplicados. O valor não soma no potencial da carteira.
-                        </p>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse opacity-90">
-                            <thead>
-                                <tr class="bg-[var(--macos-bg-tertiary)] border-b border-[var(--macos-divider)]">
-                                    <th class="p-4 text-xs font-semibold text-[var(--macos-text-secondary)] uppercase">
-                                        Grupo / Motivo</th>
-                                    <th class="p-4 text-xs font-semibold text-[var(--macos-text-secondary)] uppercase">
-                                        Identificador</th>
-                                    <th class="p-4 text-xs font-semibold text-[var(--macos-text-secondary)] uppercase">
-                                        Frequência</th>
-                                    <th class="p-4 text-xs font-semibold text-[var(--macos-text-secondary)] uppercase">
-                                        Valor Retido Total</th>
-                                    <th class="p-4 w-10"></th>
+                    </thead>
+                    <tbody class="divide-y divide-[var(--macos-divider)]">
+                        <% if (locals.blacklist && blacklist.length> 0) { %>
+                            <% blacklist.forEach((group, index)=> { %>
+                                <!-- Group Header Row -->
+                                <tr class="hover:bg-[var(--macos-bg-secondary)] transition-colors cursor-pointer"
+                                    onclick="document.getElementById('details-<%= index %>').classList.toggle('hidden');">
+                                    <td class="p-4">
+                                        <div class="flex items-center gap-3">
+                                            <div
+                                                class="w-8 h-8 rounded-full bg-red-500/10 flex items-center justify-center text-red-500">
+                                                <i class="fa-solid <%= group.icon %>"></i>
+                                            </div>
+                                            <div>
+                                                <p class="font-bold text-[var(--macos-text-primary)]">
+                                                    <%= group.reason %>
+                                                </p>
+                                                <p class="text-xs text-[var(--macos-text-tertiary)]">Última
+                                                    tentativa: <%= new Date(group.latestDate).toLocaleDateString() %>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="p-4 font-mono text-sm text-[var(--macos-text-secondary)]">
+                                        <%= group.displayLabel %>
+                                    </td>
+                                    <td class="p-4">
+                                        <span
+                                            class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300">
+                                            <%= group.count %> tentativas
+                                        </span>
+                                    </td>
+                                    <td class="p-4 font-medium text-[var(--macos-text-primary)]">
+                                        <%= group.totalPotencial.toLocaleString('pt-BR', { style: 'currency' ,
+                                            currency: 'BRL' }) %>
+                                    </td>
+                                    <td class="p-4 text-[var(--macos-text-tertiary)]">
+                                        <i class="fa-solid fa-chevron-down text-xs"></i>
+                                    </td>
                                 </tr>
-                            </thead>
-                            <tbody class="divide-y divide-[var(--macos-divider)]">
-                                <% if (locals.blacklist && blacklist.length> 0) { %>
-                                    <% blacklist.forEach((group, index)=> { %>
-                                        <!-- Group Header Row -->
-                                        <tr class="hover:bg-[var(--macos-bg-secondary)] transition-colors cursor-pointer"
-                                            onclick="document.getElementById('details-<%= index %>').classList.toggle('hidden');">
-                                            <td class="p-4">
-                                                <div class="flex items-center gap-3">
-                                                    <div
-                                                        class="w-8 h-8 rounded-full bg-red-500/10 flex items-center justify-center text-red-500">
-                                                        <i class="fa-solid <%= group.icon %>"></i>
-                                                    </div>
-                                                    <div>
-                                                        <p class="font-bold text-[var(--macos-text-primary)]">
-                                                            <%= group.reason %>
-                                                        </p>
-                                                        <p class="text-xs text-[var(--macos-text-tertiary)]">Última
-                                                            tentativa: <%= new
-                                                                Date(group.latestDate).toLocaleDateString() %>
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td class="p-4 font-mono text-sm text-[var(--macos-text-secondary)]">
-                                                <%= group.displayLabel %>
-                                            </td>
-                                            <td class="p-4">
-                                                <span
-                                                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300">
-                                                    <%= group.count %> tentativas
-                                                </span>
-                                            </td>
-                                            <td class="p-4 font-medium text-[var(--macos-text-primary)]">
-                                                <%= group.totalPotencial.toLocaleString('pt-BR', { style: 'currency' ,
-                                                    currency: 'BRL' }) %>
-                                            </td>
-                                            <td class="p-4 text-[var(--macos-text-tertiary)]">
-                                                <i class="fa-solid fa-chevron-down text-xs"></i>
-                                            </td>
-                                        </tr>
 
-                                        <!-- Group Details Row (Collapsible) -->
-                                        <tr id="details-<%= index %>" class="hidden bg-[var(--macos-bg-secondary)]">
-                                            <td colspan="5" class="p-4 pl-16">
-                                                <p
-                                                    class="text-xs font-bold text-[var(--macos-text-tertiary)] uppercase mb-3">
-                                                    Tentativas Individuais Neste Grupo:</p>
-                                                <div class="space-y-2">
-                                                    <% group.leads.forEach(lead=> { %>
-                                                        <div
-                                                            class="flex items-center justify-between p-3 bg-[var(--macos-bg-tertiary)] rounded border border-[var(--macos-divider)]">
-                                                            <div class="flex items-center gap-3">
-                                                                <div class="w-2 h-2 rounded-full bg-red-400"></div>
-                                                                <div>
-                                                                    <p
-                                                                        class="text-sm font-medium text-[var(--macos-text-primary)]">
-                                                                        <%= lead.nome %>
-                                                                    </p>
-                                                                    <div
-                                                                        class="flex items-center gap-2 text-xs text-[var(--macos-text-tertiary)]">
-                                                                        <span class="flex items-center gap-1"><i
-                                                                                class="fa-brands fa-whatsapp text-[10px]"></i>
-                                                                            <%= lead.whatsapp %>
-                                                                        </span>
-                                                                        <span>•</span>
-                                                                        <span>
-                                                                            <%= new
-                                                                                Date(lead.created_at).toLocaleString()
-                                                                                %>
-                                                                        </span>
-                                                                        <% if (lead.ip_address) { %>
-                                                                            <span>•</span>
-                                                                            <a href="https://whatismyipaddress.com/ip/<%= lead.ip_address %>"
-                                                                                target="_blank"
-                                                                                class="flex items-center gap-1 text-blue-500 hover:text-blue-600 transition-colors"
-                                                                                title="Rastrear Localização deste IP">
-                                                                                <i
-                                                                                    class="fa-solid fa-map-location-dot text-[10px]"></i>
-                                                                                <%= lead.ip_address %>
-                                                                            </a>
-                                                                            <% } %>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                            <div class="text-right">
-                                                                <p
-                                                                    class="text-sm font-medium text-[var(--macos-text-secondary)]">
-                                                                    <%= ((lead.capital_entrada || 0) +
-                                                                        (lead.capital_vista ||
-                                                                        0)).toLocaleString('pt-BR', { style: 'currency'
-                                                                        , currency: 'BRL' }) %>
-                                                                </p>
-                                                                <p class="text-xs text-[var(--macos-text-tertiary)]">
-                                                                    Score: <%= lead.score %>
-                                                                </p>
+                                <!-- Group Details Row (Collapsible) -->
+                                <tr id="details-<%= index %>" class="hidden bg-[var(--macos-bg-secondary)]">
+                                    <td colspan="5" class="p-4 pl-16">
+                                        <p class="text-xs font-bold text-[var(--macos-text-tertiary)] uppercase mb-3">
+                                            Tentativas Individuais Neste Grupo:</p>
+                                        <div class="space-y-2">
+                                            <% group.leads.forEach(lead=> { %>
+                                                <div
+                                                    class="flex items-center justify-between p-3 bg-[var(--macos-bg-tertiary)] rounded border border-[var(--macos-divider)]">
+                                                    <div class="flex items-center gap-3">
+                                                        <div class="w-2 h-2 rounded-full bg-red-400"></div>
+                                                        <div>
+                                                            <p
+                                                                class="text-sm font-medium text-[var(--macos-text-primary)]">
+                                                                <%= lead.nome %>
+                                                            </p>
+                                                            <div
+                                                                class="flex items-center gap-2 text-xs text-[var(--macos-text-tertiary)]">
+                                                                <span class="flex items-center gap-1"><i
+                                                                        class="fa-brands fa-whatsapp text-[10px]"></i>
+                                                                    <%= lead.whatsapp %>
+                                                                </span>
+                                                                <span>•</span>
+                                                                <span>
+                                                                    <%= new Date(lead.created_at).toLocaleString() %>
+                                                                </span>
+                                                                <% if (lead.ip_address) { %>
+                                                                    <span>•</span>
+                                                                    <a href="https://whatismyipaddress.com/ip/<%= lead.ip_address %>"
+                                                                        target="_blank"
+                                                                        class="flex items-center gap-1 text-blue-500 hover:text-blue-600 transition-colors"
+                                                                        title="Rastrear Localização deste IP">
+                                                                        <i
+                                                                            class="fa-solid fa-map-location-dot text-[10px]"></i>
+                                                                        <%= lead.ip_address %>
+                                                                    </a>
+                                                                    <% } %>
                                                             </div>
                                                         </div>
-                                                        <% }); %>
+                                                    </div>
+                                                    <div class="text-right">
+                                                        <p
+                                                            class="text-sm font-medium text-[var(--macos-text-secondary)]">
+                                                            <%= ((lead.capital_entrada || 0) + (lead.capital_vista ||
+                                                                0)).toLocaleString('pt-BR', { style: 'currency' ,
+                                                                currency: 'BRL' }) %>
+                                                        </p>
+                                                        <p class="text-xs text-[var(--macos-text-tertiary)]">
+                                                            Score: <%= lead.score %>
+                                                        </p>
+                                                    </div>
                                                 </div>
+                                                <% }); %>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <% }); %>
+                                    <% } else { %>
+                                        <tr>
+                                            <td colspan="5" class="p-8 text-center text-[var(--macos-text-tertiary)]">
+                                                <p>Nenhum lead na blacklist.</p>
                                             </td>
                                         </tr>
-                                        <% }); %>
-                                            <% } else { %>
-                                                <tr>
-                                                    <td colspan="5"
-                                                        class="p-8 text-center text-[var(--macos-text-tertiary)]">
-                                                        <p>Nenhum lead na blacklist.</p>
-                                                    </td>
-                                                </tr>
-                                                <% } %>
-                            </tbody>
-                        </table>
-                    </div>
+                                        <% } %>
+                    </tbody>
+                    </table>
+                </div>
                 </div>
 
                 <script>
                     function switchTab(tabName) {
-                        const tabs = ['leads', 'blacklist', 'attention'];
+                        const tabs = ['leads', 'blacklist'];
                         const activeClasses = ['shadow-sm', 'bg-[var(--macos-bg-secondary)]', 'text-[var(--macos-text-primary)]'];
                         const inactiveClasses = ['text-[var(--macos-text-tertiary)]', 'hover:text-[var(--macos-text-primary)]', 'bg-transparent'];
 
@@ -643,6 +752,7 @@
                             }
                         });
                     }
+
                     // Auto-init
                     document.addEventListener('DOMContentLoaded', () => {
                         switchTab('leads');

@@ -3745,21 +3745,29 @@ SELECT * FROM leads
             }
         });
 
-        // Converter Attention Map para Array
-        const attentionList = Object.values(attentionMap).sort((a, b) => b.count - a.count);
+        // Converter Attention Map para Array e marcar tipo
+        const attentionClusters = Object.values(attentionMap).map(g => ({ ...g, type: 'cluster' }));
+        const cleanLeadsTyped = cleanLeads.map(l => ({ ...l, type: 'lead' }));
+
+        // Combinar tudo na lista principal de "Qualificados"
+        // Ordenança: Clusters e Leads misturados por data (o mais recente no topo)
+        const combinedLeads = [...attentionClusters, ...cleanLeadsTyped].sort((a, b) => {
+            const dateA = a.type === 'cluster' ? new Date(a.latestDate) : new Date(a.created_at);
+            const dateB = b.type === 'cluster' ? new Date(b.latestDate) : new Date(b.created_at);
+            return dateB - dateA;
+        });
 
         // --- GROUPING LOGIC FOR BLACKLIST (Novo) ---
         const groupedBlacklistMap = {};
 
         blacklistLeads.forEach(lead => {
-            // Determinar a chave de agrupamento baseada no motivo
             let groupKey = '';
             let keyLabel = '';
             let icon = '';
 
             if (lead.blacklist_reason.includes('Telefone')) {
                 groupKey = normalizePhone(lead.whatsapp);
-                keyLabel = lead.whatsapp; // Visual
+                keyLabel = lead.whatsapp;
                 icon = 'fa-whatsapp';
             } else if (lead.blacklist_reason.includes('Dispositivo')) {
                 groupKey = lead.fingerprint;
@@ -3793,45 +3801,57 @@ SELECT * FROM leads
             const val = Math.max(parseFloat(lead.capital_entrada || 0), parseFloat(lead.capital_vista || 0));
             groupedBlacklistMap[groupKey].totalPotencial += val;
 
-            // Manter data mais recente
             if (new Date(lead.created_at) > new Date(groupedBlacklistMap[groupKey].latestDate)) {
                 groupedBlacklistMap[groupKey].latestDate = lead.created_at;
             }
         });
 
-        // Converter para array e ordenar
+        // Converter para array e ordenar blacklist
         const groupedBlacklist = Object.values(groupedBlacklistMap).sort((a, b) => b.count - a.count);
 
-        console.log(`✅ Resultado: ${validLeads.length} Válidos | ${blacklistLeads.length} Recusados Agrupados em ${groupedBlacklist.length} Clusters`);
+        console.log(`✅ Resultado: ${cleanLeads.length} Limpos + ${attentionClusters.length} Clusters | ${blacklistLeads.length} Recusados`);
 
-
-        // Calcular KPIs (Baseado apenas nos LIMPOS)
+        // Calcular KPIs (Considerando TODOS os válidos)
         let kpis = {
             totalCapital: 0,
             avgScore: 0,
-            totalLeads: cleanLeads.length, // Agora reflete só os sem alerta
-            attentionCount: validLeads.length - cleanLeads.length, // Novo KPI
+            totalLeads: validLeads.length, // Total real de leads válidos
+            attentionCount: validLeads.length - cleanLeads.length,
             blacklistCount: blacklistLeads.length,
             blacklistClusterCount: groupedBlacklist.length,
             blacklistValue: blacklistValue,
             qualityLabel: 'N/A'
         };
 
-        if (cleanLeads.length > 0) {
-            kpis.totalCapital = cleanLeads.reduce((sum, l) => sum + (l.capital_entrada || 0), 0);
-            kpis.avgScore = Math.round(cleanLeads.reduce((sum, l) => sum + (l.score || 0), 0) / cleanLeads.length);
+        if (validLeads.length > 0) {
+            kpis.totalCapital = validLeads.reduce((sum, l) => sum + (l.capital_entrada || 0), 0);
+            kpis.avgScore = Math.round(validLeads.reduce((sum, l) => sum + (l.score || 0), 0) / validLeads.length);
 
             if (kpis.avgScore >= 75) kpis.qualityLabel = 'Excelente 🌟';
             else if (kpis.avgScore >= 50) kpis.qualityLabel = 'Bom ✅';
             else kpis.qualityLabel = 'Regular ⚠️';
         }
 
+        // --- PAGINATION LOGIC ---
+        const page = parseInt(req.query.page) || 1;
+        const limit = 50; // Leads per page
+        const startIndex = (page - 1) * limit;
+        const endIndex = page * limit;
+
+        const paginatedLeads = combinedLeads.slice(startIndex, endIndex);
+        const totalPages = Math.ceil(combinedLeads.length / limit);
+
         res.render('leads-pool', {
-            leads: cleanLeads, // Lista "Pura"
-            attention: attentionList, // Lista "Atenção"
+            leads: paginatedLeads, // Lista Híbrida Paginada
             blacklist: groupedBlacklist,
             rawBlacklist: blacklistLeads,
             kpis: kpis,
+            pagination: {
+                current: page,
+                total: totalPages,
+                hasPrev: page > 1,
+                hasNext: page < totalPages
+            },
             user: getUserContext(req.session),
             username: req.session.username,
             profile_pic_url: req.session.profile_pic_url

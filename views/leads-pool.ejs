@@ -406,14 +406,30 @@
                                                                         class="text-sm font-medium text-[var(--macos-text-primary)]">
                                                                         <%= lead.nome %>
                                                                     </p>
-                                                                    <p
-                                                                        class="text-xs text-[var(--macos-text-tertiary)] flex items-center gap-1">
-                                                                        <i
-                                                                            class="fa-brands fa-whatsapp text-[10px]"></i>
-                                                                        <%= lead.whatsapp %> • <%= new
+                                                                    <div
+                                                                        class="flex items-center gap-2 text-xs text-[var(--macos-text-tertiary)]">
+                                                                        <span class="flex items-center gap-1"><i
+                                                                                class="fa-brands fa-whatsapp text-[10px]"></i>
+                                                                            <%= lead.whatsapp %>
+                                                                        </span>
+                                                                        <span>•</span>
+                                                                        <span>
+                                                                            <%= new
                                                                                 Date(lead.created_at).toLocaleString()
                                                                                 %>
-                                                                    </p>
+                                                                        </span>
+                                                                        <% if (lead.ip_address) { %>
+                                                                            <span>•</span>
+                                                                            <a href="https://whatismyipaddress.com/ip/<%= lead.ip_address %>"
+                                                                                target="_blank"
+                                                                                class="flex items-center gap-1 text-blue-500 hover:text-blue-600 transition-colors"
+                                                                                title="Rastrear Localização deste IP">
+                                                                                <i
+                                                                                    class="fa-solid fa-map-location-dot text-[10px]"></i>
+                                                                                <%= lead.ip_address %>
+                                                                            </a>
+                                                                            <% } %>
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                             <div class="text-right">

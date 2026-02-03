@@ -3708,15 +3708,14 @@ SELECT * FROM leads
             let groupKey = null;
             let reason = null;
 
-            // Prioridade: Fingerprint (Dispositivo) > IP (Rede)
-            // Fingerprint é um sinal muito mais forte de ser a mesma pessoa física.
+            // NOVA LÓGICA MUDANÇA: APENAS FINGERPRINT (DISPOSITIVO) É CONSIDERADO DUPLICATA
+            // IPs compartilhados (escritórios, wi-fi público, CGNAT) são comuns e não devem agrupar leads diferentes.
             if (lead.fingerprint && fpFreq[lead.fingerprint] > 1) {
                 groupKey = 'fp_' + lead.fingerprint;
                 reason = `Mesmo Dispositivo`;
-            } else if (lead.ip_address && ipFreq[lead.ip_address] > 1) {
-                groupKey = 'ip_' + lead.ip_address;
-                reason = `Mesmo Endereço IP (${lead.ip_address})`;
             }
+
+            // IP foi removido da lógica de agrupamento para evitar falsos positivos.
 
             if (groupKey) {
                 if (!groupedLeadsMap[groupKey]) {
@@ -3727,7 +3726,7 @@ SELECT * FROM leads
                 }
                 groupedLeadsMap[groupKey].leads.push(lead);
             } else {
-                // Sem duplicatas, vai direto pra lista
+                // Se não for o mesmo dispositivo, tratamos como ÚNICO (mesmo que tenha mesmo IP)
                 cleanLeads.push(lead);
             }
         });

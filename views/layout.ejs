@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 
 <head>
-    <title>Gerador de Stories - Fortal</title>
+    <title>Gerador de Stories</title>
     <%- include('partials/head') %>
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -691,7 +691,7 @@
                         }
                     }).then(canvas => {
                         const link = document.createElement('a');
-                        link.download = 'story-fortal-' + Date.now() + '.png';
+                        link.download = 'story-download-' + Date.now() + '.png';
                         link.href = canvas.toDataURL('image/png');
                         link.click();
                     });

@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 
 <head>
-    <title>Notificação Extrajudicial - Fortal</title>
+    <title>Notificação Extrajudicial</title>
     <%- include('partials/head') %>
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -409,7 +409,7 @@
 
                     <!-- FOOTER -->
                     <div class="doc-footer">
-                        <div class="footer-company-name" id="pdfNomeNotificanteSign">FORTAL LEILÕES LTDA</div>
+                        <div class="footer-company-name" id="pdfNomeNotificanteSign">NOME DA EMPRESA</div>
                         <div class="footer-contact" id="pdfTelefone">85 99222-9293 ou 85 99858-6661</div>
                         <div class="footer-contact" id="pdfEmail" style="text-transform: lowercase;">
                             fortal.tributos@gmail.com</div>
@@ -418,150 +418,150 @@
             </main>
 
             <script>
-        // --- COMPANY MANAGEMENT LOGIC ---
-        let currentLogoBase64 = null;
+                // --- COMPANY MANAGEMENT LOGIC ---
+                let currentLogoBase64 = null;
 
-        function getSavedProfiles() {
-            try { return JSON.parse(localStorage.getItem('savedCompanies') || '[]'); } catch (e) { return []; }
-        }
-
-        function refreshCompanySelect() {
-            const saved = getSavedProfiles();
-            const select = document.getElementById('selectSavedCompany');
-            const currentVal = select.value;
-            select.innerHTML = '<option value="">-- Selecione ou Cadastre Nova --</option>';
-            saved.forEach(c => {
-                const opt = document.createElement('option');
-                opt.value = c.id;
-                opt.innerText = c.name;
-                select.appendChild(opt);
-            });
-            if (currentVal && saved.find(c => c.id === currentVal)) select.value = currentVal;
-        }
-
-        function saveCompanyProfile() {
-            const nome = document.getElementById('inputNomeNotificante').value;
-            const cpf = document.getElementById('inputCpfNotificante').value;
-            const endereco = document.getElementById('inputEnderecoNotificante').value;
-            const telefone = document.getElementById('inputTelefoneNotificante').value;
-            const email = document.getElementById('inputEmailNotificante').value;
-            
-            if (!nome) { alert("Preencha ao menos o Nome da Empresa/Notificante para salvar."); return; }
-
-            let saved = getSavedProfiles();
-            const select = document.getElementById('selectSavedCompany');
-            let id = select.value;
-
-            const newProfile = { id: id || Date.now().toString(), name: nome, cpf, endereco, telefone, email, logo: currentLogoBase64 };
-
-            if (id) {
-                const index = saved.findIndex(c => c.id === id);
-                if (index !== -1) {
-                    if (!confirm("Atualizar perfil existente?")) return;
-                    saved[index] = newProfile;
+                function getSavedProfiles() {
+                    try { return JSON.parse(localStorage.getItem('savedCompanies') || '[]'); } catch (e) { return []; }
                 }
-            } else {
-                saved.push(newProfile);
-                id = newProfile.id;
-            }
 
-            localStorage.setItem('savedCompanies', JSON.stringify(saved));
-            refreshCompanySelect();
-            select.value = id;
-            alert("Perfil salvo com sucesso!");
-        }
-
-        function deleteCompanyProfile() {
-            const id = document.getElementById('selectSavedCompany').value;
-            if (!id) return;
-            if (!confirm("Excluir este perfil?")) return;
-
-            let saved = getSavedProfiles();
-            saved = saved.filter(c => c.id !== id);
-            localStorage.setItem('savedCompanies', JSON.stringify(saved));
-            refreshCompanySelect();
-            loadCompanyProfile(null);
-        }
-
-        function loadCompanyProfile(id) {
-            if (!id) {
-                document.querySelectorAll('input').forEach(i => i.value = '');
-                document.getElementById('inputNomeNotificado').value = 'Ao Ocupante'; // Reset default
-                removeLogo();
-                updatePDF();
-                return;
-            }
-            const saved = getSavedProfiles();
-            const profile = saved.find(c => c.id === id);
-            if (profile) {
-                document.getElementById('inputNomeNotificante').value = profile.name || '';
-                document.getElementById('inputCpfNotificante').value = profile.cpf || '';
-                document.getElementById('inputEnderecoNotificante').value = profile.endereco || '';
-                document.getElementById('inputTelefoneNotificante').value = profile.telefone || '';
-                document.getElementById('inputEmailNotificante').value = profile.email || '';
-                if (profile.logo) {
-                    currentLogoBase64 = profile.logo;
-                    const prev = document.getElementById('previewLogo');
-                    prev.src = profile.logo;
-                    document.getElementById('logoPreviewWrapper').classList.remove('hidden');
-                } else {
-                    removeLogo();
+                function refreshCompanySelect() {
+                    const saved = getSavedProfiles();
+                    const select = document.getElementById('selectSavedCompany');
+                    const currentVal = select.value;
+                    select.innerHTML = '<option value="">-- Selecione ou Cadastre Nova --</option>';
+                    saved.forEach(c => {
+                        const opt = document.createElement('option');
+                        opt.value = c.id;
+                        opt.innerText = c.name;
+                        select.appendChild(opt);
+                    });
+                    if (currentVal && saved.find(c => c.id === currentVal)) select.value = currentVal;
                 }
-                updatePDF();
-            }
-        }
 
-        function handleLogoUpload(input) {
-            if (input.files && input.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function (e) {
-                    currentLogoBase64 = e.target.result;
-                    const prev = document.getElementById('previewLogo');
-                    prev.src = currentLogoBase64;
-                    document.getElementById('logoPreviewWrapper').classList.remove('hidden');
+                function saveCompanyProfile() {
+                    const nome = document.getElementById('inputNomeNotificante').value;
+                    const cpf = document.getElementById('inputCpfNotificante').value;
+                    const endereco = document.getElementById('inputEnderecoNotificante').value;
+                    const telefone = document.getElementById('inputTelefoneNotificante').value;
+                    const email = document.getElementById('inputEmailNotificante').value;
+
+                    if (!nome) { alert("Preencha ao menos o Nome da Empresa/Notificante para salvar."); return; }
+
+                    let saved = getSavedProfiles();
+                    const select = document.getElementById('selectSavedCompany');
+                    let id = select.value;
+
+                    const newProfile = { id: id || Date.now().toString(), name: nome, cpf, endereco, telefone, email, logo: currentLogoBase64 };
+
+                    if (id) {
+                        const index = saved.findIndex(c => c.id === id);
+                        if (index !== -1) {
+                            if (!confirm("Atualizar perfil existente?")) return;
+                            saved[index] = newProfile;
+                        }
+                    } else {
+                        saved.push(newProfile);
+                        id = newProfile.id;
+                    }
+
+                    localStorage.setItem('savedCompanies', JSON.stringify(saved));
+                    refreshCompanySelect();
+                    select.value = id;
+                    alert("Perfil salvo com sucesso!");
+                }
+
+                function deleteCompanyProfile() {
+                    const id = document.getElementById('selectSavedCompany').value;
+                    if (!id) return;
+                    if (!confirm("Excluir este perfil?")) return;
+
+                    let saved = getSavedProfiles();
+                    saved = saved.filter(c => c.id !== id);
+                    localStorage.setItem('savedCompanies', JSON.stringify(saved));
+                    refreshCompanySelect();
+                    loadCompanyProfile(null);
+                }
+
+                function loadCompanyProfile(id) {
+                    if (!id) {
+                        document.querySelectorAll('input').forEach(i => i.value = '');
+                        document.getElementById('inputNomeNotificado').value = 'Ao Ocupante'; // Reset default
+                        removeLogo();
+                        updatePDF();
+                        return;
+                    }
+                    const saved = getSavedProfiles();
+                    const profile = saved.find(c => c.id === id);
+                    if (profile) {
+                        document.getElementById('inputNomeNotificante').value = profile.name || '';
+                        document.getElementById('inputCpfNotificante').value = profile.cpf || '';
+                        document.getElementById('inputEnderecoNotificante').value = profile.endereco || '';
+                        document.getElementById('inputTelefoneNotificante').value = profile.telefone || '';
+                        document.getElementById('inputEmailNotificante').value = profile.email || '';
+                        if (profile.logo) {
+                            currentLogoBase64 = profile.logo;
+                            const prev = document.getElementById('previewLogo');
+                            prev.src = profile.logo;
+                            document.getElementById('logoPreviewWrapper').classList.remove('hidden');
+                        } else {
+                            removeLogo();
+                        }
+                        updatePDF();
+                    }
+                }
+
+                function handleLogoUpload(input) {
+                    if (input.files && input.files[0]) {
+                        const reader = new FileReader();
+                        reader.onload = function (e) {
+                            currentLogoBase64 = e.target.result;
+                            const prev = document.getElementById('previewLogo');
+                            prev.src = currentLogoBase64;
+                            document.getElementById('logoPreviewWrapper').classList.remove('hidden');
+                            updatePDF();
+                        }
+                        reader.readAsDataURL(input.files[0]);
+                    }
+                }
+
+                function removeLogo() {
+                    currentLogoBase64 = null;
+                    document.getElementById('fileLogo').value = "";
+                    document.getElementById('logoPreviewWrapper').classList.add('hidden');
                     updatePDF();
                 }
-                reader.readAsDataURL(input.files[0]);
-            }
-        }
 
-        function removeLogo() {
-            currentLogoBase64 = null;
-            document.getElementById('fileLogo').value = "";
-            document.getElementById('logoPreviewWrapper').classList.add('hidden');
-            updatePDF();
-        }
+                function updatePDF() {
+                    const nomeNotificante = document.getElementById('inputNomeNotificante').value || 'Nome do Notificante';
+                    document.getElementById('pdfNomeNotificante').innerText = nomeNotificante;
+                    document.getElementById('pdfNomeNotificanteSign').innerText = nomeNotificante;
 
-        function updatePDF() {
-            const nomeNotificante = document.getElementById('inputNomeNotificante').value || 'Nome do Notificante';
-            document.getElementById('pdfNomeNotificante').innerText = nomeNotificante;
-            document.getElementById('pdfNomeNotificanteSign').innerText = nomeNotificante;
-            
-            document.getElementById('pdfTelefone').innerText = document.getElementById('inputTelefoneNotificante').value || '';
-            document.getElementById('pdfEmail').innerText = document.getElementById('inputEmailNotificante').value || '';
+                    document.getElementById('pdfTelefone').innerText = document.getElementById('inputTelefoneNotificante').value || '';
+                    document.getElementById('pdfEmail').innerText = document.getElementById('inputEmailNotificante').value || '';
 
-            document.getElementById('pdfNomeNotificado').innerText = document.getElementById('inputNomeNotificado').value || 'Ao Ocupante';
+                    document.getElementById('pdfNomeNotificado').innerText = document.getElementById('inputNomeNotificado').value || 'Ao Ocupante';
 
-            const endImovel = document.getElementById('inputEnderecoImovel').value || 'Endereço do Imóvel';
-            const cidImovel = document.getElementById('inputCidadeImovel').value || '';
-            document.getElementById('pdfEnderecoImovelInline').innerText = endImovel + (cidImovel ? `, ${cidImovel}` : '');
+                    const endImovel = document.getElementById('inputEnderecoImovel').value || 'Endereço do Imóvel';
+                    const cidImovel = document.getElementById('inputCidadeImovel').value || '';
+                    document.getElementById('pdfEnderecoImovelInline').innerText = endImovel + (cidImovel ? `, ${cidImovel}` : '');
 
-            document.getElementById('pdfMatricula').innerText = document.getElementById('inputMatricula').value || '_______';
-            document.getElementById('pdfCartorio').innerText = document.getElementById('inputCartorio').value || '_______';
+                    document.getElementById('pdfMatricula').innerText = document.getElementById('inputMatricula').value || '_______';
+                    document.getElementById('pdfCartorio').innerText = document.getElementById('inputCartorio').value || '_______';
 
-            const pdfLogo = document.getElementById('pdfLogo');
-            if (currentLogoBase64) {
-                pdfLogo.src = currentLogoBase64;
-                pdfLogo.style.display = 'block';
-            } else {
-                pdfLogo.style.display = 'none';
-            }
-        }
+                    const pdfLogo = document.getElementById('pdfLogo');
+                    if (currentLogoBase64) {
+                        pdfLogo.src = currentLogoBase64;
+                        pdfLogo.style.display = 'block';
+                    } else {
+                        pdfLogo.style.display = 'none';
+                    }
+                }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            refreshCompanySelect();
-            updatePDF();
-        });
+                document.addEventListener('DOMContentLoaded', () => {
+                    refreshCompanySelect();
+                    updatePDF();
+                });
             </script>
 </body>
 

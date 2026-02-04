@@ -2,67 +2,66 @@
 <html lang="pt-BR">
 
 <head>
-    <title>
-        <%= cliente.nome %> - Carteira - Fortal
-    </title>
-    <%- include('partials/head') %>
-        <!-- Chart.js -->
-        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-        <style>
-            /* Seleção de texto amarela */
-            ::selection {
-                background: rgba(255, 214, 10, 0.3);
-                color: inherit;
-            }
+    <%= cliente.nome %> - Carteira
+        </title>
+        <%- include('partials/head') %>
+            <!-- Chart.js -->
+            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+            <style>
+                /* Seleção de texto amarela */
+                ::selection {
+                    background: rgba(255, 214, 10, 0.3);
+                    color: inherit;
+                }
 
-            /* Segmented Control Ativo Amarelo */
-            .macos-segmented-control button.active {
-                background: #FFD60A !important;
-                color: #000000 !important;
-            }
+                /* Segmented Control Ativo Amarelo */
+                .macos-segmented-control button.active {
+                    background: #FFD60A !important;
+                    color: #000000 !important;
+                }
 
-            /* Hover na lista com tom amarelado sutil */
-            .macos-list-item:hover {
-                background: rgba(255, 214, 10, 0.05) !important;
-            }
+                /* Hover na lista com tom amarelado sutil */
+                .macos-list-item:hover {
+                    background: rgba(255, 214, 10, 0.05) !important;
+                }
 
-            /* View Modes */
-            .imoveis-container.list-view {
-                display: grid;
-                grid-template-columns: 1fr;
-                gap: 0;
-            }
+                /* View Modes */
+                .imoveis-container.list-view {
+                    display: grid;
+                    grid-template-columns: 1fr;
+                    gap: 0;
+                }
 
-            .imoveis-container.grid-view {
-                display: grid;
-                grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-                gap: 24px;
-            }
+                .imoveis-container.grid-view {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+                    gap: 24px;
+                }
 
-            /* Breadcrumb */
-            .breadcrumb {
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                margin-bottom: 24px;
-                font-size: 14px;
-                color: var(--macos-text-secondary);
-            }
+                /* Breadcrumb */
+                .breadcrumb {
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
+                    margin-bottom: 24px;
+                    font-size: 14px;
+                    color: var(--macos-text-secondary);
+                }
 
-            .breadcrumb a {
-                color: #007AFF;
-                text-decoration: none;
-                transition: color 0.2s;
-            }
+                .breadcrumb a {
+                    color: #007AFF;
+                    text-decoration: none;
+                    transition: color 0.2s;
+                }
 
-            .breadcrumb a:hover {
-                color: #0051D5;
-            }
+                .breadcrumb a:hover {
+                    color: #0051D5;
+                }
 
-            .breadcrumb-separator {
-                color: var(--macos-text-tertiary);
-            }
-        </style>
+                .breadcrumb-separator {
+                    color: var(--macos-text-tertiary);
+                }
+            </style>
 </head>
 
 <body class="min-h-screen page-cliente-detalhes">

@@ -74,22 +74,22 @@
         <div class="macos-sidebar-section">
             <div class="macos-sidebar-section-title">Gestão & CRM</div>
 
-            <% if (false) { %>
-                <a href="/leads" class="macos-sidebar-item">
-                    <span class="macos-sidebar-item-icon"><i class="fa-solid fa-filter-circle-dollar"></i></span>
-                    <span class="macos-sidebar-item-text">Novos Leads</span>
-                </a>
-                <% } %>
 
-                    <a href="/carteira" class="macos-sidebar-item">
-                        <span class="macos-sidebar-item-icon"><i class="fa-solid fa-users"></i></span>
-                        <span class="macos-sidebar-item-text">Meus Clientes</span>
-                    </a>
+            <a href="/leads" class="macos-sidebar-item">
+                <span class="macos-sidebar-item-icon"><i class="fa-solid fa-filter-circle-dollar"></i></span>
+                <span class="macos-sidebar-item-text">Novos Leads</span>
+            </a>
 
-                    <a href="/historico" class="macos-sidebar-item">
-                        <span class="macos-sidebar-item-icon"><i class="fa-solid fa-clock-rotate-left"></i></span>
-                        <span class="macos-sidebar-item-text">Meus Arremates</span>
-                    </a>
+
+            <a href="/carteira" class="macos-sidebar-item">
+                <span class="macos-sidebar-item-icon"><i class="fa-solid fa-users"></i></span>
+                <span class="macos-sidebar-item-text">Meus Clientes</span>
+            </a>
+
+            <a href="/historico" class="macos-sidebar-item">
+                <span class="macos-sidebar-item-icon"><i class="fa-solid fa-clock-rotate-left"></i></span>
+                <span class="macos-sidebar-item-text">Meus Arremates</span>
+            </a>
         </div>
 
         <% if (user && user.isAdmin) { %>
@@ -105,6 +105,13 @@
                 </a>
             </div>
             <% } %>
+
+                <div
+                    style="margin-top: 20px; padding: 10px; border-top: 1px solid rgba(0,0,0,0.1); text-align: center; font-size: 10px; color: var(--macos-text-tertiary);">
+                    <p>Plataforma criada por <strong>Cesar Ericky Cruz de Andrade</strong>.</p>
+                    <p>A plataforma pertence a Cesar Ericky Cruz de Andrade.</p>
+                    <p style="margin-top:4px;">&copy; <%= new Date().getFullYear() %> Fortal</p>
+                </div>
     </nav>
 </aside>
 

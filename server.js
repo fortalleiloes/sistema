@@ -4213,3 +4213,54 @@ app.use((err, req, res, next) => {
         console.log(`Servidor rodando em http://localhost:${PORT}`);
     });
 })();
+// Rota para exportar leads como CSV
+app.get('/api/leads/export', isAuthenticated, async (req, res) => {
+    try {
+        const leads = await db.all('SELECT * FROM leads ORDER BY created_at DESC');
+
+        if (!leads || leads.length === 0) {
+            return res.status(404).send('Nenhum lead encontrado para exportação.');
+        }
+
+        // Cabeçalho do CSV
+        const header = [
+            'ID', 'Nome', 'WhatsApp', 'Objetivo', 'Experiencia', 'Restricao Nome',
+            'Capital Entrada', 'Capital Vista', 'Preferencia Pgto', 'Estado', 'Cidade',
+            'Score', 'Status', 'IP Address', 'Data Criacao'
+        ];
+
+        // Construir linhas
+        const rows = leads.map(lead => [
+            lead.id,
+            `"${(lead.nome || '').replace(/"/g, '""')}"`, // Escapar aspas duplas
+            `"${(lead.whatsapp || '').replace(/"/g, '""')}"`,
+            lead.objetivo,
+            lead.experiencia,
+            lead.restricao_nome ? 'Sim' : 'Nao',
+            lead.capital_entrada,
+            lead.capital_vista,
+            lead.preferencia_pgto,
+            lead.estado,
+            `"${(lead.cidade || '').replace(/"/g, '""')}"`,
+            lead.score,
+            lead.status,
+            lead.ip_address,
+            lead.created_at
+        ]);
+
+        // Juntar tudo em uma string CSV
+        const csvContent = [
+            header.join(','),
+            ...rows.map(r => r.join(','))
+        ].join('\n');
+
+        // Configurar headers para download
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', `attachment; filename="leads_export_${Date.now()}.csv"`);
+
+        res.status(200).send(csvContent);
+    } catch (error) {
+        console.error('Erro ao exportar leads:', error);
+        res.status(500).send('Erro ao gerar exportação.');
+    }
+});

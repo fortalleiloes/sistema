@@ -8,8 +8,8 @@
             style="display: flex; justify-content: center; align-items: center; padding: 20px 0;">
             <div
                 style="background: rgba(0, 0, 0, 0.08); border-radius: 16px; padding: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                <img src="/images/logo-fortal.png" alt="Fortal"
-                    style="height: 100px; width: 100px; object-fit: contain; transform: scale(1.15);">
+                <i class="fa-solid fa-building-columns"
+                    style="font-size: 48px; color: var(--macos-text-primary); margin: 10px;"></i>
             </div>
         </div>
     </div>
@@ -75,23 +75,21 @@
             <div class="macos-sidebar-section-title">Gestão & CRM</div>
 
 
-            <% if (false) { %>
-                <a href="/leads" class="macos-sidebar-item">
-                    <span class="macos-sidebar-item-icon"><i class="fa-solid fa-filter-circle-dollar"></i></span>
-                    <span class="macos-sidebar-item-text">Novos Leads</span>
-                </a>
-                <% } %>
+            <a href="/leads" class="macos-sidebar-item">
+                <span class="macos-sidebar-item-icon"><i class="fa-solid fa-filter-circle-dollar"></i></span>
+                <span class="macos-sidebar-item-text">Novos Leads</span>
+            </a>
 
 
-                    <a href="/carteira" class="macos-sidebar-item">
-                        <span class="macos-sidebar-item-icon"><i class="fa-solid fa-users"></i></span>
-                        <span class="macos-sidebar-item-text">Meus Clientes</span>
-                    </a>
+            <a href="/carteira" class="macos-sidebar-item">
+                <span class="macos-sidebar-item-icon"><i class="fa-solid fa-users"></i></span>
+                <span class="macos-sidebar-item-text">Meus Clientes</span>
+            </a>
 
-                    <a href="/historico" class="macos-sidebar-item">
-                        <span class="macos-sidebar-item-icon"><i class="fa-solid fa-clock-rotate-left"></i></span>
-                        <span class="macos-sidebar-item-text">Meus Arremates</span>
-                    </a>
+            <a href="/historico" class="macos-sidebar-item">
+                <span class="macos-sidebar-item-icon"><i class="fa-solid fa-clock-rotate-left"></i></span>
+                <span class="macos-sidebar-item-text">Meus Arremates</span>
+            </a>
         </div>
 
         <% if (user && user.isAdmin) { %>

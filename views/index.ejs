@@ -177,67 +177,74 @@
                             </div>
 
                             <!-- KPI 3: Leads -->
-                            <div class="kpi-card group relative overflow-hidden cursor-pointer"
-                                onclick="window.location.href='/leads'">
-                                <div class="absolute right-0 top-0 p-4 opacity-10 transition-opacity">
-                                    <i class="fa-solid fa-fire text-6xl text-orange-500"></i>
-                                </div>
-                                <div class="relative z-10">
-                                    <p class="text-xs font-bold uppercase tracking-wider mb-2"
-                                        style="color: var(--macos-text-secondary);">Novos Leads</p>
-                                    <h3 class="text-2xl font-bold mb-1" style="color: var(--macos-text-primary);">
-                                        <%= stats.leads_waiting %>
-                                    </h3>
-                                    <% if (stats.leads_waiting> 0) { %>
-                                        <div class="flex items-center text-xs text-orange-500 font-bold animate-pulse">
-                                            <i class="fa-solid fa-circle-exclamation mr-1"></i>
-                                            <span>Aguardando Ação</span>
-                                        </div>
-                                        <% } else { %>
-                                            <div class="flex items-center text-xs text-green-500">
-                                                <i class="fa-solid fa-check mr-1"></i>
-                                                <span>Tudo em dia</span>
+                            <% if (false) { %>
+                                <div class="kpi-card group relative overflow-hidden cursor-pointer"
+                                    onclick="window.location.href='/leads'">
+                                    <div class="absolute right-0 top-0 p-4 opacity-10 transition-opacity">
+                                        <i class="fa-solid fa-fire text-6xl text-orange-500"></i>
+                                    </div>
+                                    <div class="relative z-10">
+                                        <p class="text-xs font-bold uppercase tracking-wider mb-2"
+                                            style="color: var(--macos-text-secondary);">Novos Leads</p>
+                                        <h3 class="text-2xl font-bold mb-1" style="color: var(--macos-text-primary);">
+                                            <%= stats.leads_waiting %>
+                                        </h3>
+                                        <% if (stats.leads_waiting> 0) { %>
+                                            <div
+                                                class="flex items-center text-xs text-orange-500 font-bold animate-pulse">
+                                                <i class="fa-solid fa-circle-exclamation mr-1"></i>
+                                                <span>Aguardando Ação</span>
                                             </div>
-                                            <% } %>
-                                </div>
-                            </div>
-
-                            <!-- KPI 4: Imóveis -->
-                            <div class="kpi-card group relative overflow-hidden">
-                                <div class="absolute right-0 top-0 p-4 opacity-10 transition-opacity">
-                                    <i class="fa-solid fa-building text-6xl text-blue-500"></i>
-                                </div>
-                                <div class="relative z-10">
-                                    <p class="text-xs font-bold uppercase tracking-wider mb-2"
-                                        style="color: var(--macos-text-secondary);">Total Imóveis</p>
-                                    <h3 class="text-2xl font-bold mb-1" style="color: var(--macos-text-primary);">
-                                        <%= stats.total_imoveis || 0 %>
-                                    </h3>
-                                    <div class="flex items-center text-xs text-blue-500">
-                                        <span>Gestão Ativa</span>
+                                            <% } else { %>
+                                                <div class="flex items-center text-xs text-green-500">
+                                                    <i class="fa-solid fa-check mr-1"></i>
+                                                    <span>Tudo em dia</span>
+                                                </div>
+                                                <% } %>
                                     </div>
                                 </div>
-                            </div>
+                                <% } %>
 
-                            <!-- KPI 5: Blacklist (Novo) -->
-                            <div class="kpi-card group relative overflow-hidden"
-                                title="Leads duplicados (mesmo telefone) filtrados automaticamente da contagem principal.">
-                                <div class="absolute right-0 top-0 p-4 opacity-10 transition-opacity">
-                                    <i class="fa-solid fa-user-shield text-6xl text-red-500"></i>
-                                </div>
-                                <div class="relative z-10">
-                                    <p class="text-xs font-bold uppercase tracking-wider mb-2"
-                                        style="color: var(--macos-text-secondary);">Blacklist / Duplicados</p>
-                                    <h3 class="text-2xl font-bold mb-1" style="color: var(--macos-text-primary);">
-                                        <%= stats.blacklist_count || 0 %>
-                                    </h3>
-                                    <div class="flex items-center text-xs text-red-500 font-medium whitespace-nowrap">
-                                        <i class="fa-solid fa-filter mr-1"></i>
-                                        <span>Retido: <%= Number(stats.blacklist_value || 0).toLocaleString('pt-BR', {
-                                                style: 'currency' , currency: 'BRL' }) %></span>
+                                    <!-- KPI 4: Imóveis -->
+                                    <div class="kpi-card group relative overflow-hidden">
+                                        <div class="absolute right-0 top-0 p-4 opacity-10 transition-opacity">
+                                            <i class="fa-solid fa-building text-6xl text-blue-500"></i>
+                                        </div>
+                                        <div class="relative z-10">
+                                            <p class="text-xs font-bold uppercase tracking-wider mb-2"
+                                                style="color: var(--macos-text-secondary);">Total Imóveis</p>
+                                            <h3 class="text-2xl font-bold mb-1"
+                                                style="color: var(--macos-text-primary);">
+                                                <%= stats.total_imoveis || 0 %>
+                                            </h3>
+                                            <div class="flex items-center text-xs text-blue-500">
+                                                <span>Gestão Ativa</span>
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
-                            </div>
+
+                                    <!-- KPI 5: Blacklist (Novo) -->
+                                    <div class="kpi-card group relative overflow-hidden"
+                                        title="Leads duplicados (mesmo telefone) filtrados automaticamente da contagem principal.">
+                                        <div class="absolute right-0 top-0 p-4 opacity-10 transition-opacity">
+                                            <i class="fa-solid fa-user-shield text-6xl text-red-500"></i>
+                                        </div>
+                                        <div class="relative z-10">
+                                            <p class="text-xs font-bold uppercase tracking-wider mb-2"
+                                                style="color: var(--macos-text-secondary);">Blacklist / Duplicados</p>
+                                            <h3 class="text-2xl font-bold mb-1"
+                                                style="color: var(--macos-text-primary);">
+                                                <%= stats.blacklist_count || 0 %>
+                                            </h3>
+                                            <div
+                                                class="flex items-center text-xs text-red-500 font-medium whitespace-nowrap">
+                                                <i class="fa-solid fa-filter mr-1"></i>
+                                                <span>Retido: <%= Number(stats.blacklist_value ||
+                                                        0).toLocaleString('pt-BR', { style: 'currency' , currency: 'BRL'
+                                                        }) %></span>
+                                            </div>
+                                        </div>
+                                    </div>
                         </div>
                         <% } %>
 
@@ -273,28 +280,30 @@
                                                 <span class="font-medium text-sm"
                                                     style="color: var(--macos-text-primary);">Simular Arremate</span>
                                             </a>
-                                            <a href="/leads"
-                                                class="flex items-center p-3 rounded-lg transition-colors cursor-pointer group hover:bg-opacity-50"
-                                                style="background-color: var(--macos-bg-tertiary); border: 1px solid var(--macos-border);">
-                                                <div
-                                                    class="w-8 h-8 rounded bg-blue-500 flex items-center justify-center text-white mr-3 group-hover:scale-110 transition-transform">
-                                                    <i class="fa-solid fa-users"></i>
-                                                </div>
-                                                <span class="font-medium text-sm"
-                                                    style="color: var(--macos-text-primary);">Ver
-                                                    Oportunidades</span>
-                                            </a>
-                                            <a href="/carteira"
-                                                class="flex items-center p-3 rounded-lg transition-colors cursor-pointer group hover:bg-opacity-50"
-                                                style="background-color: var(--macos-bg-tertiary); border: 1px solid var(--macos-border);">
-                                                <div
-                                                    class="w-8 h-8 rounded bg-green-500 flex items-center justify-center text-white mr-3 group-hover:scale-110 transition-transform">
-                                                    <i class="fa-solid fa-file-contract"></i>
-                                                </div>
-                                                <span class="font-medium text-sm"
-                                                    style="color: var(--macos-text-primary);">Gerar
-                                                    Proposta</span>
-                                            </a>
+                                            <% if (false) { %>
+                                                <a href="/leads"
+                                                    class="flex items-center p-3 rounded-lg transition-colors cursor-pointer group hover:bg-opacity-50"
+                                                    style="background-color: var(--macos-bg-tertiary); border: 1px solid var(--macos-border);">
+                                                    <div
+                                                        class="w-8 h-8 rounded bg-blue-500 flex items-center justify-center text-white mr-3 group-hover:scale-110 transition-transform">
+                                                        <i class="fa-solid fa-users"></i>
+                                                    </div>
+                                                    <span class="font-medium text-sm"
+                                                        style="color: var(--macos-text-primary);">Ver
+                                                        Oportunidades</span>
+                                                </a>
+                                                <% } %>
+                                                    <a href="/carteira"
+                                                        class="flex items-center p-3 rounded-lg transition-colors cursor-pointer group hover:bg-opacity-50"
+                                                        style="background-color: var(--macos-bg-tertiary); border: 1px solid var(--macos-border);">
+                                                        <div
+                                                            class="w-8 h-8 rounded bg-green-500 flex items-center justify-center text-white mr-3 group-hover:scale-110 transition-transform">
+                                                            <i class="fa-solid fa-file-contract"></i>
+                                                        </div>
+                                                        <span class="font-medium text-sm"
+                                                            style="color: var(--macos-text-primary);">Gerar
+                                                            Proposta</span>
+                                                    </a>
                                         </div>
                                     </div>
                                 </div>

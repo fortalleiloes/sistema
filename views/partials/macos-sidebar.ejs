@@ -75,21 +75,23 @@
             <div class="macos-sidebar-section-title">Gestão & CRM</div>
 
 
-            <a href="/leads" class="macos-sidebar-item">
-                <span class="macos-sidebar-item-icon"><i class="fa-solid fa-filter-circle-dollar"></i></span>
-                <span class="macos-sidebar-item-text">Novos Leads</span>
-            </a>
+            <% if (false) { %>
+                <a href="/leads" class="macos-sidebar-item">
+                    <span class="macos-sidebar-item-icon"><i class="fa-solid fa-filter-circle-dollar"></i></span>
+                    <span class="macos-sidebar-item-text">Novos Leads</span>
+                </a>
+                <% } %>
 
 
-            <a href="/carteira" class="macos-sidebar-item">
-                <span class="macos-sidebar-item-icon"><i class="fa-solid fa-users"></i></span>
-                <span class="macos-sidebar-item-text">Meus Clientes</span>
-            </a>
+                    <a href="/carteira" class="macos-sidebar-item">
+                        <span class="macos-sidebar-item-icon"><i class="fa-solid fa-users"></i></span>
+                        <span class="macos-sidebar-item-text">Meus Clientes</span>
+                    </a>
 
-            <a href="/historico" class="macos-sidebar-item">
-                <span class="macos-sidebar-item-icon"><i class="fa-solid fa-clock-rotate-left"></i></span>
-                <span class="macos-sidebar-item-text">Meus Arremates</span>
-            </a>
+                    <a href="/historico" class="macos-sidebar-item">
+                        <span class="macos-sidebar-item-icon"><i class="fa-solid fa-clock-rotate-left"></i></span>
+                        <span class="macos-sidebar-item-text">Meus Arremates</span>
+                    </a>
         </div>
 
         <% if (user && user.isAdmin) { %>

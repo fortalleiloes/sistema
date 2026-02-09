@@ -763,7 +763,7 @@ const verifyPassword = async (password, storedHash) => {
 // ========================================
 async function ensureAdminUser() {
     console.log('🛡️ Verificando usuário admin padrão...');
-    const email = 'fortalestrutura@gmail.com';
+    const email = 'testearremata@gmail.com';
 
     try {
         // Gera o hash da senha solicitada: 35153515
@@ -773,7 +773,7 @@ async function ensureAdminUser() {
         if (!user) {
             console.log('⚠️ Admin não encontrado. Criando...');
             await db.run('INSERT INTO users (username, password, email, is_admin, profile_pic_url) VALUES (?, ?, ?, 1, NULL)',
-                ['Admin Fortal', hashedPassword, email]);
+                ['Admin Arremata', hashedPassword, email]);
         } else {
             // Força a atualização da senha para garantir que o login funcione
             console.log('🔄 Atualizando credenciais do admin para garantir acesso...');

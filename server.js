@@ -763,7 +763,7 @@ const verifyPassword = async (password, storedHash) => {
 // ========================================
 async function ensureAdminUser() {
     console.log('🛡️ Verificando usuário admin padrão...');
-    const email = 'testearremata@gmail.com';
+    const email = 'arremataapp@gmail.com';
 
     try {
         // Gera o hash da senha solicitada: 35153515
